@@ -47,6 +47,7 @@ master.configure(background="gray")
 def deselectNode(node, w, master, x, y):
     global b
     global b_view
+    w.delete(b_view[node])
     b.pop(node)
     b_view.pop(node)
     b.insert(node, Button(master, text = "G"+str(node), command = lambda: selectNode(node, w, master, x, y), bg = "cyan"))
@@ -57,6 +58,7 @@ def deselectNode(node, w, master, x, y):
 def selectNode(node, w, master, x, y):
     global b
     global b_view
+    w.delete(b_view[node])
     b.pop(node)
     b_view.pop(node)
     b.insert(node, Button(master, text = "G"+str(node), command = lambda: deselectNode(node, w, master, x, y), bg = "lime"))
@@ -85,7 +87,13 @@ def removeNode(w,x,y,master):
             #update the number of nodes
             for x in range(number_of_nodes):
                 if(b[x].cget('bg')=="lime"):
+                    print(b_view[x])
+                    print(b_view)
+                    print(x)
                     w.delete(b_view[x])
+                    b_view.pop(x)
+                    print(number_of_nodes)
+                    print(b_view)
                     number_of_nodes = number_of_nodes - 1
 
 
