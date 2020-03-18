@@ -18,17 +18,14 @@ def draw_example(w,x,y,master):
     w.create_circle(200+x,350+y,20)
     w.create_text(200+x,350+y,text="w")
 
-    b1 = Button(master, text = "G1", bg = "cyan", command=lambda : module_call('G1',w, master)) 
+    b1 = Button(master, text = "G1", bg = "cyan", command=lambda : module_call('G1',w, master))
     b1_view = w.create_window(110+x, 265+y, window=b1)
 
-    b2 = Button(master, text = "G2", bg = "cyan", command=lambda : module_call('G2',w,master)) 
+    b2 = Button(master, text = "G2", bg = "cyan", command=lambda : module_call('G2',w,master))
     b2_view = w.create_window(310+x, 265+y, window=b2)
 
-def module_call(module_name,w,master):
-    w.create_text(965,10,text=module_name)
-
 def initialize_display(w,master):
-    m1 = Button(master, text = "Load .mat file") 
+    m1 = Button(master, text = "Load .mat file")
     m1_view = w.create_window(50,20, window=m1)
     m2 = Button(master, text = "Load example", command=lambda : draw_example(w,300,200, master) )
     m2_view = w.create_window(50,50, window=m2)
@@ -39,5 +36,3 @@ def initialize_display(w,master):
 def clear_canvas(w,master):
     w.delete('all')
     initialize_display(w,master)
-
-
