@@ -1,12 +1,16 @@
 # Importing tkinter module
 from tkinter import *
 from exampleLib import *
+from matImport import *
+from tkinter.filedialog import askopenfilename
+import math
 
 #setting global variables
 #global declare is unnecessary since they are declared in the upper script outside any function
 number_of_nodes = 0
 b = []
 b_view = []
+lineStore = []
 
 #variable which indicates if a click means a module add
 clickOperation=0
@@ -20,7 +24,7 @@ Canvas.create_circle = _create_circle
 def initMainMenu(frame, canvas):
 
     #column 0
-    Button(frame, text="load .mat file", height = 1, width=20).grid(row=0, padx=2, pady=2)
+    Button(frame, text="load .mat file", command= lambda: loadMat(draw, master), height = 1, width=20).grid(row=0, padx=2, pady=2)
     Button(frame, text="export .mat file", height = 1, width=20).grid(row=1, padx=2, pady=2)
     Button(frame, text="load example network", command= lambda: draw_example(draw,-10, -150,master), height = 1, width=20).grid(row=2, padx=2, pady=2)
 
@@ -36,6 +40,46 @@ def initSubMenu(frame):
     Button(frame, text="Remove node", command= lambda: removeNode(draw,-10,-150, master),  height = 1, width=20).pack(padx=2, pady=2)
     Button(frame, text="View internals", height = 1, width=20).pack(padx=2, pady=2)
     Button(frame, text="Make known", height = 1, width=20).pack(padx=2, pady=2)
+
+def plotMatrix(mat,draw,master,start):
+    for x in range(len(mat)):
+        stat = 0
+        index = 0
+        arrowModule = 0
+
+        for value in mat[x]:
+            if value != 0:
+                stat = 1
+            index = index + 1
+        if stat == 1:
+            step = (2*math.pi)/index
+            xc = math.cos(step*x)*50+100 + start*200
+            yc = math.sin(step*x)*50+100
+            #print("x: ",x," xc: ",xc," yc:", yc)
+            addNode(draw, xc, yc,master)
+
+        for value in mat[x]:
+            if value != 0:
+                step = (2*math.pi)/index
+                xc = math.cos(step*x)*50+100 + start*200
+                yc = math.sin(step*x)*50+100
+
+                xe = math.cos(step*arrowModule)*50+100 + start*200
+                ye = math.sin(step*arrowModule)*50+100
+                print("start: ",start,"x: ",x," arrowModule: ",arrowModule)
+                lineStore.insert(draw.create_line(xc, yc, xe, ye) x, arrowModule)
+            arrowModule = arrowModule + 1
+
+
+def loadMat(draw,master):
+    filename = askopenfilename()
+    NG, NR, NH = readFile(filename)
+    plotMatrix(NG,draw,master,0)
+    plotMatrix(NR,draw,master,1)
+    plotMatrix(NH,draw,master,2)
+
+    
+
 
 def clearWindow(canvas):
     global number_of_nodes
@@ -107,7 +151,7 @@ def clickEvent(event):
     global clickOperation
     if(clickOperation==1):
         addNode(event.widget, event.x, event.y, master)
-        clickOperation=0;
+        clickOperation=0
 
 
 # creating Tk window
