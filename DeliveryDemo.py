@@ -10,7 +10,6 @@ import math
 number_of_nodes = 0
 b = []
 b_view = []
-lineStore = []
 
 #variable which indicates if a click means a module add
 clickOperation=0
@@ -67,7 +66,8 @@ def plotMatrix(mat,draw,master,start):
                 xe = math.cos(step*arrowModule)*50+100 + start*200
                 ye = math.sin(step*arrowModule)*50+100
                 print("start: ",start,"x: ",x," arrowModule: ",arrowModule)
-                lineStore.insert(draw.create_line(xc, yc, xe, ye) x, arrowModule)
+                draw.create_line(xc, yc, xe, ye)
+                #lineStore.insert(draw.create_line(xc, yc, xe, ye), x, arrowModule)
             arrowModule = arrowModule + 1
 
 
