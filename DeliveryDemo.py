@@ -74,8 +74,11 @@ def plotMatrix(mat,draw,master,start):
                 ye = math.sin(step*arrowModule)*50+100
                 print("start: ",start,"x: ",x," arrowModule: ",arrowModule)
                 #draw.create_line(xc, yc, xe, ye)
-                tempStore = [draw.create_line(xc, yc, xe, ye), x, arrowModule]
-                lineStore.insert(lineNumber,tempStore)
+                tempStore_0 = [draw.create_line(xc, yc, xc, ye), x, arrowModule]
+                lineStore.insert(lineNumber,tempStore_0)
+                lineNumber = lineNumber+1
+                tempStore_1 = [draw.create_line(xc, ye, xe, ye), x, arrowModule]
+                lineStore.insert(lineNumber,tempStore_1)
                 lineNumber = lineNumber+1
             arrowModule = arrowModule + 1
 
