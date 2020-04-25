@@ -1,31 +1,3 @@
-import tkinter as tk
-from tkinter import ttk
-
-root = tk.Tk()
-container = ttk.Frame(root)
-canvas = tk.Canvas(container)
-#test
-scrollbar_y = ttk.Scrollbar(container, orient="vertical",command=canvas.yview)
-scrollbar_x = ttk.Scrollbar(container, orient="horizontal",command=canvas.xview)
-scrollable_frame = ttk.Frame(canvas)
-scrollable_frame.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
-#test
-canvas.create_window((0,0), window=scrollable_frame, anchor="nw")
-canvas.configure(yscrollcommand=scrollbar_y.set)
-canvas.configure(xscrollcommand=scrollbar_x.set)
-
-for i in range(50):
-    ttk.Label(scrollable_frame, text="Sample scrolling label").pack()
-container.pack()
-canvas.pack(side="top", fill="both", expand = True)
-canvas.pack(side="left", fill="both", expand=True)
-scrollbar_y.pack(side="right", fill="y")
-scrollbar_x.pack(side="bottom", fill="x")
-
-root.mainloop()
-
-
-#####
 class AutoScrollbar(Scrollbar):
     ''' A scrollbar that hides itself if it's not needed.
         Works only if you use the grid geometry manager '''
@@ -34,7 +6,7 @@ class AutoScrollbar(Scrollbar):
             self.grid_remove()
         else:
             self.grid()
-        Scrollbar.set(self, lo, hi)
+            Scrollbar.set(self, lo, hi)
 
     def pack(self, **kw):
         raise TclError('Cannot use pack with this widget')
@@ -42,9 +14,9 @@ class AutoScrollbar(Scrollbar):
     def place(self, **kw):
         raise TclError('Cannot use place with this widget')
 
-class Zoom(Frame):
-    ''' Simple zoom with mouse wheel '''
-    def __init__(self, mainframe, path):
+class Zoom_Advanced(Frame):
+    ''' Advanced zoom of the image '''
+    def __init__(self, mainframe):
         ''' Initialize the main Frame '''
         Frame.__init__(self, master=mainframe)
         # Vertical and horizontal scrollbars for canvas
@@ -53,22 +25,34 @@ class Zoom(Frame):
         vbar.grid(row=0, column=1, sticky='ns')
         hbar.grid(row=1, column=0, sticky='we')
         # Create canvas and put image on it
-        self.draw = Canvas(canvas, highlightthickness=0,
-                                xscrollcommand=hbar.set, yscrollcommand=vbar.set)
-        self.draw.grid(row=1, sticky='nswe')
-        vbar.configure(command=self.draw.yview)  # bind scrollbars to the canvas
-        hbar.configure(command=self.draw.xview)
+        self.canvas = draw
+        self.canvas.update()  # wait till canvas is created
+        vbar.configure(command=self.scroll_y)  # bind scrollbars to the canvas
+        hbar.configure(command=self.scroll_x)
         # Make the canvas expandable
         self.master.rowconfigure(0, weight=1)
         self.master.columnconfigure(0, weight=1)
         # Bind events to the Canvas
-        self.draw.bind('<ButtonPress-1>', self.move_from)
+        self.canvas.bind('<ButtonPress-1>', self.move_from)
         self.canvas.bind('<B1-Motion>',     self.move_to)
         self.canvas.bind('<MouseWheel>', self.wheel)  # with Windows and MacOS, but not Linux
-        # Show image and plot some random test rectangles on the canvas
-        # Text is used to set proper coordinates to the image. You can make it invisible.
-        self.text = self.canvas.create_text(0, 0, anchor='nw', text='Scroll to zoom')
-        self.canvas.configure(scrollregion=self.canvas.bbox('all'))
+        self.canvas.bind('i',   self.wheel)  # only with Linux, wheel scroll down
+        self.canvas.bind('o',   self.wheel)  # only with Linux, wheel scroll up
+        self.imscale = 1; #scale for the image
+        self.delta = 1.3  # zoom magnitude
+        self.height = 500
+        self.width = 500
+        # Put image into container rectangle and use it to set proper coordinates to the image
+    #    self.container = self.canvas.create_rectangle(0, 0, self.width, self.height, width=0)
+        # Plot some optional random rectangles for the test purposes
+
+    def scroll_y(self, *args, **kwargs):
+        ''' Scroll canvas vertically and redraw the image '''
+        self.canvas.yview(*args, **kwargs)  # scroll vertically
+
+    def scroll_x(self, *args, **kwargs):
+        ''' Scroll canvas horizontally and redraw the image '''
+        self.canvas.xview(*args, **kwargs)  # scroll horizontally
 
     def move_from(self, event):
         ''' Remember previous coordinates for scrolling with the mouse '''
@@ -80,10 +64,23 @@ class Zoom(Frame):
 
     def wheel(self, event):
         ''' Zoom with mouse wheel '''
-        scale = 1.0
-        # Rescale all canvas objects
         x = self.canvas.canvasx(event.x)
         y = self.canvas.canvasy(event.y)
-        self.canvas.scale('all', x, y, scale, scale)
-        self.canvas.configure(scrollregion=self.canvas.bbox('all'))
-Zoom(master, path = canvas)
+#        bbox = self.canvas.bbox(self.container)  # get image area
+#        if bbox[0] < x < bbox[2] and bbox[1] < y < bbox[3]: pass  # Ok! Inside the image
+#        else: return  # zoom only inside image area
+        scale = 1.0
+#         Respond to Windows (event.delta) wheel event
+        if event.delta == -120:  # scroll down
+            i = min(self.width, self.height)
+            if int(i * self.imscale) < 30: return  # image is less than 30 pixels
+            self.imscale /= self.delta
+            scale        /= self.delta
+        if event.delta == 120:  # scroll up
+            i = min(self.canvas.winfo_width(), self.canvas.winfo_height())
+            if i < self.imscale: return  # 1 pixel is bigger than the visible area
+            self.imscale *= self.delta
+            scale        *= self.delta
+        self.canvas.scale('all', x, y, scale, scale)  # rescale all canvas objects
+
+Zoom_Advanced(master)
