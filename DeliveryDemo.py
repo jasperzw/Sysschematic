@@ -74,10 +74,18 @@ def plotMatrix(mat,draw,master,start):
                 ye = math.sin(step*arrowModule)*50+100
                 print("start: ",start,"x: ",x," arrowModule: ",arrowModule)
                 #draw.create_line(xc, yc, xe, ye)
-                tempStore_0 = [draw.create_line(xc, yc, xc, ye), x, arrowModule]
+                delta_x = 0.5*(xe-xc)
+                delta_y = 0.5*(ye-yc)
+                tempStore_0 = [draw.create_line(xc, yc, xc+delta_x, yc), x, arrowModule]
                 lineStore.insert(lineNumber,tempStore_0)
                 lineNumber = lineNumber+1
-                tempStore_1 = [draw.create_line(xc, ye, xe, ye), x, arrowModule]
+                tempStore_3 = [draw.create_line(xc+delta_x, yc, xc+delta_x, yc+delta_y), x, arrowModule]
+                lineStore.insert(lineNumber,tempStore_3)
+                lineNumber = lineNumber+1
+                tempStore_2 = [draw.create_line(xc+delta_x, yc+delta_y, xe, yc+delta_y), x, arrowModule]
+                lineStore.insert(lineNumber,tempStore_2)
+                lineNumber = lineNumber+1
+                tempStore_1 = [draw.create_line(xe, yc+delta_y, xe, ye), x, arrowModule]
                 lineStore.insert(lineNumber,tempStore_1)
                 lineNumber = lineNumber+1
             arrowModule = arrowModule + 1
@@ -283,6 +291,15 @@ draw.bind("<Button-1>", clickEvent)
 initMainMenu(mainMenu, draw)
 initSubMenu(subMenu)
 
+#creating scrollbars for x and y
+scrollbar_y = Scrollbar(canvas, orient="vertical",command=draw.yview)
+scrollbar_x = Scrollbar(canvas, orient="horizontal",command=draw.xview)
+scrollable_frame = canvas
+scrollable_frame.bind("<Configure>", lambda e: draw.configure(scrollregion=draw.bbox("all")))
+draw.configure(yscrollcommand=scrollbar_y.set)
+draw.configure(xscrollcommand=scrollbar_x.set)
+scrollbar_y.pack(side="right", fill="y")
+scrollbar_x.pack(side="bottom", fill="x")
 
 # canvas aanmaken en even een proef of concept hardcode op het scherm
 #w = Canvas(master, width=1000, height=600)
