@@ -376,12 +376,14 @@ def addWidget(input):
 
 def clickEvent(event):
     global clickOperation
+    x = draw.canvasx(event.x)
+    y = draw.canvasy(event.y)
     if(clickOperation==1):
-        addNode(event.widget, event.x, event.y, master)
+        addNode(event.widget, x, y, master)
         clickOperation=0
 
     if(clickOperation==2):
-        addOutput(event.widget, event.x, event.y, master)
+        addOutput(event.widget, x, y, master)
         clickOperation=0
 
 # creating Tk window
@@ -488,6 +490,7 @@ class Zoom_Advanced(Frame):
 
     def move_from(self, event):
         ''' Remember previous coordinates for scrolling with the mouse '''
+        clickEvent(event)
         self.canvas.scan_mark(event.x, event.y)
 
     def move_to(self, event):
@@ -515,7 +518,7 @@ class Zoom_Advanced(Frame):
             scale        *= self.delta
         self.canvas.scale('all', x, y, scale, scale)  # rescale all canvas objects
 
-Zoom_Advanced(master)
+Zoom_Advanced(draw)
 # canvas aanmaken en even een proef of concept hardcode op het scherm
 #w = Canvas(master, width=1000, height=600)
 #w.pack()
