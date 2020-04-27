@@ -8,11 +8,12 @@ import math
 #setting global variables
 #global declare is unnecessary since they are declared in the upper script outside any function
 number_of_nodes = 0
-b = []
-b_view = []
+btnStore = []
 lineStore = [[]]
 lineNumber = 0
 outputStore = []
+noiseStore = []
+noiseNumber = 0
 outputNumber = 0
 
 #variable which indicates if a click means a module add
@@ -43,6 +44,9 @@ def initSubMenu(frame):
     Button(frame, text="Remove transfer", command= lambda: removeNode(draw, master),  height = 1, width=20).pack(padx=2, pady=2)
     Button(frame, text="add output", command= lambda: addWidget(2), height = 1, width=20).pack(padx=2, pady=2)
     Button(frame, text="remove output", command= lambda: removeOutput(draw, master), height = 1, width=20).pack(padx=2, pady=2)
+    Button(frame, text="add noise", command= lambda: addNoise(), height = 1, width=20).pack(padx=2, pady=2)
+    Button(frame, text="remove noise", command= lambda: removeNoise(), height = 1, width=20).pack(padx=2, pady=2)
+    Button(frame, text="Toggle noise", command= lambda: addWidget(2), height = 1, width=20).pack(padx=2, pady=2)
     Button(frame, text="connect Transfer/module", command= lambda: connect(draw,master), height = 1, width=20).pack(padx=2, pady=2)
 
 def plotMatrix(mat,draw,master,start):
@@ -90,51 +94,142 @@ def loadMat(draw,master):
 
 def clearWindow(canvas):
     global number_of_nodes
-    global b
-    global b_view
+    global outputNumber
+    global btnStore
+    global outputStore
+    global noiseStore
+    global noiseNumber
     canvas.delete("all")
     number_of_nodes = 0
-    b = []
-    b_view = []
+    outputNumber = 0
+    btnStore = []
+    outputStore = []
+    noiseStore = []
+    noiseNumber = 0
 
-#deselct nodes
-def deselectNode(node, w, master, x, y):
-    global b
-    global b_view
-    w.delete(b_view[node])
-    b.pop(node)
-    b_view.pop(node)
-    b.insert(node, Button(master, text = "G"+str(node), command = lambda: selectNode(node, w, master, x, y), bg = "cyan"))
-    b_view.insert(node, w.create_window(x, y, window=b[node]))
+def toggleNoise(noise):
+    global noiseStore
+    global noiseNumber
+    if(noise.stat==1):
+        noiseImgKnown = PhotoImage(file="data/noiseKnown.png")
+        noise.image = noiseImgKnown
+        noise.configure(image=noiseImgKnown)
+        noise.stat=2
+    else:
+        noiseImg = PhotoImage(file="data/noise.png")
+        noise.image = noiseImg
+        noise.configure(image=noiseImg)
+        noise.stat=1
+    
+
+def addNoise():
+    global outputStore
+    global outputNumber
+    global noiseNumber
+    global noiseStore
+
+    switch = 0
+    node = 0
+    for x in range(outputNumber):
+        if(outputStore[x]!=0):
+            if(outputStore[x][1].stat == 2):
+                node = outputStore[x]
+    
+    x = node[2] - 30
+    y = node[3] - 50
+    noiseImg = PhotoImage(file="data/noise.png")
+    noise = Button(master, image = noiseImg, highlightthickness = 0, bd = 0)
+    noise.configure(command = lambda: toggleNoise(noise))
+    noise.image = noiseImg
+    noise.stat = 1
+    save = [draw.create_window(x,y, window=noise),noise,x,y,node[1]]
+
+    if(node!=0):
+        for x in range(noiseNumber):
+            if(noiseStore[x]==0 and switch==0):
+                noiseStore.insert(x,save)
+                switch = 1
+        
+        if(switch==0):  
+            noiseStore.append(save)
+            noiseNumber = noiseNumber + 1
+            print("noise added! number: ",noise)
+    
+def removeNoise():
+    global noiseStore
+    global noiseNumber
+    global outputStore
+    global outputNumber
+    
+    node = 0
+
+    print("trying to remove the noise")
+
+    for x in range(outputNumber):
+        if(outputStore[x]!=0):
+            if(outputStore[x][1].stat == 2):
+                node = outputStore[x]
+                print("found output: ",node)
+    
+    for x in range(noiseNumber):
+        print("scanning: ",noiseStore[x])
+        if(noiseStore[x]!=0):
+            if(noiseStore[x][4] == node[1]):
+                print("removing noise")
+                draw.delete(noiseStore[x][0])
+                noiseStore[x] = 0
+                if(x == noiseNumber):
+                    noiseNumber = noiseNumber - 1
+
+
 
 #select nodes
-def selectNode(node, w, master, x, y):
-    global b
-    global b_view
-    w.delete(b_view[node])
-    b.pop(node)
-    b_view.pop(node)
-    b.insert(node, Button(master, text = "G"+str(node), command = lambda: deselectNode(node, w, master, x, y), bg = "lime"))
-    b_view.insert(node, w.create_window(x, y, window=b[node]))
+def selectNode(node):
+    global btnStore
+    global number_of_nodes
+
+    print("the node which is to be selected", node)
+    if(btnStore[node][1]["bg"]=="cyan"):
+        btnStore[node][1]["bg"]="lime" 
+    else:
+        btnStore[node][1]["bg"]="cyan"
+
 # adding a node
 def addNode(w,x,y,master):
         global number_of_nodes
-        global b
-        global b_view
-        f = number_of_nodes
+        global btnStore
+        node = 0
         #creating node x
-        if(b.count == number_of_nodes):
-            b.extend()
-            b_view.extend()
-        b.insert(number_of_nodes, Button(master, text = "G"+str(number_of_nodes), command = lambda: selectNode(f,w, master, x, y), bg = "cyan"))
-        b_view.insert(number_of_nodes, w.create_window(x, y, window=b[number_of_nodes]))
-        #update the number of nodes
-        number_of_nodes = number_of_nodes + 1
+        
+        if(number_of_nodes==0):
+            btn = Button(master, text = "G"+str(number_of_nodes), command = lambda: selectNode(0) , bg = "cyan")
+            save = [draw.create_window(x, y, window=btn),btn,x,y]
+            btnStore.append(save)
+            number_of_nodes = number_of_nodes + 1
+            print("start initial node")
+
+        else:
+            for m in range(number_of_nodes-1):
+                if(btnStore[m]==0):
+                    node = m
+                    btn = Button(master, text = "G"+str(node), command = lambda: selectNode(node) , bg = "cyan")
+                    save = [draw.create_window(x, y, window=btn),btn,x,y]
+                    btnStore[m] = save
+                    print("added node in existing place")
+            
+            if(number_of_nodes!=0 and node == 0):
+                temp = number_of_nodes
+                btn = Button(master, text = "G"+str(number_of_nodes), command = lambda: selectNode(temp) , bg = "cyan")
+                save = [draw.create_window(x, y, window=btn),btn,x,y]
+                btnStore.append(save)
+                number_of_nodes = number_of_nodes + 1
+                print("appended node to back of list")
+        
+        print(btnStore)
 
 def removeNode(w, master):
         global number_of_nodes
-        global b
-        global b_view
+        global btnStore
         global lineStore
         global lineNumber
 
@@ -142,17 +237,20 @@ def removeNode(w, master):
         #removing last node
         if(number_of_nodes>0):
             #update the number of nodes
-            for x in range(number_of_nodes):
-                if(b[x].cget('bg')=="lime"):
-                    #print(b_view[x])
-                    #print(b_view)
-                    #print(x)
-                    node = x
-                    w.delete(b_view[x])
-                    b_view.pop(x)
-                    #print(number_of_nodes)
-                    #print(b_view)
-                    number_of_nodes = number_of_nodes - 1
+            for x in range(number_of_nodes-1):
+                if(btnStore[x]!=0):
+                    if(btnStore[x][1].cget('bg')=="lime"):
+                        #print(b_view[x])
+                        #print(b_view)
+                        #print(x)
+                        node = x
+                        w.delete(btnStore[x][0])
+                        btnStore[x] = 0
+                        if(x==number_of_nodes-1):
+                            number_of_nodes = number_of_nodes - 1
+                        #print(number_of_nodes)
+                        #print(b_view)
+
 
             print("starting deleting lines at node=",node,"")
             for x in range(lineNumber):
@@ -167,10 +265,11 @@ def addOutput(draw, x, y, master):
         global outputStore
         global outputNumber
         node = 0
-        img1 = PhotoImage(file="data/output.png")
+        img1 = PhotoImage(file="data/outputS.png")
         img1Btn = Button(master, image=img1, highlightthickness = 0, bd = 0)
         img1Btn.configure(command = lambda: selectOutput(img1Btn,draw,master))
         img1Btn.image = img1
+        img1Btn.stat = 1
         img1Btn["border"] = "0"
         save = [draw.create_window(x, y, window=img1Btn),img1Btn,x,y]
         if(outputNumber==0):
@@ -190,14 +289,20 @@ def connect(draw,master):
     global lineNumber
     node1 = 0
     node2 = 0
-    switch = 0
+    transfer = 0
     for x in range(outputNumber):
-        if(outputStore[x][1]["highlightthickness"]==3):
-            if(switch==0):
+        if(outputStore[x][1].stat==2):
+            if(node1!=outputStore[x][1]):
                 node1 = outputStore[x]
-                switch = 1
             else:
                 node2 = outputStore[x]
+    
+    if(node2==0):
+        for x in range(number_of_nodes):
+            if(btnStore[x][1]["bg"] == "lime"):
+                node2 = btnStore[x]
+                transfer = 1
+
 
     print(node1)
     print(node2)
@@ -205,12 +310,15 @@ def connect(draw,master):
     if((node1==node2) or (node1 == 0 or node2 == 0)):
         print("error occured with node selection")
     else:
-
+        
         tempStore = [draw.create_line(node1[2], node1[3], node2[2], node2[3]), node1[1], node2[1]]
         lineStore.insert(lineNumber,tempStore)
         lineNumber = lineNumber+1
-        node1[1].configure(highlightthickness=0)
-        node2[1].configure(highlightthickness=0)
+        selectOutput(node1[1],draw,master)
+        if(transfer==0):
+            selectOutput(node2[1],draw,master)
+        else:
+            node2[1]["bg"] = "cyan"
 
 
 def removeOutput(draw,master):
@@ -218,18 +326,29 @@ def removeOutput(draw,master):
     global outputNumber
     for x in range(outputNumber):
         if(outputStore[x]!=0):
-            if(outputStore[x][1]["highlightthickness"]==3):
+            if(outputStore[x][1].stat == 2):
                 draw.delete(outputStore[x][0])
                 outputStore[x] = 0
 
 def selectOutput(id,draw,master):
-    #imgGreen =  PhotoImage(file="data/outputGreen.png")
-    #id.configure(image=imgGreen)
-    if(id["highlightthickness"]==0):
-        id.configure(highlightthickness=3)
-        print("enabled id:",id["highlightthickness"])
+    #work in progress image swap werkt nog niet
+    if(id.stat==1):
+        imgGreen = PhotoImage(file="data/outputGreenS.png")
+        id.image = imgGreen
+        id.stat = 2
+        id.configure(image=imgGreen)
+        print("setting output green")
     else:
-        id.configure(highlightthickness=0)
+        imgWhite = PhotoImage(file="data/outputS.png")
+        id.image=imgWhite
+        id.stat = 1
+        id.configure(image=imgWhite)
+        print("setting output white")
+    #if(id["highlightthickness"]==0):
+    #    id.configure(highlightthickness=3)
+    #    print("enabled id:",id["highlightthickness"])
+    #else:
+    #    id.configure(highlightthickness=0)
 
 
 def addWidget(input):
@@ -251,6 +370,7 @@ def clickEvent(event):
 master = Tk()
 master.configure(background="gray")
 master.title("Delivery Demo")
+master.geometry("1000x500")
 
 #everything below is to make the screen resizable
 Grid.rowconfigure(master, 0, weight=1)
