@@ -273,6 +273,11 @@ def removeNode(w, master):
                         w.delete(lineStore[x][0])
                         lineStore[x]=0
 
+#            draw.delete(lineStore[temp-1][0])
+#            lineStore[temp-1]=0
+#            removeNode(draw,master)
+
+
 def addOutput(draw, x, y, master):
         global outputStore
         global outputNumber
@@ -283,6 +288,7 @@ def addOutput(draw, x, y, master):
         img1Btn.image = img1
         img1Btn.stat = 1
         img1Btn["border"] = "0"
+
         save = [draw.create_window(x, y, window=img1Btn),img1Btn,x,y]
         if(outputNumber==0):
             outputStore.append(save)
@@ -292,15 +298,19 @@ def addOutput(draw, x, y, master):
             if(outputStore[m]==0):
                 node=m
                 outputStore[m] = save
+                img1Btn.image.text = str(m)
 
         outputStore.append(save)
         outputNumber = outputNumber + 1
 
 def connect(draw,master):
+    global number_of_nodes
+    global btnStore
     global lineStore
     global lineNumber
     node1 = 0
     node2 = 0
+    node3 = 0
     transfer = 0
     for x in range(outputNumber):
         if(outputStore[x][1].stat==2):
@@ -309,18 +319,27 @@ def connect(draw,master):
             elif(node2!=outputStore[x][1]):
                 node2 = outputStore[x]
 
-    print(node1)
-    print(node2)
-
     if((node1==node2) or (node1 == 0 or node2 == 0)):
         print("error occured with node selection")
+
     else:
-        x_transfer = (node2[2] + node1[2])/2
-        y_transfer = (node1[3] + node1[3])/2
-        addNode(draw,x_transfer,y_transfer,master)
-        tempStore = [draw.create_line(node1[2], node1[3], node2[2], node2[3]), node1[1], node2[1]]
-        lineStore.insert(lineNumber,tempStore)
-        lineNumber = lineNumber+1
+        temp = 0
+        for x in range(lineNumber):
+            if(node1[1]==lineStore[x][1] and node2[1]==lineStore[x][2]):
+                temp = x+1
+        #make sure that the connection is not made already
+        #else make the connection
+        if(temp==0):
+            x_transfer = (node2[2] + node1[2])/2
+            y_transfer = (node1[3] + node2[3])/2
+            addNode(draw,x_transfer,y_transfer,master)
+            for x in range(number_of_nodes):
+                if(btnStore[x]!=0):
+                    if(btnStore[x][2==x_transfer] and btnStore[x][3]==y_transfer):
+                        node3 = btnStore[x]
+            tempStore = [draw.create_line(node1[2], node1[3], node2[2], node2[3]), node1[1], node2[1]]
+            lineStore.insert(lineNumber,tempStore)
+            lineNumber = lineNumber+1
         selectOutput(node1[1],draw,master)
         if(transfer==0):
             selectOutput(node2[1],draw,master)
@@ -465,9 +484,6 @@ class Zoom_Advanced(Frame):
         self.delta = 1.3  # zoom magnitude
         self.height = 500
         self.width = 500
-        # Put image into container rectangle and use it to set proper coordinates to the image
-    #    self.container = self.canvas.create_rectangle(0, 0, self.width, self.height, width=0)
-        # Plot some optional random rectangles for the test purposes
 
     def scroll_y(self, *args, **kwargs):
         ''' Scroll canvas vertically and redraw the image '''
@@ -490,9 +506,6 @@ class Zoom_Advanced(Frame):
         ''' Zoom with mouse wheel '''
         x = self.canvas.canvasx(event.x)
         y = self.canvas.canvasy(event.y)
-#        bbox = self.canvas.bbox(self.container)  # get image area
-#        if bbox[0] < x < bbox[2] and bbox[1] < y < bbox[3]: pass  # Ok! Inside the image
-#        else: return  # zoom only inside image area
         scale = 1.0
 #         Respond to Windows (event.delta) wheel event
         if event.delta == -120:  # scroll down
