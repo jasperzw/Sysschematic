@@ -321,27 +321,33 @@ def addOutput(draw, x, y, master):
         node = 0
         img1 = PhotoImage(file="data/outputS.png")
         img1Btn = Button(master, image=img1, highlightthickness = 0, bd = 0)
-        img1Btn.configure(command = lambda: selectOutput(img1Btn,draw,master))
+        nmb = Label(master, text="0", bg="white")
+        img1Btn.configure(command = lambda: selectOutput(img1Btn))
         img1Btn.image = img1
         img1Btn.stat = 1
         img1Btn["border"] = "0"
 
-        save = [draw.create_window(x, y, window=img1Btn),img1Btn,x,y]
-        #initial output
-        if(outputNumber==0):
-            outputStore.append(save)
-            outputNumber = outputNumber + 1
+
+        save = [draw.create_window(x, y, window=img1Btn),img1Btn,x,y,draw.create_window(x+10,y+5,window=nmb),nmb]
 
         #earch if their is a empty entry.
         for m in range(outputNumber):
             if(outputStore[m]==0):
                 node=m
+                nmb.configure(text=str(m))
                 outputStore[m] = save
                 img1Btn.image.text = str(m)
                 switch = 1
 
+                #initial output
+        if(outputNumber==0):
+            outputStore.append(save)
+            outputNumber = outputNumber + 1
+            switch = 1
+
         #append if no empty entry
         if(switch==0):
+            nmb.configure(text=str(outputNumber))
             outputStore.append(save)
             outputNumber = outputNumber + 1
 
@@ -356,19 +362,29 @@ def removeOutput(draw,master):
                 draw.delete(outputStore[x][0])
                 outputStore[x] = 0
 
-def selectOutput(id,draw,master):
+def selectOutput(id):
     #each output has a stat variable which indicates state. stat == 1 is not selected, stat == 2 is selected
     #work in progress image swap werkt nog niet
+    nmb = 0
+    #finding corresponding label
+    for x in range(outputNumber):
+        if(outputStore[x]!=0):
+            if(outputStore[x][1]==id):
+                nmb=outputStore[x][5]
+
+
     if(id.stat==1):
         imgGreen = PhotoImage(file="data/outputGreenS.png")
         id.image = imgGreen
         id.stat = 2
+        nmb.configure(bg="limegreen")
         id.configure(image=imgGreen)
         print("setting output green")
     else:
         imgWhite = PhotoImage(file="data/outputS.png")
         id.image=imgWhite
         id.stat = 1
+        nmb.configure(bg="white")
         id.configure(image=imgWhite)
         print("setting output white")
 
@@ -404,7 +420,6 @@ def connectCall(draw,master):
     node1 = 0
     node2 = 0
     node3 = 0
-    transfer = 0
 
     #serach first for selected outputs
     for x in range(outputNumber):
@@ -436,11 +451,8 @@ def connectCall(draw,master):
             tempStore = [draw.create_line(node1[2], node1[3], node2[2], node2[3]), node1[1], node2[1]]
             lineStore.insert(lineNumber,tempStore)
             lineNumber = lineNumber+1
-        selectOutput(node1[1],draw,master)
-        if(transfer==0):
-            selectOutput(node2[1],draw,master)
-        else:
-            node2[1]["bg"] = "cyan"
+            selectOutput(node1[1])
+            selectOutput(node2[1])
 
 def addWidget(input):
     #set the clickOperation variable
