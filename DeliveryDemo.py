@@ -54,7 +54,7 @@ def initSubMenu(frame):
     Button(frame, text="Remove transfer", command= lambda: removeNode(draw, master),  height = 1, width=20).pack(padx=2, pady=2)
     Button(frame, text="add output", command= lambda: addWidget(2), height = 1, width=20).pack(padx=2, pady=2)
     Button(frame, text="remove output", command= lambda: removeOutput(draw, master), height = 1, width=20).pack(padx=2, pady=2)
-    Button(frame, text="add noise", command= lambda: addNoise(master, draw), height = 1, width=20).pack(padx=2, pady=2)
+    Button(frame, text="add noise", command= lambda: addNoiseCall(master, draw), height = 1, width=20).pack(padx=2, pady=2)
     Button(frame, text="remove noise", command= lambda: removeNoise(master, draw), height = 1, width=20).pack(padx=2, pady=2)
     Button(frame, text="Toggle noise", command= lambda: addWidget(2), height = 1, width=20).pack(padx=2, pady=2)
     Button(frame, text="connect Transfer/module", command= lambda: connectCall(draw,master), height = 1, width=20).pack(padx=2, pady=2)
@@ -64,36 +64,39 @@ def loadMat(draw,master):
     global connect
     global lineNumber
     global lineStore
+    global outputStore
     filename = askopenfilename()
     NG, NR, NH = readFile(filename)
-    lotMatrix(NG,draw,master,0)
-    print(connect)
-    #plotMatrix(NR,draw,master,1)
-    #plotMatrix(NH,draw,master,2)
+    plotMatrix(NG,NR,NH,draw,master)
 
-def plotMatrix(mat,draw,master,start):
+def plotMatrix(NG,NR,NH,draw,master):
     global lineNumber
     global lineStore
-    global connect
-    connect = []
-
+    nmbOutputs = len(NG)
     #below function will read through the mat file and try to find how many modules their are
-    for x in range(len(mat)):
-        stat = 0
-        index = 0
-        arrowModule = 0
-        for value in mat[x]:
-            if value != 0:
-                stat = 1
-            index = index + 1
-        if stat == 1:
-            #plot each function in a circle
-            step = (2*math.pi)/index
-            xc = math.cos(step*x)*50+100 + start*200
-            yc = math.sin(step*x)*50+100
-            #print("x: ",x," xc: ",xc," yc:", yc)
-            addNode(draw, xc, yc,master)
-            #connect each part
+    #plot each function in a circle
+    step = (2*math.pi)/nmbOutputs
+    for x in range(nmbOutputs):
+        xc = math.cos(step*x)*200+300
+        yc = math.sin(step*x)*200+300
+        addOutput(draw, xc, yc,master)
+
+    #make all the connectiosn tussen connectOutputs
+    for x in range(nmbOutputs):
+        for y in range(nmbOutputs):
+            if(NG[x][y]==1):
+                node1 = outputStore[y]
+                node2 = outputStore[x]
+                connectOutputs(node1,node2,draw,master)
+
+    for x in range(nmbOutputs):
+        for y in range(nmbOutputs):
+            if(NH[x][y]==1):
+                addNoise(outputStore[x],master,draw)
+
+    #connecting each output is below
+
+"""
         for value in range(len(mat[x])):
             if (mat[x,value] == 1):
                 add = 1;
@@ -118,7 +121,7 @@ def plotMatrix(mat,draw,master,start):
                         tempStore_0 = [draw.create_line(xc, yc, xe, ye), x, arrowModule]
                         lineStore.insert(lineNumber,tempStore_0)
                         lineNumber = lineNumber+1
-
+"""
 
 
 """
@@ -237,13 +240,13 @@ def toggleNoise(noise):
         noise.stat=1
 
 
-def addNoise(master, draw):
+def addNoiseCall(master, draw):
     global outputStore
     global outputNumber
     global noiseNumber
     global noiseStore
 
-    switch = 0
+
     node = 0
     #find output which is selected and save it to node
     for x in range(outputNumber):
@@ -251,7 +254,14 @@ def addNoise(master, draw):
         if(outputStore[x]!=0):
             if(outputStore[x][1].stat == 2):
                 node = outputStore[x]
+                addNoise(node,master,draw)
 
+def addNoise(node,master, draw):
+    global outputStore
+    global outputNumber
+    global noiseNumber
+    global noiseStore
+    switch = 0
     #move the x y to left above the center of the output
     x = node[2] - 30
     y = node[3] - 50
@@ -359,6 +369,7 @@ def removeOutput(draw,master):
     for x in range(outputNumber):
         if(outputStore[x]!=0):
             if(outputStore[x][1].stat == 2):
+                draw.delete(outputStore[x][4])
                 draw.delete(outputStore[x][0])
                 outputStore[x] = 0
 
@@ -411,7 +422,7 @@ def clearWindow(canvas):
     noiseNumber = 0
 
 
-#select nodes
+#Deze functie word aangeroepen van uit het menu en haalt dan 2 nodes er uit die hij door geeft aan connectoutput
 def connectCall(draw,master):
     global number_of_nodes
     global btnStore
@@ -434,25 +445,33 @@ def connectCall(draw,master):
         print("error occured with node selection")
 
     else:
-        temp = 0
-        for x in range(lineNumber):
-            if(node1[1]==lineStore[x][1] and node2[1]==lineStore[x][2]):
-                temp = x+1
-        #make sure that the connection is not made already
-        #else make the connection
-        if(temp==0):
-            x_transfer = (node2[2] + node1[2])/2
-            y_transfer = (node1[3] + node2[3])/2
-            addNode(draw,x_transfer,y_transfer,master)
-            for x in range(number_of_nodes):
-                if(btnStore[x]!=0):
-                    if(btnStore[x][2==x_transfer] and btnStore[x][3]==y_transfer):
-                        node3 = btnStore[x]
-            tempStore = [draw.create_line(node1[2], node1[3], node2[2], node2[3]), node1[1], node2[1]]
-            lineStore.insert(lineNumber,tempStore)
-            lineNumber = lineNumber+1
-            selectOutput(node1[1])
-            selectOutput(node2[1])
+        connectOutputs(node1,node2,draw,master)
+        selectOutput(node1[1])
+        selectOutput(node2[1])
+
+#connect outputs is nu 2 functies zodat je via plotmatrix ook connectOutputs direct kan aangroepen
+def connectOutputs(node1,node2,draw,master):
+    global number_of_nodes
+    global btnStore
+    global lineStore
+    global lineNumber
+    temp = 0
+    for x in range(lineNumber):
+        if(node1[1]==lineStore[x][1] and node2[1]==lineStore[x][2]):
+            temp = x+1
+    #make sure that the connection is not made already
+    #else make the connection
+    if(temp==0):
+        x_transfer = (node2[2] + node1[2])/2
+        y_transfer = (node1[3] + node2[3])/2
+        addNode(draw,x_transfer,y_transfer,master)
+        for x in range(number_of_nodes):
+            if(btnStore[x]!=0):
+                if(btnStore[x][2==x_transfer] and btnStore[x][3]==y_transfer):
+                    node3 = btnStore[x]
+        tempStore = [draw.create_line(node1[2], node1[3], node2[2], node2[3]), node1[1], node2[1]]
+        lineStore.insert(lineNumber,tempStore)
+        lineNumber = lineNumber+1
 
 def addWidget(input):
     #set the clickOperation variable
