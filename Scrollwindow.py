@@ -1,3 +1,5 @@
+from tkinter import *
+
 class AutoScrollbar(Scrollbar):
     ''' A scrollbar that hides itself if it's not needed.
         Works only if you use the grid geometry manager '''
@@ -25,7 +27,7 @@ class Zoom_Advanced(Frame):
         vbar.grid(row=0, column=1, sticky='ns')
         hbar.grid(row=1, column=0, sticky='we')
         # Create canvas and put image on it
-        self.canvas = draw
+        self.canvas = mainframe
         self.canvas.update()  # wait till canvas is created
         vbar.configure(command=self.scroll_y)  # bind scrollbars to the canvas
         hbar.configure(command=self.scroll_x)
@@ -34,7 +36,7 @@ class Zoom_Advanced(Frame):
         self.master.columnconfigure(0, weight=1)
         # Bind events to the Canvas
         self.canvas.bind('<ButtonPress-1>', self.move_from)
-        self.canvas.bind('<B1-Motion>',     self.move_to)
+        self.canvas.bind('<B1-Motion>', self.move_to)
         self.canvas.bind('<MouseWheel>', self.wheel)  # with Windows and MacOS, but not Linux
         self.canvas.bind('i',   self.wheel)  # only with Linux, wheel scroll down
         self.canvas.bind('o',   self.wheel)  # only with Linux, wheel scroll up
@@ -82,5 +84,3 @@ class Zoom_Advanced(Frame):
             self.imscale *= self.delta
             scale        *= self.delta
         self.canvas.scale('all', x, y, scale, scale)  # rescale all canvas objects
-
-Zoom_Advanced(master)
