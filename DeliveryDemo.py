@@ -76,38 +76,32 @@ def plotMatrix(mat,draw,master,start):
                 add = 1;
                 if(len(connect)!=0):
                     for var_x in range(len(connect)):
-                        if(connect[var_x]==str(value)+str(x)):
-                            add = 0
                         if(connect[var_x]==str(x)+str(value)):
                             add = 0
                 if(add==1):
-                    if(x>value):
-                        connect.append(str(value)+str(x))
-                        connect.sort()
-                    else:
                         connect.append(str(x)+str(value))
                         connect.sort()
-                    step = (2*math.pi)/index
-                    xc = math.cos(step*x)*50+100 + start*200
-                    yc = math.sin(step*x)*50+100
+                        step = (2*math.pi)/index
+                        xc = math.cos(step*x)*50+100 + start*200
+                        yc = math.sin(step*x)*50+100
 
-                    xe = math.cos(step*value)*50+100 + start*200
-                    ye = math.sin(step*value)*50+100
-                    arrowModule = value
-                    print("start: ",start,"x: ",x," arrowModule: ",arrowModule)
+                        xe = math.cos(step*value)*50+100 + start*200
+                        ye = math.sin(step*value)*50+100
+                        arrowModule = value
+                        print("start: ",start,"x: ",x," arrowModule: ",arrowModule)
             #draw.create_line(xc, yc, xe, ye)
-                    delta_x = 0.5*(xe-xc)
-                    delta_y = 0.5*(ye-yc)
-                    tempStore_0 = [draw.create_line(xc, yc, xe, ye), x, arrowModule]
-                    lineStore.insert(lineNumber,tempStore_0)
-                    lineNumber = lineNumber+1
-
+                        delta_x = 0.5*(xe-xc)
+                        delta_y = 0.5*(ye-yc)
+                        tempStore_0 = [draw.create_line(xc, yc, xe, ye), x, arrowModule]
+                        lineStore.insert(lineNumber,tempStore_0)
+                        lineNumber = lineNumber+1
 
 def loadMat(draw,master):
     global connect
     filename = askopenfilename()
     NG, NR, NH = readFile(filename)
     plotMatrix(NG,draw,master,0)
+    print(connect)
     #plotMatrix(NR,draw,master,1)
     #plotMatrix(NH,draw,master,2)
 
@@ -140,7 +134,7 @@ def toggleNoise(noise):
         noise.image = noiseImg
         noise.configure(image=noiseImg)
         noise.stat=1
-    
+
 
 def addNoise():
     global outputStore
@@ -154,7 +148,7 @@ def addNoise():
         if(outputStore[x]!=0):
             if(outputStore[x][1].stat == 2):
                 node = outputStore[x]
-    
+
     x = node[2] - 30
     y = node[3] - 50
     noiseImg = PhotoImage(file="data/noise.png")
@@ -169,18 +163,18 @@ def addNoise():
             if(noiseStore[x]==0 and switch==0):
                 noiseStore.insert(x,save)
                 switch = 1
-        
-        if(switch==0):  
+
+        if(switch==0):
             noiseStore.append(save)
             noiseNumber = noiseNumber + 1
             print("noise added! number: ",noise)
-    
+
 def removeNoise():
     global noiseStore
     global noiseNumber
     global outputStore
     global outputNumber
-    
+
     node = 0
 
     print("trying to remove the noise")
@@ -190,7 +184,7 @@ def removeNoise():
             if(outputStore[x][1].stat == 2):
                 node = outputStore[x]
                 print("found output: ",node)
-    
+
     for x in range(noiseNumber):
         print("scanning: ",noiseStore[x])
         if(noiseStore[x]!=0):
@@ -210,7 +204,7 @@ def selectNode(node):
 
     print("the node which is to be selected", node)
     if(btnStore[node][1]["bg"]=="cyan"):
-        btnStore[node][1]["bg"]="lime" 
+        btnStore[node][1]["bg"]="lime"
     else:
         btnStore[node][1]["bg"]="cyan"
 
@@ -220,7 +214,7 @@ def addNode(w,x,y,master):
         global btnStore
         node = 0
         #creating node x
-        
+
         if(number_of_nodes==0):
             btn = Button(master, text = "G"+str(number_of_nodes), command = lambda: selectNode(0) , bg = "cyan")
             save = [draw.create_window(x, y, window=btn),btn,x,y]
@@ -236,7 +230,7 @@ def addNode(w,x,y,master):
                     save = [draw.create_window(x, y, window=btn),btn,x,y]
                     btnStore[m] = save
                     print("added node in existing place")
-            
+
             if(number_of_nodes!=0 and node == 0):
                 temp = number_of_nodes
                 btn = Button(master, text = "G"+str(number_of_nodes), command = lambda: selectNode(temp) , bg = "cyan")
@@ -244,7 +238,7 @@ def addNode(w,x,y,master):
                 btnStore.append(save)
                 number_of_nodes = number_of_nodes + 1
                 print("appended node to back of list")
-        
+
         print(btnStore)
 
 def removeNode(w, master):
@@ -281,6 +275,11 @@ def removeNode(w, master):
                         w.delete(lineStore[x][0])
                         lineStore[x]=0
 
+#            draw.delete(lineStore[temp-1][0])
+#            lineStore[temp-1]=0
+#            removeNode(draw,master)
+
+
 def addOutput(draw, x, y, master):
         global outputStore
         global outputNumber
@@ -291,6 +290,7 @@ def addOutput(draw, x, y, master):
         img1Btn.image = img1
         img1Btn.stat = 1
         img1Btn["border"] = "0"
+
         save = [draw.create_window(x, y, window=img1Btn),img1Btn,x,y]
         if(outputNumber==0):
             outputStore.append(save)
@@ -300,40 +300,48 @@ def addOutput(draw, x, y, master):
             if(outputStore[m]==0):
                 node=m
                 outputStore[m] = save
+                img1Btn.image.text = str(m)
 
         outputStore.append(save)
         outputNumber = outputNumber + 1
 
 def connectCall(draw,master):
+    global number_of_nodes
+    global btnStore
     global lineStore
     global lineNumber
     node1 = 0
     node2 = 0
+    node3 = 0
     transfer = 0
     for x in range(outputNumber):
         if(outputStore[x][1].stat==2):
-            if(node1!=outputStore[x][1]):
+            if(outputStore[x][1]!=node1 and node1==0):
                 node1 = outputStore[x]
-            else:
+            elif(node2!=outputStore[x][1]):
                 node2 = outputStore[x]
-    
-    if(node2==0):
-        for x in range(number_of_nodes):
-            if(btnStore[x][1]["bg"] == "lime"):
-                node2 = btnStore[x]
-                transfer = 1
-
-
-    print(node1)
-    print(node2)
 
     if((node1==node2) or (node1 == 0 or node2 == 0)):
         print("error occured with node selection")
+
     else:
-        
-        tempStore = [draw.create_line(node1[2], node1[3], node2[2], node2[3]), node1[1], node2[1]]
-        lineStore.insert(lineNumber,tempStore)
-        lineNumber = lineNumber+1
+        temp = 0
+        for x in range(lineNumber):
+            if(node1[1]==lineStore[x][1] and node2[1]==lineStore[x][2]):
+                temp = x+1
+        #make sure that the connection is not made already
+        #else make the connection
+        if(temp==0):
+            x_transfer = (node2[2] + node1[2])/2
+            y_transfer = (node1[3] + node2[3])/2
+            addNode(draw,x_transfer,y_transfer,master)
+            for x in range(number_of_nodes):
+                if(btnStore[x]!=0):
+                    if(btnStore[x][2==x_transfer] and btnStore[x][3]==y_transfer):
+                        node3 = btnStore[x]
+            tempStore = [draw.create_line(node1[2], node1[3], node2[2], node2[3]), node1[1], node2[1]]
+            lineStore.insert(lineNumber,tempStore)
+            lineNumber = lineNumber+1
         selectOutput(node1[1],draw,master)
         if(transfer==0):
             selectOutput(node2[1],draw,master)
