@@ -84,3 +84,16 @@ class Zoom_Advanced(Frame):
             self.imscale *= self.delta
             scale        *= self.delta
         self.canvas.scale('all', x, y, scale, scale)  # rescale all canvas objects
+
+class popupWindow(object):
+    def __init__(self,master):
+        top=self.top=Toplevel(master)
+        self.l=Label(top,text="enter the external or noise source")
+        self.l.pack()
+        self.e=Entry(top)
+        self.e.pack()
+        self.b=Button(top,text='Ok',command=self.cleanup)
+        self.b.pack()
+    def cleanup(self):
+        self.value=self.e.get()
+        self.top.destroy()
