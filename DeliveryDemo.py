@@ -91,10 +91,14 @@ def plotMatrix(NG,NR,NH,draw,master):
     nmbOutputs = len(NG)
     #below function will read through the mat file and try to find how many modules their are
     #plot each function in a circle
+
+    #change to increase the circle size
+    circleSize = 300
+
     step = (2*math.pi)/nmbOutputs
     for x in range(nmbOutputs):
-        xc = math.cos(step*x)*200+300
-        yc = math.sin(step*x)*200+300
+        xc = math.cos(step*x)*circleSize+300
+        yc = math.sin(step*x)*circleSize+300
         addOutput(draw, xc, yc,master)
 
     #make all the connectiosn tussen connectOutputs
@@ -655,7 +659,7 @@ def connectOutputs(node1,node2,draw,master):
         #draw the arrow
 
         gamma = 45/2 #adjust the angle of the arrow
-        length_arrow = 50 #adjust the lenght of the arrow
+        length_arrow = 20 #adjust the lenght of the arrow
 
         sign_2 = 1
         if(node1[2]>node2[2]):
