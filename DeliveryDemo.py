@@ -27,6 +27,9 @@ noiseStore = []
 connect = []
 noiseNumber = 0
 outputNumber = 0
+excitationStore = []
+excitationNumber = 0
+currentAmountOutputSelected = 1 #this variable is so we know the order that outputs are connected. it is not zero because unselected are 0
 #global declare is unnecessary since they are declared in the upper script outside any function
 #variable which indicates if a click means a module add
 clickOperation=0
@@ -41,7 +44,7 @@ def initMainMenu(frame, canvas):
 
     #column 0
     Button(frame, text="load .mat file", command= lambda: loadMat(draw, master), height = 1, width=20).grid(row=0, padx=2, pady=2)
-    Button(frame, text="export .mat file", height = 1, width=20).grid(row=1, padx=2, pady=2)
+    Button(frame, text="export .mat file", command= lambda: toAdjecencyMatrix(draw, master), height = 1, width=20).grid(row=1, padx=2, pady=2)
     Button(frame, text="load example network", command= lambda: draw_example(draw,-10, -150,master), height = 1, width=20).grid(row=2, padx=2, pady=2)
 
     #column 1
@@ -51,15 +54,26 @@ def initMainMenu(frame, canvas):
 
 #same as main menu initializes the submenu
 def initSubMenu(frame):
-    Label(frame, text="currently selected:", bg="gray").pack()
-    Button(frame, text="Add transfer", command= lambda: addWidget(1), height = 1, width=20).pack(padx=2, pady=2)
+    #Label(frame, text="currently selected:", bg="gray").pack()
+    #Button(frame, text="Add transfer", command= lambda: addWidget(1), height = 1, width=20).pack(padx=2, pady=2)
+    Button(frame, text="connect Transfer/module", command= lambda: connectCall(draw,master), height = 1, width=20).pack(padx=2, pady=2)
     Button(frame, text="Remove transfer", command= lambda: removeNode(draw, master),  height = 1, width=20).pack(padx=2, pady=2)
     Button(frame, text="add output", command= lambda: addWidget(2), height = 1, width=20).pack(padx=2, pady=2)
     Button(frame, text="remove output", command= lambda: removeOutput(draw, master), height = 1, width=20).pack(padx=2, pady=2)
-    Button(frame, text="add noise", command= lambda: addNoiseCall(master, draw), height = 1, width=20).pack(padx=2, pady=2)
-    Button(frame, text="remove noise", command= lambda: removeNoise(master, draw), height = 1, width=20).pack(padx=2, pady=2)
-    Button(frame, text="Toggle noise", command= lambda: addWidget(2), height = 1, width=20).pack(padx=2, pady=2)
-    Button(frame, text="connect Transfer/module", command= lambda: connectCall(draw,master), height = 1, width=20).pack(padx=2, pady=2)
+    Button(frame, text="add noise", command= lambda: addNHCall(master, draw,0), height = 1, width=20).pack(padx=2, pady=2)
+    Button(frame, text="remove noise", command= lambda: removeNH(master, draw,0), height = 1, width=20).pack(padx=2, pady=2)
+    Button(frame, text="add external excitation", command= lambda: addNHCall(master, draw,1), height = 1, width=20).pack(padx=2, pady=2)
+    Button(frame, text="remove external excitation", command= lambda: removeNH(master, draw,1), height = 1, width=20).pack(padx=2, pady=2)
+    #Button(frame, text="Toggle noise", command= lambda: addWidget(2), height = 1, width=20).pack(padx=2, pady=2)
+
+"""
+below are all the functions for
+
+-------------------------------------------------------- Adjecency Matrix --------------------------------------------------------
+
+used to plot adjency matrix and return everything to Adjecency matrix
+"""
+
 
 # Load mat will move everything in from the specific mat file.
 def loadMat(draw,master):
@@ -93,38 +107,73 @@ def plotMatrix(NG,NR,NH,draw,master):
 
     for x in range(nmbOutputs):
         for y in range(nmbOutputs):
+            if(NR[x][y]==1):
+                addNH(outputStore[x],master,draw,0,y)
+
+    for x in range(nmbOutputs):
+        for y in range(nmbOutputs):
             if(NH[x][y]==1):
-                addNoise(outputStore[x],master,draw)
+                addNH(outputStore[x],master,draw,1,y)
 
     #connecting each output is below
 
-"""
-        for value in range(len(mat[x])):
-            if (mat[x,value] == 1):
-                add = 1;
-                if(len(connect)!=0):
-                    for var_x in range(len(connect)):
-                        if(connect[var_x]==str(x)+str(value)):
-                            add = 0
-                if(add==1):
-                        connect.append(str(x)+str(value))
-                        connect.sort()
-                        step = (2*math.pi)/index
-                        xc = math.cos(step*x)*50+100 + start*200
-                        yc = math.sin(step*x)*50+100
+def toAdjecencyMatrix(draw,master):
+    NG = []
+    NR = []
+    NH = []
 
-                        xe = math.cos(step*value)*50+100 + start*200
-                        ye = math.sin(step*value)*50+100
-                        arrowModule = value
-                        print("start: ",start,"x: ",x," arrowModule: ",arrowModule)
-            #draw.create_line(xc, yc, xe, ye)
-                        delta_x = 0.5*(xe-xc)
-                        delta_y = 0.5*(ye-yc)
-                        tempStore_0 = [draw.create_line(xc, yc, xe, ye), x, arrowModule]
-                        lineStore.insert(lineNumber,tempStore_0)
-                        lineNumber = lineNumber+1
-"""
+    #set everything first to zero
+    for x in range(outputNumber):
+        new = []
+        for y in range(outputNumber):
+            new.append(0)
+        NG.append(new)
+        new = []
+        for y in range(noiseNumber):
+            new.append(0)
+        NR.append(new)
+        new = []
+        for y in range(excitationNumber):
+            new.append(0)
+        NH.append(new)
 
+    #create NG matrix
+    for x in range(outputNumber):
+        if(outputStore[x]!=0):
+            currentOutput = outputStore[x][1]
+            #check for connections to create NG
+            for y in range(lineNumber):
+                print("now scanning for node: ",x," at linestore: ",lineStore[y]," for button: ",currentOutput)
+                if(lineStore[y]!=0):
+                    if(lineStore[y][2]==currentOutput):
+                        #found a lineconnection to currentOutput
+                        nodeB = lineStore[y][1]
+                        print(nodeB.nmb)
+                        NG[x][nodeB.nmb] = 1
+
+            for y in range(noiseNumber):
+                if(noiseStore[y]!=0):
+                    if(noiseStore[y][4]==currentOutput):
+                        noise = noiseStore[y][1]
+                        nmb = int(noise.nmb)
+                        print("noise: ",noise.nmb)
+                        NR[x][nmb] = 1
+
+            for y in range(excitationNumber):
+                if(excitationStore[y]!=0):
+                    if(excitationStore[y][4]==currentOutput):
+                        excitation = excitationStore[y][1]
+                        nmb = int(excitation.nmb)
+                        NH[x][nmb] = 1
+    print("NG is generated as following:")
+    for value in NG:
+        print(value)
+    print("NR is generated as following:")
+    for value in NR:
+        print(value)
+    print("NH is generated as following:")
+    for value in NH:
+        print(value)
 
 """
 Below we have the subsection of:
@@ -223,77 +272,130 @@ def removeNode(w, master):
 """
 below are the functions regarding
 
--------------------------------------------------------- noise --------------------------------------------------------
+-------------------------------------------------------- noise and excitation--------------------------------------------------------
+
+important note! these functions are a bit rewritten to allow both external signals and noise manipulations. NorH = 0 is noise and NorH = 1 is excitation. Because if(var) is true if
+var = 1 it becomes that if(NorH) is true when we add a excitation signal. We use this to make the below function availible for both signals. first we load in noise because it is most used
+and therefor the fastes one and change it if needed for excitation
 """
 
-def toggleNoise(noise):
+def toggleNH(noise,NorH):
     global noiseStore
     global noiseNumber
+
+    nmb = 0
+    selectNumber = noiseNumber
+    selectStore = noiseStore
+    if(NorH):
+        selectNumber = excitationNumber
+        selectStore = excitationStore
+
+    for x in range(selectNumber):
+        if(selectStore[x]!=0):
+            if(selectStore[x][1]==noise):
+                nmb=selectStore[x][6]
     #switch color base on stat variable bound to the noise.
     if(noise.stat==1):
         noiseImgKnown = PhotoImage(file="data/noiseKnown.png")
+        if(NorH):
+            noiseImgKnown = PhotoImage(file="data/signalKnown.png")
         noise.image = noiseImgKnown
+        nmb.configure(bg="blue")
+        if(NorH):
+            nmb.configure(bg="red")
         noise.configure(image=noiseImgKnown)
         noise.stat=2
     else:
         noiseImg = PhotoImage(file="data/noise.png")
+        if(NorH):
+            noiseImg = PhotoImage(file="data/signal.png")
         noise.image = noiseImg
+        nmb.configure(bg="white")
+        if(NorH):
+            nmb.configure(bg="yellow")
         noise.configure(image=noiseImg)
         noise.stat=1
 
 
-def addNoiseCall(master, draw):
+def addNHCall(master, draw,NorH):
     global outputStore
     global outputNumber
     global noiseNumber
     global noiseStore
 
-
+    call = popupWindow(master)
+    master.wait_window(call.top)
     node = 0
+    nmb = call.value
     #find output which is selected and save it to node
     for x in range(outputNumber):
         print(outputStore[x])
         if(outputStore[x]!=0):
             if(outputStore[x][1].stat == 2):
                 node = outputStore[x]
-                addNoise(node,master,draw)
+                addNH(node,master,draw,NorH,nmb)
 
-def addNoise(node,master, draw):
+def addNH(node,master, draw,NorH,nmb):
     global outputStore
     global outputNumber
     global noiseNumber
     global noiseStore
+    global excitationStore
+    global excitationNumber
     switch = 0
+    print("NorH: ",NorH)
     #move the x y to left above the center of the output
     x = node[2] - 30
     y = node[3] - 50
+    if(NorH==1):
+        x = node[2] + 30
+        y = node[3] - 50
+
 
     #creating noise button
     noiseImg = PhotoImage(file="data/noise.png")
+    if(NorH):
+        noiseImg = PhotoImage(file="data/signal.png")
     noise = Button(master, image = noiseImg, highlightthickness = 0, bd = 0)
-    noise.configure(command = lambda: toggleNoise(noise))
+    nmbLabel = Label(master, text=str(nmb), bg="white")
+    if(NorH):
+        nmbLabel.configure(bg="yellow")
+    noise.configure(command = lambda: toggleNH(noise,NorH))
     noise.image = noiseImg
     noise.stat = 1
-    save = [draw.create_window(x,y, window=noise),noise,x,y,node[1]]
+    noise.nmb = nmb
+    save = [draw.create_window(x,y, window=noise),noise,x,y,node[1],draw.create_window(x,y,window=nmbLabel),nmbLabel]
 
     #store noise in a open spot
     if(node!=0):
-        for x in range(noiseNumber):
-            if(noiseStore[x]==0 and switch==0):
-                noiseStore.insert(x,save)
-                switch = 1
+        if(NorH):
+            for x in range(excitationNumber):
+                if(excitationStore[x]==0 and switch==0):
+                    excitationStore.insert(x,save)
+                    switch = 1
+        else:
+            for x in range(noiseNumber):
+                if(noiseStore[x]==0 and switch==0):
+                    noiseStore.insert(x,save)
+                    switch = 1
 
         #if no open space left append it on the end
         if(switch==0):
-            noiseStore.append(save)
-            noiseNumber = noiseNumber + 1
-            print("noise added! number: ",noise)
+            if(NorH):
+                excitationStore.append(save)
+                excitationNumber = excitationNumber + 1
+            else:
+                noiseStore.append(save)
+                noiseNumber = noiseNumber + 1
+            print("noise or excitation added! number: ",noise)
 
-def removeNoise(master, draw):
+def removeNH(master, draw, NorH):
     global noiseStore
     global noiseNumber
     global outputStore
     global outputNumber
+    global excitationNumber
+    global excitationStore
 
     node = 0
 
@@ -307,16 +409,30 @@ def removeNoise(master, draw):
                 print("found output: ",node)
 
     #search for noise entry which has the selected output
-    for x in range(noiseNumber):
-        print("scanning: ",noiseStore[x])
-        if(noiseStore[x]!=0):
-            if(noiseStore[x][4] == node[1]):
-                print("removing noise")
-                #remove it
-                draw.delete(noiseStore[x][0])
-                noiseStore[x] = 0
-                if(x == noiseNumber):
-                    noiseNumber = noiseNumber - 1
+    if(NorH):
+        for x in range(excitationNumber):
+            print("scanning: ",excitationStore[x])
+            if(excitationStore[x]!=0):
+                if(excitationStore[x][4] == node[1]):
+                    print("removing excitation")
+                    #remove it
+                    draw.delete(excitationStore[x][5])
+                    draw.delete(excitationStore[x][0])
+                    excitationStore[x] = 0
+                    if(x == excitationNumber):
+                        excitationNumber = excitationNumber - 1
+    else:
+        for x in range(noiseNumber):
+            print("scanning: ",noiseStore[x])
+            if(noiseStore[x]!=0):
+                if(noiseStore[x][4] == node[1]):
+                    print("removing noise")
+                    #remove it
+                    draw.delete(noiseStore[x][5])
+                    draw.delete(noiseStore[x][0])
+                    noiseStore[x] = 0
+                    if(x == noiseNumber):
+                        noiseNumber = noiseNumber - 1
 
 """
 Below are the functions for
@@ -337,6 +453,8 @@ def addOutput(draw, x, y, master):
         img1Btn.configure(command = lambda: selectOutput(img1Btn))
         img1Btn.image = img1
         img1Btn.stat = 1
+        img1Btn.nmb = 0
+        img1Btn.order = 0
         img1Btn["border"] = "0"
 
 
@@ -347,6 +465,7 @@ def addOutput(draw, x, y, master):
             if(outputStore[m]==0):
                 node=m
                 nmb.configure(text=str(m))
+                save[1].nmb = m
                 outputStore[m] = save
                 img1Btn.image.text = str(m)
                 switch = 1
@@ -360,6 +479,7 @@ def addOutput(draw, x, y, master):
         #append if no empty entry
         if(switch==0):
             nmb.configure(text=str(outputNumber))
+            save[1].nmb=outputNumber
             outputStore.append(save)
             outputNumber = outputNumber + 1
 
@@ -368,6 +488,9 @@ def removeOutput(draw,master):
     global outputStore
     global outputNumber
     #search for output and set it to 0
+    removeNH(draw,master,0)
+    removeNH(draw,master,1)
+
     for x in range(outputNumber):
         if(outputStore[x]!=0):
             if(outputStore[x][1].stat == 2):
@@ -385,6 +508,7 @@ def removeOutput(draw,master):
                 outputStore[x] = 0
 
 def selectOutput(id):
+    global currentAmountOutputSelected
     #each output has a stat variable which indicates state. stat == 1 is not selected, stat == 2 is selected
     #work in progress image swap werkt nog niet
     nmb = 0
@@ -399,6 +523,8 @@ def selectOutput(id):
         imgGreen = PhotoImage(file="data/outputGreenS.png")
         id.image = imgGreen
         id.stat = 2
+        id.order = currentAmountOutputSelected
+        currentAmountOutputSelected = currentAmountOutputSelected + 1
         nmb.configure(bg="limegreen")
         id.configure(image=imgGreen)
         print("setting output green")
@@ -406,6 +532,8 @@ def selectOutput(id):
         imgWhite = PhotoImage(file="data/outputS.png")
         id.image=imgWhite
         id.stat = 1
+        id.order = 0
+        currentAmountOutputSelected = currentAmountOutputSelected - 1
         nmb.configure(bg="white")
         id.configure(image=imgWhite)
         print("setting output white")
@@ -424,6 +552,11 @@ def clearWindow(canvas):
     global outputStore
     global noiseStore
     global noiseNumber
+    global excitationNumber
+    global excitationStore
+    global currentAmountOutputSelected
+    global lineNumber
+    global lineStore
     canvas.delete("all")
     number_of_nodes = 0
     outputNumber = 0
@@ -431,6 +564,12 @@ def clearWindow(canvas):
     outputStore = []
     noiseStore = []
     noiseNumber = 0
+    excitationStore = []
+    excitationNumber = 0
+    currentAmountOutputSelected = 0
+    linestore = 0
+    lineNumber = 0
+
 
 
 #Deze functie word aangeroepen van uit het menu en haalt dan 2 nodes er uit die hij door geeft aan connectoutput
@@ -441,7 +580,6 @@ def connectCall(draw,master):
     global lineNumber
     node1 = 0
     node2 = 0
-    node3 = 0
 
     #serach first for selected outputs
     for x in range(outputNumber):
@@ -456,7 +594,11 @@ def connectCall(draw,master):
         print("error occured with node selection")
 
     else:
-        connectOutputs(node1,node2,draw,master)
+        #check for which order they are selected so that the last selected is the target module and the first the origin.
+        if(node1[1].order > node2[1].order):
+            connectOutputs(node2,node1,draw,master)
+        else:
+            connectOutputs(node1,node2,draw,master)
         selectOutput(node1[1])
         selectOutput(node2[1])
 
@@ -467,9 +609,12 @@ def connectOutputs(node1,node2,draw,master):
     global lineStore
     global lineNumber
     temp = 0
+    node3 = 0
+
     for x in range(lineNumber):
-        if(node1[1]==lineStore[x][1] and node2[1]==lineStore[x][2]):
-            temp = 1
+        if(lineStore[x]!=0):
+            if(node1[1]==lineStore[x][1] and node2[1]==lineStore[x][2]):
+                temp = 1
     #make sure that the connection is not made already
     #else make the connection
     if(temp==0):
