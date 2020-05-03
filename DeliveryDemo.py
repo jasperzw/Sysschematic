@@ -484,6 +484,34 @@ def connectOutputs(node1,node2,draw,master):
         lineStore.insert(lineNumber,tempStore)
         lineNumber = lineNumber+1
 
+        #draw the arrow
+
+        gamma = 45/2 #adjust the angle of the arrow
+        length_arrow = 50 #adjust the lenght of the arrow
+
+        sign = 0
+        if((node2[2]-node1[2])!=0):
+            theta = math.degrees(math.atan((node2[3]-node1[3])/(node2[2]-node1[2])))
+        else:
+            theta = 90;
+        if(theta>0):
+            sign = 1
+        else:
+            sign = -1
+            theta=-1*theta
+        epsilon = 180-gamma-theta-90
+        x_arrow0 = (x_transfer+node2[2])/2
+        y_arrow0 = (y_transfer+node2[3])/2
+        x_arrow1 = x_arrow0 - math.sin(math.radians(epsilon))*length_arrow
+        y_arrow1 = y_arrow0 - sign*math.cos(math.radians(epsilon))*length_arrow
+        alpha = gamma+epsilon
+        alpha_hypotenusa = math.sin(math.radians(gamma))*length_arrow*2
+        x_arrow2 = x_arrow1 - math.cos(math.radians(alpha))*alpha_hypotenusa
+        y_arrow2 = y_arrow1 + sign*math.sin(math.radians(alpha))*alpha_hypotenusa
+        tempStore2 = [draw.create_line(x_arrow1, y_arrow1, x_arrow0,y_arrow0, x_arrow2, y_arrow2),node1[1],node2[1],node3[1]]
+        lineStore.insert(lineNumber,tempStore2)
+        lineNumber = lineNumber+1
+
 def addWidget(input):
     #set the clickOperation variable
     global clickOperation
