@@ -1,77 +1,96 @@
-#from tkinter import *
-#from var import outputNumber, outputStore, noiseStore, noiseNumber
+from tkinter import *
 
-def toggleNoise(noise):
-    global noiseStore
-    global noiseNumber
-    if(noise.stat==1):
-        noiseImgKnown = PhotoImage(file="data/noiseKnown.png")
-        noise.image = noiseImgKnown
-        noise.configure(image=noiseImgKnown)
-        noise.stat=2
-    else:
-        noiseImg = PhotoImage(file="data/noise.png")
-        noise.image = noiseImg
-        noise.configure(image=noiseImg)
-        noise.stat=1
-
-
-def addNoise(master, draw):
-    global outputStore
-    global outputNumber
-    global noiseNumber
-    global noiseStore
-
+def addNoiseNodeCall(draw, x, y, master, outputNumber, outputStore, img1Btn):
+    #create output
     switch = 0
     node = 0
+    img1 = PhotoImage(file="data/excitation.png")
+
+    nmb = Label(master, text="1", bg="yellow")
+    img1Btn.configure(image=img1)
+    img1Btn.image = img1
+    img1Btn.stat = 1
+    img1Btn.nmb = 0
+    img1Btn.order = 0
+    img1Btn["border"] = "0"
+
+
+    save = [draw.create_window(x, y, window=img1Btn),img1Btn,x,y,draw.create_window(x+10,y+5,window=nmb),nmb]
+
+    #earch if their is a empty entry.
+    for m in range(outputNumber):
+        if(outputStore[m]==0):
+            node=m
+            nmb.configure(text=str(m+1))
+            save[1].nmb = m
+            outputStore[m] = save
+            img1Btn.image.text = str(m+1)
+            switch = 1
+
+            #initial output
+    if(outputNumber==0):
+        outputStore.append(save)
+        outputNumber = outputNumber + 1
+        switch = 1
+
+    #append if no empty entry
+    if(switch==0):
+        nmb.configure(text=str(outputNumber+1))
+        save[1].nmb=outputNumber
+        outputStore.append(save)
+        outputNumber = outputNumber + 1
+
+    return outputNumber, outputStore
+
+def selectNoiseNodeCall(draw, master, noiseNodeNumber, noiseNodeStore, currentAmountOutputSelected, id):
+        #each output has a stat variable which indicates state. stat == 1 is not selected, stat == 2 is selected
+        #work in progress image swap werkt nog niet
+        nmb = 0
+        print("current working object ",id)
+        #finding corresponding label
+        for x in range(noiseNodeNumber):
+            if(noiseNodeStore[x]!=0):
+                if(noiseNodeStore[x][1]==id):
+                    nmb = noiseNodeStore[x][5]
+
+
+        if(id.stat==1):
+            imgGreen = PhotoImage(file="data/excitationKnown.png")
+            id.image = imgGreen
+            id.stat = 2
+            id.order = currentAmountOutputSelected
+            currentAmountOutputSelected = currentAmountOutputSelected + 1
+            nmb.configure(bg="green")
+            id.configure(image=imgGreen)
+            print("setting output green")
+        else:
+            imgWhite = PhotoImage(file="data/excitation.png")
+            id.image=imgWhite
+            id.stat = 1
+            id.order = 0
+            currentAmountOutputSelected = currentAmountOutputSelected - 1
+            nmb.configure(bg="yellow")
+            id.configure(image=imgWhite)
+            print("setting output white")
+
+        return currentAmountOutputSelected
+
+def removeNoiseNodeCall(outputStore, outputNumber, lineStore, lineNumber, draw):
+    #search for output and set it to 0
+
     for x in range(outputNumber):
-        print(outputStore[x])
         if(outputStore[x]!=0):
             if(outputStore[x][1].stat == 2):
-                node = outputStore[x]
-
-    x = node[2] - 30
-    y = node[3] - 50
-    noiseImg = PhotoImage(file="data/noise.png")
-    noise = Button(master, image = noiseImg, highlightthickness = 0, bd = 0)
-    noise.configure(command = lambda: toggleNoise(noise))
-    noise.image = noiseImg
-    noise.stat = 1
-    save = [draw.create_window(x,y, window=noise),noise,x,y,node[1]]
-
-    if(node!=0):
-        for x in range(noiseNumber):
-            if(noiseStore[x]==0 and switch==0):
-                noiseStore.insert(x,save)
-                switch = 1
-
-        if(switch==0):
-            noiseStore.append(save)
-            noiseNumber = noiseNumber + 1
-            print("noise added! number: ",noise)
-
-def removeNoise(master, draw):
-    global noiseStore
-    global noiseNumber
-    global outputStore
-    global outputNumber
-
-    node = 0
-
-    print("trying to remove the noise")
-
-    for x in range(outputNumber):
-        if(outputStore[x]!=0):
-            if(outputStore[x][1].stat == 2):
-                node = outputStore[x]
-                print("found output: ",node)
-
-    for x in range(noiseNumber):
-        print("scanning: ",noiseStore[x])
-        if(noiseStore[x]!=0):
-            if(noiseStore[x][4] == node[1]):
-                print("removing noise")
-                draw.delete(noiseStore[x][0])
-                noiseStore[x] = 0
-                if(x == noiseNumber):
-                    noiseNumber = noiseNumber - 1
+                for i in range(lineNumber):
+                    print("i: ",i," lineStore:",lineStore[i],"")
+                    if(lineStore[i]!=0):
+                        if(lineStore[i][1]==outputStore[x][1] or lineStore[i][2]==outputStore[x][1]):
+                            print("i: ",i," is deleted")
+                            lineStore[i][3]["bg"]="lime"
+                            draw.delete(lineStore[i][0])
+                            #removeNode(draw, master)
+                            lineStore[i]=0
+                draw.delete(outputStore[x][4])
+                draw.delete(outputStore[x][0])
+                outputStore[x] = 0
+    return outputStore, lineStore
