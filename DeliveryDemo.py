@@ -775,22 +775,18 @@ def connectOutputs(node1,node2,draw,master, placeBtn):
         y_middle = (node1[3] + node2[3])/2
 
         #draw the curve
-        height_curve = 60
-        sign = 0
+
         if((node2[2]-node1[2])!=0):
             theta = math.degrees(math.atan((node2[3]-node1[3])/(node2[2]-node1[2])))
         else:
             theta = 90;
-        if(theta>0):
-            sign = 1
-        else:
-            sign = -1
-            theta=-1*theta
+        length_line = math.sqrt(math.pow(node2[2]-node1[2],2)+math.pow(node2[3]-node1[3],2))/2
+        height_curve = length_line/3
         if(node1>node2):
-            x_transfer = x_middle - math.cos(math.radians(90-theta))*height_curve
+            x_transfer = x_middle + math.cos(math.radians(90-theta))*height_curve
             y_transfer = y_middle - math.sin(math.radians(90-theta))*height_curve
         else:
-            x_transfer = x_middle + math.cos(math.radians(90-theta))*height_curve
+            x_transfer = x_middle - math.cos(math.radians(90-theta))*height_curve
             y_transfer = y_middle + math.sin(math.radians(90-theta))*height_curve
         #draw the transfer
         #set btn when needed.
@@ -823,14 +819,18 @@ def connectOutputs(node1,node2,draw,master, placeBtn):
         if(node1[2]>node2[2]):
             sign_2 = -1
         epsilon = 180-gamma-theta-10-90
-        x_arrow0 = (x_middle+node2[2])/2+ sign_2*2*math.cos(math.radians(90-theta))*height_curve/5
-        y_arrow0 = (y_middle+node2[3])/2+ sign_2*2*math.sin(math.radians(90-theta))*height_curve/5
+        if(node1>node2):
+            x_arrow0 = (x_middle+node2[2])/2 + math.cos(math.radians(90-theta))*height_curve/5*2
+            y_arrow0 = (y_middle+node2[3])/2 - math.sin(math.radians(90-theta))*height_curve/5*2
+        else:
+            x_arrow0 = (x_middle+node2[2])/2 - math.cos(math.radians(90-theta))*height_curve/5*2
+            y_arrow0 = (y_middle+node2[3])/2 + math.sin(math.radians(90-theta))*height_curve/5*2
         x_arrow1 = x_arrow0 - sign_2*math.sin(math.radians(epsilon))*length_arrow
-        y_arrow1 = y_arrow0 - sign_2*sign*math.cos(math.radians(epsilon))*length_arrow
+        y_arrow1 = y_arrow0 - sign_2*math.cos(math.radians(epsilon))*length_arrow
         alpha = gamma+epsilon
         alpha_hypotenusa = sign_2*math.sin(math.radians(gamma))*length_arrow*2
         x_arrow2 = x_arrow1 - math.cos(math.radians(alpha))*alpha_hypotenusa
-        y_arrow2 = y_arrow1 + sign*math.sin(math.radians(alpha))*alpha_hypotenusa
+        y_arrow2 = y_arrow1 + math.sin(math.radians(alpha))*alpha_hypotenusa
         tempStore2 = [draw.create_line(x_arrow1, y_arrow1, x_arrow0,y_arrow0, x_arrow2, y_arrow2),node1[1],node2[1],node3[1]]
         lineStore.insert(lineNumber,tempStore2)
         lineNumber = lineNumber+1
