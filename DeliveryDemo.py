@@ -818,7 +818,7 @@ def connectOutputs(node1,node2,draw,master, placeBtn):
         sign_2 = 1
         if(node1[2]>node2[2]):
             sign_2 = -1
-        epsilon = 180-gamma-theta-10-90
+        epsilon = 180-gamma-theta-height_curve/20-90
         if(node1>node2):
             x_arrow0 = (x_middle+node2[2])/2 + math.cos(math.radians(90-theta))*height_curve/5*2
             y_arrow0 = (y_middle+node2[3])/2 - math.sin(math.radians(90-theta))*height_curve/5*2
