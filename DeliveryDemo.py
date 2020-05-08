@@ -16,7 +16,7 @@ the noise store has an extra entry which comes down to [windowsId, WidgetObject,
 tempStore follows [widgetId, objectId1, objectId2] object 1 en object 2 is the objects between which the line is connected
 widgetId is what you call to remove it from the canvas in draw.delete(widgetId)
 
-lineStore[x][1] and linesStore[x][2] are the modules connected by the line and lineStore[x][3] is the transfer
+lineStore[x][1] and lineStore[x][2] are the modules connected by the line and lineStore[x][3] is the transfer
 """
 number_of_nodes = 0
 btnStore = []
@@ -275,28 +275,45 @@ Below we have the subsection of:
 Each function uses the global variables to store the nodes and to make changes
 """
 
-def selectNode(node):
+def selectNode(w,node):
     global btnStore
     global number_of_nodes
+    global lineStore
+    global lineNumber
 
     #simpely edit the node its color based on the node object given in the argument
+
     print("the node which is to be selected", node)
     if(btnStore[node][1]["bg"]=="cyan"):
         btnStore[node][1]["bg"]="lime"
+        for x in range(lineNumber):
+            if lineStore[x][3]==btnStore[node][1]:
+                w.itemconfig(lineStore[x][0], fill="red")
     else:
         btnStore[node][1]["bg"]="cyan"
+        for x in range(lineNumber):
+            if lineStore[x][3]==btnStore[node][1]:
+                w.itemconfig(lineStore[x][0], fill="black")
 
 # adding a node
-def addNode(w,x,y,master):
+def addNode(w,x,y,master,node1,node2):
         global number_of_nodes
         global btnStore
+        global outputStore
+        global outputNumber
         node = 0
 
         #creating node x
-
+        number_1 = 0
+        number_2 = 0
+        for a in range(outputNumber):
+            if(outputStore[a]==node1):
+                number_1 = outputStore[a][5].cget("text")
+            if(outputStore[a]==node2):
+                number_2 = outputStore[a][5].cget("text")
         #perform initial node
         if(number_of_nodes==0):
-            btn = Button(master, text = "G"+str(number_of_nodes), command = lambda: selectNode(0) , bg = "cyan")
+            btn = Button(master, text = "G"+str(number_2)+","+str(number_1), command = lambda: selectNode(w,0) , bg = "cyan")
             save = [w.create_window(x, y, window=btn),btn,x,y]
             #append it on th end
             btnStore.append(save)
@@ -308,7 +325,7 @@ def addNode(w,x,y,master):
             for m in range(number_of_nodes-1):
                 if(btnStore[m]==0):
                     node = m
-                    btn = Button(master, text = "G"+str(node), command = lambda: selectNode(node) , bg = "cyan")
+                    btn = Button(master, text = "G"+str(number_2)+","+str(number_1), command = lambda: selectNode(w,node) , bg = "cyan")
                     save = [w.create_window(x, y, window=btn),btn,x,y]
                     btnStore[m] = save
                     print("added node in existing place")
@@ -316,7 +333,7 @@ def addNode(w,x,y,master):
             #if no space is free and it is not the initial node append a new one on the end.
             if(number_of_nodes!=0 and node == 0):
                 temp = number_of_nodes
-                btn = Button(master, text = "G"+str(number_of_nodes), command = lambda: selectNode(temp) , bg = "cyan")
+                btn = Button(master, text = "G"+str(number_2)+","+str(number_1), command = lambda: selectNode(w,temp) , bg = "cyan")
                 save = [w.create_window(x, y, window=btn),btn,x,y]
                 btnStore.append(save)
                 number_of_nodes = number_of_nodes + 1
@@ -659,6 +676,10 @@ def selectOutput(id):
         nmb.configure(bg="limegreen")
         id.configure(image=imgGreen)
         print("setting output green")
+        for a in range(lineNumber):
+            if (id==lineStore[a][1] or id==lineStore[a][2]):
+                draw.itemconfig(lineStore[a][0], fill="red")
+                #Mag ik zo draw aanroepen?? VRAAG
     else:
         imgWhite = PhotoImage(file="data/outputS.png")
         id.image=imgWhite
@@ -668,7 +689,10 @@ def selectOutput(id):
         nmb.configure(bg="white")
         id.configure(image=imgWhite)
         print("setting output white")
-
+        for a in range(lineNumber):
+            if (id==lineStore[a][1] or id==lineStore[a][2]):
+                draw.itemconfig(lineStore[a][0], fill="black")
+                #Mag ik zo draw aanroepen?? VRAAG
 
 """
 below are the remaining functions
@@ -791,7 +815,7 @@ def connectOutputs(node1,node2,draw,master, placeBtn):
         #draw the transfer
         #set btn when needed.
         if(placeBtn):
-            addNode(draw,(x_transfer+x_middle)/2,(y_transfer+y_middle)/2,master)
+            addNode(draw,(x_transfer+x_middle)/2,(y_transfer+y_middle)/2,master,node1,node2)
             for x in range(number_of_nodes):
                 if(btnStore[x]!=0):
                     if(btnStore[x][2==(x_transfer+x_middle)/2] and btnStore[x][3]==(y_transfer+y_middle)/2):
