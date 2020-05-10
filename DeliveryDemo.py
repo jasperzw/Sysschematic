@@ -792,7 +792,9 @@ def connectOutputs(node1,node2,draw,master, placeBtn):
         if(lineStore[x]!=0):
             if(node1[1]==lineStore[x][1] and node2[1]==lineStore[x][2]):
                 temp = 1
-    #make sure that the connection is not made already
+    if(node1==node2):
+        temp = 1
+    #make sure that the connection is not made already or the nodes are the same
     #else make the connection
     if(temp==0):
         x_middle = (node2[2] + node1[2])/2
