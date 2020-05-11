@@ -18,6 +18,7 @@ widgetId is what you call to remove it from the canvas in draw.delete(widgetId)
 
 lineStore[x][1] and lineStore[x][2] are the modules connected by the line and lineStore[x][3] is the transfer
 """
+scale_prev = float(1)
 number_of_nodes = 0
 btnStore = []
 lineStore = [[]]
@@ -219,7 +220,6 @@ def toAdjecencyMatrix(draw,master):
         for y in range(excitationNumber):
             new.append(0)
         NR.append(new)
-
     #create NG matrix
     for x in range(outputNumber):
         if(outputStore[x]!=0):
@@ -240,7 +240,7 @@ def toAdjecencyMatrix(draw,master):
                     if(lineStore[y]!=0):
                         if(lineStore[y][2]==currentOutput):
                             nodeB = lineStore[y][1]
-                            #print(nodeB.nmb)
+                            print(nodeB.nmb)
                             NH[x][nodeB.nmb] = 1
             else:
                 NH = storeNH
@@ -312,8 +312,9 @@ def addNode(w,x,y,master,node1,node2):
             if(outputStore[a]==node2):
                 number_2 = outputStore[a][5].cget("text")
         #perform initial node
+        pixelVirtual = PhotoImage(width=3,height=1)
         if(number_of_nodes==0):
-            btn = Button(master, text = "G"+str(number_2)+","+str(number_1), command = lambda: selectNode(w,0) , bg = "cyan")
+            btn = Button(master, text = "G"+str(number_2)+","+str(number_1), command = lambda: selectNode(w,0) , bg = "cyan", image=pixelVirtual, height = 15, width = 30, compound="c")
             save = [w.create_window(x, y, window=btn),btn,x,y]
             #append it on th end
             btnStore.append(save)
@@ -325,7 +326,7 @@ def addNode(w,x,y,master,node1,node2):
             for m in range(number_of_nodes-1):
                 if(btnStore[m]==0):
                     node = m
-                    btn = Button(master, text = "G"+str(number_2)+","+str(number_1), command = lambda: selectNode(w,node) , bg = "cyan")
+                    btn = Button(master, text = "G"+str(number_2)+","+str(number_1), command = lambda: selectNode(w,node) , bg = "cyan",image=pixelVirtual, height = 15, width = 30, compound="c")
                     save = [w.create_window(x, y, window=btn),btn,x,y]
                     btnStore[m] = save
                     print("added node in existing place")
@@ -333,7 +334,7 @@ def addNode(w,x,y,master,node1,node2):
             #if no space is free and it is not the initial node append a new one on the end.
             if(number_of_nodes!=0 and node == 0):
                 temp = number_of_nodes
-                btn = Button(master, text = "G"+str(number_2)+","+str(number_1), command = lambda: selectNode(w,temp) , bg = "cyan")
+                btn = Button(master, text = "G"+str(number_2)+","+str(number_1), command = lambda: selectNode(w,temp) , bg = "cyan",image=pixelVirtual, height = 15, width = 30, compound="c")
                 save = [w.create_window(x, y, window=btn),btn,x,y]
                 btnStore.append(save)
                 number_of_nodes = number_of_nodes + 1
@@ -472,7 +473,7 @@ def addNH(node,master, draw,NorH,nmb):
     if(NorH):
         noiseImg = PhotoImage(file="data/signal.png")
     noise = Button(master, image = noiseImg, highlightthickness = 0, bd = 0)
-    nmbLabel = Label(master, text=str(nmb), bg="white")
+    nmbLabel = Label(master, text="V", bg="white")
     if(NorH):
         nmbLabel.configure(bg="yellow")
     noise.configure(command = lambda: toggleNH(noise,NorH))
@@ -883,6 +884,21 @@ def clickEvent(event):
     if(clickOperation==3):
         addNoiseNode(draw, x, y, master)
         clickOperation=0
+
+""""
+    Zoom_buttons(unit.imscale)
+
+def Zoom_buttons(scale):
+    global scale_prev
+    global number_of_nodes
+    global btnStore
+    if(scale_prev!=scale):
+        scale_prev = scale
+        for x in range(number_of_nodes):
+            if(btnStore[x]!=0):
+                btnStore[x][1].configure(height=int(scale*10),width=int(scale*30))
+                btnStore[x][1].pack()
+"""
 
 """
 Below you will find the basic setup of the grid
