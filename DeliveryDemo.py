@@ -33,6 +33,7 @@ excitationNumber = 0
 noiseNodeNumber = 0
 noiseNodeStore = []
 storeNG = storeNR = storeNH = []
+lineshow = 1;
 overlay = 0 #overlay value 0 means the NG matrix and overlay 1 is the Noise overlay
 currentAmountOutputSelected = 1 #this variable is so we know the order that outputs are connected. it is not zero because unselected are 0
 #global declare is unnecessary since they are declared in the upper script outside any function
@@ -60,7 +61,7 @@ def initMainMenu(frame, canvas):
     #column 2
     Button(frame, text="load noise view", command= lambda: plotNoise(draw,master), height = 1, width=20).grid(row=0, column=2, padx=2, pady=2)
     Button(frame, text="load transfer view", command= lambda: plotMatrix(draw,master,0), height = 1, width=20).grid(row=1, column=2, padx=2, pady=2)
-
+    Button(frame, text="change line view", command= lambda: Dashed_line(draw,master), height = 1, width=20).grid(row=2, column=2, padx=2, pady=2)
 #same as main menu initializes the submenu
 def initSubMenu(frame):
     #Label(frame, text="currently selected:", bg="gray").pack()
@@ -301,7 +302,13 @@ def addNode(w,x,y,master,node1,node2):
         global btnStore
         global outputStore
         global outputNumber
+        global overlay
         node = 0
+
+
+        node_name = "G"
+        if(overlay):
+            node_name = "H"
 
         #creating node x
         number_1 = 0
@@ -314,7 +321,7 @@ def addNode(w,x,y,master,node1,node2):
         #perform initial node
         pixelVirtual = PhotoImage(width=3,height=1)
         if(number_of_nodes==0):
-            btn = Button(master, text = "G"+str(number_2)+","+str(number_1), command = lambda: selectNode(w,0) , bg = "cyan", image=pixelVirtual, height = 15, width = 30, compound="c")
+            btn = Button(master, text = node_name+str(number_2)+","+str(number_1), command = lambda: selectNode(w,0) , bg = "cyan", image=pixelVirtual, height = 15, width = 30, compound="c")
             save = [w.create_window(x, y, window=btn),btn,x,y]
             #append it on th end
             btnStore.append(save)
@@ -326,7 +333,7 @@ def addNode(w,x,y,master,node1,node2):
             for m in range(number_of_nodes-1):
                 if(btnStore[m]==0):
                     node = m
-                    btn = Button(master, text = "G"+str(number_2)+","+str(number_1), command = lambda: selectNode(w,node) , bg = "cyan",image=pixelVirtual, height = 15, width = 30, compound="c")
+                    btn = Button(master, text = node_name+str(number_2)+","+str(number_1), command = lambda: selectNode(w,node) , bg = "cyan",image=pixelVirtual, height = 15, width = 30, compound="c")
                     save = [w.create_window(x, y, window=btn),btn,x,y]
                     btnStore[m] = save
                     print("added node in existing place")
@@ -334,7 +341,7 @@ def addNode(w,x,y,master,node1,node2):
             #if no space is free and it is not the initial node append a new one on the end.
             if(number_of_nodes!=0 and node == 0):
                 temp = number_of_nodes
-                btn = Button(master, text = "G"+str(number_2)+","+str(number_1), command = lambda: selectNode(w,temp) , bg = "cyan",image=pixelVirtual, height = 15, width = 30, compound="c")
+                btn = Button(master, text = node_name+str(number_2)+","+str(number_1), command = lambda: selectNode(w,temp) , bg = "cyan",image=pixelVirtual, height = 15, width = 30, compound="c")
                 save = [w.create_window(x, y, window=btn),btn,x,y]
                 btnStore.append(save)
                 number_of_nodes = number_of_nodes + 1
@@ -680,7 +687,6 @@ def selectOutput(id):
         for a in range(lineNumber):
             if (id==lineStore[a][1] or id==lineStore[a][2]):
                 draw.itemconfig(lineStore[a][0], fill="red")
-                #Mag ik zo draw aanroepen?? VRAAG
     else:
         imgWhite = PhotoImage(file="data/outputS.png")
         id.image=imgWhite
@@ -693,13 +699,31 @@ def selectOutput(id):
         for a in range(lineNumber):
             if (id==lineStore[a][1] or id==lineStore[a][2]):
                 draw.itemconfig(lineStore[a][0], fill="black")
-                #Mag ik zo draw aanroepen?? VRAAG
 
 """
 below are the remaining functions
 
 -------------------------------------------------------- Remaining --------------------------------------------------------
 """
+def Dashed_line(draw,master):
+    global lineshow
+    global lineStore
+    global lineNumber
+    global overlay
+
+    #only in the noise view dashed lines are existing
+    if(overlay):
+        if(lineshow):
+            for x in range(lineNumber):
+                if(lineStore[x][3]==1):
+                    draw.itemconfig(lineStore[x][0],fill = "white")
+            lineshow = 0
+        else:
+            for x in range(lineNumber):
+                if(lineStore[x][3]==1):
+                    draw.itemconfig(lineStore[x][0],fill = "black")
+            lineshow = 1
+
 def clearWindow(canvas):
     #remove everythin and set all global to 0
     global number_of_nodes
