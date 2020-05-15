@@ -321,6 +321,9 @@ def addNode(w,x,y,master,node1,node2):
                 number_1 = outputStore[a][5].cget("text")
             if(outputStore[a]==node2):
                 number_2 = outputStore[a][5].cget("text")
+        for a in range(noiseNodeNumber):
+            if(noiseNodeStore[a]==node1):
+                number_1 = noiseNodeStore[a][5].cget("text")
         #perform initial node
         pixelVirtual = PhotoImage(width=3,height=1)
         if(number_of_nodes==0):
