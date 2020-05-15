@@ -321,7 +321,7 @@ def addNode(w,x,y,master,node1,node2):
         #perform initial node
         pixelVirtual = PhotoImage(width=3,height=1)
         if(number_of_nodes==0):
-            btn = Button(master, text = node_name+str(number_2)+","+str(number_1), command = lambda: selectNode(w,0) , bg = "cyan", image=pixelVirtual, height = 15, width = 30, compound="c")
+            btn = Button(master, text = str(node_name)+str(number_2)+","+str(number_1), command = lambda: selectNode(w,0) , bg = "cyan")
             save = [w.create_window(x, y, window=btn),btn,x,y]
             #append it on th end
             btnStore.append(save)
@@ -333,7 +333,7 @@ def addNode(w,x,y,master,node1,node2):
             for m in range(number_of_nodes-1):
                 if(btnStore[m]==0):
                     node = m
-                    btn = Button(master, text = node_name+str(number_2)+","+str(number_1), command = lambda: selectNode(w,node) , bg = "cyan",image=pixelVirtual, height = 15, width = 30, compound="c")
+                    btn = Button(master, text = str(node_name)+str(number_2)+","+str(number_1), command = lambda: selectNode(w,node) , bg = "cyan")
                     save = [w.create_window(x, y, window=btn),btn,x,y]
                     btnStore[m] = save
                     print("added node in existing place")
@@ -341,7 +341,7 @@ def addNode(w,x,y,master,node1,node2):
             #if no space is free and it is not the initial node append a new one on the end.
             if(number_of_nodes!=0 and node == 0):
                 temp = number_of_nodes
-                btn = Button(master, text = node_name+str(number_2)+","+str(number_1), command = lambda: selectNode(w,temp) , bg = "cyan",image=pixelVirtual, height = 15, width = 30, compound="c")
+                btn = Button(master, text = str(node_name)+str(number_2)+","+str(number_1), command = lambda: selectNode(w,temp) , bg = "cyan")
                 save = [w.create_window(x, y, window=btn),btn,x,y]
                 btnStore.append(save)
                 number_of_nodes = number_of_nodes + 1
