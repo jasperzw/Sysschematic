@@ -222,12 +222,13 @@ def toAdjecencyMatrix(draw,master):
             new.append(0)
         NR.append(new)
     #create NG matrix
+    print(noiseNodeStore)
     for x in range(outputNumber):
         if(outputStore[x]!=0):
             currentOutput = outputStore[x][1]
             #check for connections to create NG
             for y in range(lineNumber):
-                print("now scanning for node: ",x," at linestore: ",lineStore[y]," for button: ",currentOutput)
+                #print("now scanning for node: ",x," at linestore: ",lineStore[y]," for button: ",currentOutput)
                 if(lineStore[y]!=0):
                     if(lineStore[y][2]==currentOutput):
                         #found a lineconnection to currentOutput
@@ -241,8 +242,10 @@ def toAdjecencyMatrix(draw,master):
                     if(lineStore[y]!=0):
                         if(lineStore[y][2]==currentOutput):
                             nodeB = lineStore[y][1]
-                            print(nodeB.nmb)
-                            NH[x][nodeB.nmb] = 1
+                            for a in range(noiseNodeNumber):
+                                if(nodeB == noiseNodeStore[a][1]):
+                                    print(nodeB.nmb)
+                                    NH[x][nodeB.nmb] = 1
             else:
                 NH = storeNH
 
@@ -326,7 +329,7 @@ def addNode(w,x,y,master,node1,node2):
             #append it on th end
             btnStore.append(save)
             number_of_nodes = number_of_nodes + 1
-            print("start initial node")
+            #print("start initial node")
 
         else:
             #first search if a entry is zero because then a node has been removed their and we can insert a new one
@@ -336,7 +339,7 @@ def addNode(w,x,y,master,node1,node2):
                     btn = Button(master, text = str(node_name)+str(number_2)+","+str(number_1), command = lambda: selectNode(w,node) , bg = "cyan")
                     save = [w.create_window(x, y, window=btn),btn,x,y]
                     btnStore[m] = save
-                    print("added node in existing place")
+                    #print("added node in existing place")
 
             #if no space is free and it is not the initial node append a new one on the end.
             if(number_of_nodes!=0 and node == 0):
@@ -345,9 +348,9 @@ def addNode(w,x,y,master,node1,node2):
                 save = [w.create_window(x, y, window=btn),btn,x,y]
                 btnStore.append(save)
                 number_of_nodes = number_of_nodes + 1
-                print("appended node to back of list")
+                #print("appended node to back of list")
 
-        print(btnStore)
+        #print(btnStore)
 
 def removeNode(w, master):
         global number_of_nodes
