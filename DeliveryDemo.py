@@ -7,6 +7,7 @@ import math
 from Scrollwindow import *
 from node import removeNodeCall
 from noise import addNoiseNodeCall, selectNoiseNodeCall, removeNoiseNodeCall
+import networkx as nx
 
 """
 initializing all global components
@@ -99,6 +100,39 @@ def loadMat(draw,master):
     storeNG, storeNR, storeNH = readFile(filename)
     plotMatrix(draw,master,1)
 
+def generateGraph(NG,NH,NR,typeGraph):
+    
+    nmbOutputs = len(NG)
+
+    #below function will read through the mat file and try to find how many modules their are
+
+    #using the network functions create a direction graph (nodes with a connection with a direction so connection 1 to 2 has a direction and is not the same as 2 to 1)
+    plot = nx.DiGraph()
+    plot.add_nodes_from(range(nmbOutputs))
+
+    for x in range(nmbOutputs):
+        for y in range(nmbOutputs):
+            if(NG[x][y]==1):
+                plot.add_edge(y,x)
+   
+    print("number of nodes: ", plot.number_of_nodes() ," number of edges: ", plot.number_of_edges())
+
+    pos = []
+    #creating coordinates
+    #the below functions can be chosen and generate position for the network and return them
+    if(typeGraph==0):
+        pos = nx.circular_layout(plot,scale=2000,center=(500,500))
+    if(typeGraph==1):
+        pos = nx.kamada_kawai_layout(plot, scale=2000, center=(500,500), dim=2)
+    if(typeGraph==2):
+        pos = nx.spring_layout(plot, scale=2000, center=(500,500))
+    if(typeGraph==3):
+        pos = nx.spectral_layout(plot, scale=2000, center=(500,500))
+    if(typeGraph==4):
+        pos = nx.spiral_layout(plot, scale=2000, center=(500,500))
+
+    return pos
+
 def plotNoise(draw,master):
     global overlay
     global lineNumber
@@ -109,20 +143,16 @@ def plotNoise(draw,master):
     overlay = 1
 
 
-
     nmbOutputs = len(NG)
     nmbNoise = len(NH[0])
+
+    pos = generateGraph(NG,NR,NH,1)
+    posNoise = generateGraph(NH,NR,NG,1)
     #below function will read through the mat file and try to find how many modules their are
     #plot each function in a circle
 
-    #change to increase the circle size
-    circleSize = 400
-
-    step = (2*math.pi)/nmbOutputs
     for x in range(nmbOutputs):
-        xc = math.cos(step*x)*circleSize+300
-        yc = math.sin(step*x)*circleSize+300
-        addOutput(draw, xc, yc,master)
+        addOutput(draw, pos[x][0], pos[x][1],master)
 
     for x in range(nmbOutputs):
         for y in range(nmbOutputs):
@@ -131,12 +161,8 @@ def plotNoise(draw,master):
                 node2 = outputStore[x]
                 connectOutputs(node1,node2,draw,master,0)
 
-    circleSize = 100
-    step = (2*math.pi)/nmbNoise
     for x in range(len(NH[0])):
-        xc = math.cos(step*x)*circleSize+300
-        yc = math.sin(step*x)*circleSize+300
-        addNoiseNode(draw, xc, yc,master)
+        addNoiseNode(draw, posNoise[x][0], posNoise[x][1],master)
 
     for x in range(len(NH)):
         for y in range(len(NH[x])):
@@ -147,11 +173,11 @@ def plotNoise(draw,master):
 
 
 
-def plotMatrix(draw,master,int):
+def plotMatrix(draw,master,init):
     global overlay
     global storeNH
 
-    if(int):
+    if(init):
         NG = storeNG
         NR = storeNR
         NH = storeNH
@@ -167,17 +193,11 @@ def plotMatrix(draw,master,int):
     global lineStore
 
     nmbOutputs = len(NG)
-    #below function will read through the mat file and try to find how many modules their are
-    #plot each function in a circle
 
-    #change to increase the circle size
-    circleSize = 300
+    pos = generateGraph(NG,NR,NH,1)
 
-    step = (2*math.pi)/nmbOutputs
     for x in range(nmbOutputs):
-        xc = math.cos(step*x)*circleSize+300
-        yc = math.sin(step*x)*circleSize+300
-        addOutput(draw, xc, yc,master)
+        addOutput(draw, pos[x][0], pos[x][1],master)
 
     #make all the connectiosn tussen connectOutputs
     for x in range(nmbOutputs):
@@ -187,6 +207,7 @@ def plotMatrix(draw,master,int):
                 node2 = outputStore[x]
                 connectOutputs(node1,node2,draw,master,1)
 
+    """
     for x in range(len(NH)):
         for y in range(len(NH[x])):
             if(NH[x][y]==1):
@@ -196,8 +217,10 @@ def plotMatrix(draw,master,int):
         for y in range(len(NR[x])):
             if(NR[x][y]==1):
                 addNH(outputStore[x],master,draw,1,y)
+    """
 
     #connecting each output is below
+    
 
 def toAdjecencyMatrix(draw,master):
     global storeNG
@@ -222,7 +245,7 @@ def toAdjecencyMatrix(draw,master):
             new.append(0)
         NR.append(new)
     #create NG matrix
-    print(noiseNodeStore)
+    #print(noiseNodeStore)
     for x in range(outputNumber):
         if(outputStore[x]!=0):
             currentOutput = outputStore[x][1]
@@ -287,7 +310,7 @@ def selectNode(w,node):
 
     #simpely edit the node its color based on the node object given in the argument
 
-    print("the node which is to be selected", node)
+    #print("the node which is to be selected", node)
     if(btnStore[node][1]["bg"]=="cyan"):
         btnStore[node][1]["bg"]="lime"
         for x in range(lineNumber):
@@ -427,7 +450,7 @@ def addNHCall(master, draw,NorH):
     #find output which is selected and save it to node
 
         for x in range(outputNumber):
-            print(outputStore[x])
+            #print(outputStore[x])
             if(outputStore[x]!=0):
                 if(outputStore[x][1].stat == 2):
                     node = outputStore[x]
@@ -444,7 +467,7 @@ def addNH(node,master, draw,NorH,nmb):
     global excitationStore
     global excitationNumber
     switch = 0
-    print("NorH: ",NorH)
+    #print("NorH: ",NorH)
     #move the x y to left above the center of the output
     x = node[2] - 30
     y = node[3] - 50
@@ -457,13 +480,8 @@ def addNH(node,master, draw,NorH,nmb):
     noiseImg = PhotoImage(file="data/noise.png")
     if(NorH):
         noiseImg = PhotoImage(file="data/signal.png")
-<<<<<<< HEAD
     nmbLabel = Label(master, text=str(nmb), bg="white")
     noise = Button(master, image = noiseImg, highlightthickness = 0, bd = 0)
-=======
-    noise = Button(master, image = noiseImg, highlightthickness = 0, bd = 0)
-    nmbLabel = Label(master, text="V", bg="white")
->>>>>>> 7bd75f7d4ddc9f153eae60ad667102624a2b1c6c
     if(NorH):
         nmbLabel.configure(bg="yellow")
     noise.configure(command = lambda: toggleNH(noise,NorH))
@@ -493,7 +511,7 @@ def addNH(node,master, draw,NorH,nmb):
             else:
                 noiseStore.append(save)
                 noiseNumber = noiseNumber + 1
-            print("noise or excitation added! number: ",noise)
+            #print("noise or excitation added! number: ",noise)
 
 def removeNH(master, draw, NorH):
     global noiseStore
@@ -509,22 +527,22 @@ def removeNH(master, draw, NorH):
 
         node = 0
 
-        print("trying to remove the noise")
+        #print("trying to remove the noise")
 
         #find selected output
         for x in range(outputNumber):
             if(outputStore[x]!=0):
                 if(outputStore[x][1].stat == 2):
                     node = outputStore[x]
-                    print("found output: ",node)
+                    #print("found output: ",node)
 
         #search for noise entry which has the selected output
         if(NorH):
             for x in range(excitationNumber):
-                print("scanning: ",excitationStore[x])
+                #print("scanning: ",excitationStore[x])
                 if(excitationStore[x]!=0):
                     if(excitationStore[x][4] == node[1]):
-                        print("removing excitation")
+                        #print("removing excitation")
                         #remove it
                         draw.delete(excitationStore[x][5])
                         draw.delete(excitationStore[x][0])
@@ -533,10 +551,10 @@ def removeNH(master, draw, NorH):
                             excitationNumber = excitationNumber - 1
         else:
             for x in range(noiseNumber):
-                print("scanning: ",noiseStore[x])
+                #print("scanning: ",noiseStore[x])
                 if(noiseStore[x]!=0):
                     if(noiseStore[x][4] == node[1]):
-                        print("removing noise")
+                        #print("removing noise")
                         #remove it
                         draw.delete(noiseStore[x][5])
                         draw.delete(noiseStore[x][0])
@@ -634,10 +652,10 @@ def removeOutput(draw,master):
         if(outputStore[x]!=0):
             if(outputStore[x][1].stat == 2):
                 for i in range(lineNumber):
-                    print("i: ",i," lineStore:",lineStore[i],"")
+                    #print("i: ",i," lineStore:",lineStore[i],"")
                     if(lineStore[i]!=0):
                         if(lineStore[i][1]==outputStore[x][1] or lineStore[i][2]==outputStore[x][1]):
-                            print("i: ",i," is deleted")
+                            #print("i: ",i," is deleted")
                             lineStore[i][3]["bg"]="lime"
                             draw.delete(lineStore[i][0])
                             removeNode(draw, master)
