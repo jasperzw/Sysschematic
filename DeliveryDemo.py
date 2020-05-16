@@ -18,6 +18,7 @@ widgetId is what you call to remove it from the canvas in draw.delete(widgetId)
 
 lineStore[x][1] and lineStore[x][2] are the modules connected by the line and lineStore[x][3] is the transfer
 """
+scale_prev = float(1)
 number_of_nodes = 0
 btnStore = []
 lineStore = [[]]
@@ -32,6 +33,7 @@ excitationNumber = 0
 noiseNodeNumber = 0
 noiseNodeStore = []
 storeNG = storeNR = storeNH = []
+lineshow = 1;
 overlay = 0 #overlay value 0 means the NG matrix and overlay 1 is the Noise overlay
 currentAmountOutputSelected = 1 #this variable is so we know the order that outputs are connected. it is not zero because unselected are 0
 #global declare is unnecessary since they are declared in the upper script outside any function
@@ -59,7 +61,7 @@ def initMainMenu(frame, canvas):
     #column 2
     Button(frame, text="load noise view", command= lambda: plotNoise(draw,master), height = 1, width=20).grid(row=0, column=2, padx=2, pady=2)
     Button(frame, text="load transfer view", command= lambda: plotMatrix(draw,master,0), height = 1, width=20).grid(row=1, column=2, padx=2, pady=2)
-
+    Button(frame, text="change line view", command= lambda: Dashed_line(draw,master), height = 1, width=20).grid(row=2, column=2, padx=2, pady=2)
 #same as main menu initializes the submenu
 def initSubMenu(frame):
     #Label(frame, text="currently selected:", bg="gray").pack()
@@ -219,14 +221,14 @@ def toAdjecencyMatrix(draw,master):
         for y in range(excitationNumber):
             new.append(0)
         NR.append(new)
-
     #create NG matrix
+    print(noiseNodeStore)
     for x in range(outputNumber):
         if(outputStore[x]!=0):
             currentOutput = outputStore[x][1]
             #check for connections to create NG
             for y in range(lineNumber):
-                print("now scanning for node: ",x," at linestore: ",lineStore[y]," for button: ",currentOutput)
+                #print("now scanning for node: ",x," at linestore: ",lineStore[y]," for button: ",currentOutput)
                 if(lineStore[y]!=0):
                     if(lineStore[y][2]==currentOutput):
                         #found a lineconnection to currentOutput
@@ -240,8 +242,10 @@ def toAdjecencyMatrix(draw,master):
                     if(lineStore[y]!=0):
                         if(lineStore[y][2]==currentOutput):
                             nodeB = lineStore[y][1]
-                            #print(nodeB.nmb)
-                            NH[x][nodeB.nmb] = 1
+                            for a in range(noiseNodeNumber):
+                                if(nodeB == noiseNodeStore[a][1]):
+                                    print(nodeB.nmb)
+                                    NH[x][nodeB.nmb] = 1
             else:
                 NH = storeNH
 
@@ -301,7 +305,13 @@ def addNode(w,x,y,master,node1,node2):
         global btnStore
         global outputStore
         global outputNumber
+        global overlay
         node = 0
+
+
+        node_name = "G"
+        if(overlay):
+            node_name = "H"
 
         #creating node x
         number_1 = 0
@@ -311,35 +321,39 @@ def addNode(w,x,y,master,node1,node2):
                 number_1 = outputStore[a][5].cget("text")
             if(outputStore[a]==node2):
                 number_2 = outputStore[a][5].cget("text")
+        for a in range(noiseNodeNumber):
+            if(noiseNodeStore[a]==node1):
+                number_1 = noiseNodeStore[a][5].cget("text")
         #perform initial node
+        pixelVirtual = PhotoImage(width=3,height=1)
         if(number_of_nodes==0):
-            btn = Button(master, text = "G"+str(number_2)+","+str(number_1), command = lambda: selectNode(w,0) , bg = "cyan")
+            btn = Button(master, text = str(node_name)+str(number_2)+","+str(number_1), command = lambda: selectNode(w,0) , bg = "cyan")
             save = [w.create_window(x, y, window=btn),btn,x,y]
             #append it on th end
             btnStore.append(save)
             number_of_nodes = number_of_nodes + 1
-            print("start initial node")
+            #print("start initial node")
 
         else:
             #first search if a entry is zero because then a node has been removed their and we can insert a new one
             for m in range(number_of_nodes-1):
                 if(btnStore[m]==0):
                     node = m
-                    btn = Button(master, text = "G"+str(number_2)+","+str(number_1), command = lambda: selectNode(w,node) , bg = "cyan")
+                    btn = Button(master, text = str(node_name)+str(number_2)+","+str(number_1), command = lambda: selectNode(w,node) , bg = "cyan")
                     save = [w.create_window(x, y, window=btn),btn,x,y]
                     btnStore[m] = save
-                    print("added node in existing place")
+                    #print("added node in existing place")
 
             #if no space is free and it is not the initial node append a new one on the end.
             if(number_of_nodes!=0 and node == 0):
                 temp = number_of_nodes
-                btn = Button(master, text = "G"+str(number_2)+","+str(number_1), command = lambda: selectNode(w,temp) , bg = "cyan")
+                btn = Button(master, text = str(node_name)+str(number_2)+","+str(number_1), command = lambda: selectNode(w,temp) , bg = "cyan")
                 save = [w.create_window(x, y, window=btn),btn,x,y]
                 btnStore.append(save)
                 number_of_nodes = number_of_nodes + 1
-                print("appended node to back of list")
+                #print("appended node to back of list")
 
-        print(btnStore)
+        #print(btnStore)
 
 def removeNode(w, master):
     global number_of_nodes
@@ -443,8 +457,13 @@ def addNH(node,master, draw,NorH,nmb):
     noiseImg = PhotoImage(file="data/noise.png")
     if(NorH):
         noiseImg = PhotoImage(file="data/signal.png")
+<<<<<<< HEAD
     nmbLabel = Label(master, text=str(nmb), bg="white")
     noise = Button(master, image = noiseImg, highlightthickness = 0, bd = 0)
+=======
+    noise = Button(master, image = noiseImg, highlightthickness = 0, bd = 0)
+    nmbLabel = Label(master, text="V", bg="white")
+>>>>>>> 7bd75f7d4ddc9f153eae60ad667102624a2b1c6c
     if(NorH):
         nmbLabel.configure(bg="yellow")
     noise.configure(command = lambda: toggleNH(noise,NorH))
@@ -651,7 +670,6 @@ def selectOutput(id):
         for a in range(lineNumber):
             if (id==lineStore[a][1] or id==lineStore[a][2]):
                 draw.itemconfig(lineStore[a][0], fill="red")
-                #Mag ik zo draw aanroepen?? VRAAG
     else:
         imgWhite = PhotoImage(file="data/outputS.png")
         id.image=imgWhite
@@ -664,13 +682,31 @@ def selectOutput(id):
         for a in range(lineNumber):
             if (id==lineStore[a][1] or id==lineStore[a][2]):
                 draw.itemconfig(lineStore[a][0], fill="black")
-                #Mag ik zo draw aanroepen?? VRAAG
 
 """
 below are the remaining functions
 
 -------------------------------------------------------- Remaining --------------------------------------------------------
 """
+def Dashed_line(draw,master):
+    global lineshow
+    global lineStore
+    global lineNumber
+    global overlay
+
+    #only in the noise view dashed lines are existing
+    if(overlay):
+        if(lineshow):
+            for x in range(lineNumber):
+                if(lineStore[x][3]==1):
+                    draw.itemconfig(lineStore[x][0],fill = "white")
+            lineshow = 0
+        else:
+            for x in range(lineNumber):
+                if(lineStore[x][3]==1):
+                    draw.itemconfig(lineStore[x][0],fill = "black")
+            lineshow = 1
+
 def clearWindow(canvas):
     #remove everythin and set all global to 0
     global number_of_nodes
@@ -855,6 +891,21 @@ def clickEvent(event):
     if(clickOperation==3):
         addNoiseNode(draw, x, y, master)
         clickOperation=0
+
+""""
+    Zoom_buttons(unit.imscale)
+
+def Zoom_buttons(scale):
+    global scale_prev
+    global number_of_nodes
+    global btnStore
+    if(scale_prev!=scale):
+        scale_prev = scale
+        for x in range(number_of_nodes):
+            if(btnStore[x]!=0):
+                btnStore[x][1].configure(height=int(scale*10),width=int(scale*30))
+                btnStore[x][1].pack()
+"""
 
 """
 Below you will find the basic setup of the grid
