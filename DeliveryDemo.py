@@ -443,8 +443,8 @@ def addNH(node,master, draw,NorH,nmb):
     noiseImg = PhotoImage(file="data/noise.png")
     if(NorH):
         noiseImg = PhotoImage(file="data/signal.png")
-    noise = Button(master, image = noiseImg, highlightthickness = 0, bd = 0)
     nmbLabel = Label(master, text=str(nmb), bg="white")
+    noise = Button(master, image = noiseImg, highlightthickness = 0, bd = 0)
     if(NorH):
         nmbLabel.configure(bg="yellow")
     noise.configure(command = lambda: toggleNH(noise,NorH))
