@@ -63,6 +63,9 @@ def initMainMenu(frame, canvas):
     Button(frame, text="load noise view", command= lambda: plotNoise(draw,master), height = 1, width=20).grid(row=0, column=2, padx=2, pady=2)
     Button(frame, text="load transfer view", command= lambda: plotMatrix(draw,master,0), height = 1, width=20).grid(row=1, column=2, padx=2, pady=2)
     Button(frame, text="change line view", command= lambda: Dashed_line(draw,master), height = 1, width=20).grid(row=2, column=2, padx=2, pady=2)
+    
+    #column 3
+    OptionMenu(frame, layoutMethod, *layout).grid(row=0, column=3)
 #same as main menu initializes the submenu
 def initSubMenu(frame):
     #Label(frame, text="currently selected:", bg="gray").pack()
@@ -118,18 +121,25 @@ def generateGraph(NG,NH,NR,typeGraph):
     print("number of nodes: ", plot.number_of_nodes() ," number of edges: ", plot.number_of_edges())
 
     pos = []
+
+    typeGraph = layoutMethod.get()
     #creating coordinates
     #the below functions can be chosen and generate position for the network and return them
-    if(typeGraph==0):
+    if(typeGraph=="circular"):
         pos = nx.circular_layout(plot,scale=2000,center=(500,500))
-    if(typeGraph==1):
+        print("circular layout")
+    if(typeGraph=="kamada_kawai"):
         pos = nx.kamada_kawai_layout(plot, scale=2000, center=(500,500), dim=2)
-    if(typeGraph==2):
+        print("kamada_kawai layout")
+    if(typeGraph=="spring"):
         pos = nx.spring_layout(plot, scale=2000, center=(500,500))
-    if(typeGraph==3):
+        print("spring layout")
+    if(typeGraph=="spectral"):
         pos = nx.spectral_layout(plot, scale=2000, center=(500,500))
-    if(typeGraph==4):
+        print("spectral layout")
+    if(typeGraph=="spiral"):
         pos = nx.spiral_layout(plot, scale=2000, center=(500,500))
+        print("spiral layout")
 
     return pos
 
@@ -156,7 +166,7 @@ def plotNoise(draw,master):
 
     for x in range(nmbOutputs):
         for y in range(nmbOutputs):
-            if(NG[x][y]==1):
+            if(NG[x][y]>0):
                 node1 = outputStore[y]
                 node2 = outputStore[x]
                 connectOutputs(node1,node2,draw,master,0)
@@ -166,7 +176,7 @@ def plotNoise(draw,master):
 
     for x in range(len(NH)):
         for y in range(len(NH[x])):
-            if(NH[x][y]==1):
+            if(NH[x][y]>0):
                 node1 = noiseNodeStore[y]
                 node2 = outputStore[x]
                 connectOutputs(node1,node2,draw,master,1)
@@ -194,7 +204,7 @@ def plotMatrix(draw,master,init):
 
     nmbOutputs = len(NG)
 
-    pos = generateGraph(NG,NR,NH,1)
+    pos = generateGraph(NG,NR,NH,3)
 
     for x in range(nmbOutputs):
         addOutput(draw, pos[x][0], pos[x][1],master)
@@ -207,7 +217,7 @@ def plotMatrix(draw,master,init):
                 node2 = outputStore[x]
                 connectOutputs(node1,node2,draw,master,1)
 
-    """
+
     for x in range(len(NH)):
         for y in range(len(NH[x])):
             if(NH[x][y]==1):
@@ -217,7 +227,7 @@ def plotMatrix(draw,master,init):
         for y in range(len(NR[x])):
             if(NR[x][y]==1):
                 addNH(outputStore[x],master,draw,1,y)
-    """
+ 
 
     #connecting each output is below
     
@@ -962,6 +972,17 @@ subMenu.grid(row=0, column=1, rowspan=2, sticky=N+S+E+W)
 draw = Canvas(canvas, bg="white")
 draw.pack(fill="both", expand=True)
 
+layout = [
+"circular",
+"kamada_kawai",
+"spring",
+"spectral",
+"spiral"
+]
+
+layoutMethod = StringVar(master)
+layoutMethod.set(layout[0])
+
 #bind functions to events
 initMainMenu(mainMenu, draw)
 initSubMenu(subMenu)
@@ -970,24 +991,5 @@ initSubMenu(subMenu)
 unit = Zoom_Advanced(draw)
 #bind button Release to the clickevent
 unit.canvas.bind("<ButtonRelease-1>",clickEvent)
-#creating scrollbars for x and y
-#scrollbar_y = Scrollbar(canvas, orient="vertical",command=draw.yview)
-#scrollbar_x = Scrollbar(canvas, orient="horizontal",command=draw.xview)
-#scrollable_frame = canvas
-#scrollable_frame.bind("<Configure>", lambda e: draw.configure(scrollregion=draw.bbox("all")))
-#draw.configure(yscrollcommand=scrollbar_y.set)
-#draw.configure(xscrollcommand=scrollbar_x.set)
-#scrollbar_y.pack(side="right", fill="y")
-#scrollbar_x.pack(side="bottom", fill="x")
-#####
-# canvas aanmaken en even een proef of concept hardcode op het scherm
-#w = Canvas(master, width=1000, height=600)
-#w.pack()
-#initialize_display(w,master)
 
-
-# label widget
-# infinite loop which is required to
-# run tkinter program infinitely
-# until an interrupt occurs
 mainloop()
