@@ -41,7 +41,7 @@ class Zoom_Advanced(Frame):
         self.canvas.bind('i',   self.wheel)  # only with Linux, wheel scroll down
         self.canvas.bind('o',   self.wheel)  # only with Linux, wheel scroll up
         self.imscale = 1; #scale for the image
-        self.delta = 1.3  # zoom magnitude
+        self.delta = 1.05  # zoom magnitude
         self.height = 500
         self.width = 500
         # Put image into container rectangle and use it to set proper coordinates to the image
@@ -75,12 +75,12 @@ class Zoom_Advanced(Frame):
 #         Respond to Windows (event.delta) wheel event
         if event.delta == -120:  # scroll down
             i = min(self.width, self.height)
-            if int(i * self.imscale) < 30: return  # image is less than 30 pixels
+            #if int(i * self.imscale) < 30: return  # image is less than 30 pixels
             self.imscale /= self.delta
             scale        /= self.delta
         if event.delta == 120:  # scroll up
             i = min(self.canvas.winfo_width(), self.canvas.winfo_height())
-            if i < self.imscale: return  # 1 pixel is bigger than the visible area
+            #if i < self.imscale: return  # 1 pixel is bigger than the visible area
             self.imscale *= self.delta
             scale        *= self.delta
         self.canvas.scale('all', x, y, scale, scale)  # rescale all canvas objects
