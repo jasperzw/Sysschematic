@@ -90,7 +90,9 @@ def removeNoiseNodeCall(noiseNodeStore, noiseNodeNumber, lineStore, lineNumber, 
                             draw.delete(lineStore[i][0])
                             #removeNodeCall(draw,master,number_of_nodes,btnStore,lineStore,lineNumber)
                             lineStore[i]=0
+                if(x==(noiseNodeNumber-1)):
+                    noiseNodeNumber = noiseNodeNumber - 1
                 draw.delete(noiseNodeStore[x][4])
                 draw.delete(noiseNodeStore[x][0])
                 noiseNodeStore[x] = 0
-    return noiseNodeStore, lineStore
+    return noiseNodeStore, lineStore, noiseNodeNumber
