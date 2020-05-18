@@ -105,6 +105,7 @@ def loadMat(draw,master):
 def generateGraph(NG,NH,NR,typeGraph, setScale):
 
     nmbOutputs = len(NG)
+    nmbOutputs2 = len(NG[0])
     #below function will read through the mat file and try to find how many modules their are
 
     #using the network functions create a direction graph (nodes with a connection with a direction so connection 1 to 2 has a direction and is not the same as 2 to 1)
@@ -112,7 +113,7 @@ def generateGraph(NG,NH,NR,typeGraph, setScale):
     plot.add_nodes_from(range(nmbOutputs))
 
     for x in range(nmbOutputs):
-        for y in range(nmbOutputs):
+        for y in range(nmbOutputs2):
             if(NG[x][y]==1):
                 plot.add_edge(y,x)
 
@@ -599,14 +600,9 @@ def removeNoise():
     global lineStore
     global noiseNodeNumber
 
-<<<<<<< HEAD
-    noiseNodeStore, lineStore = removeNoiseNodeCall(noiseNodeStore, noiseNodeNumber, lineStore, lineNumber, draw)
-    removeNode(draw,master)
-=======
     noiseNodeStore, lineStore, noiseNodeNumber = removeNoiseNodeCall(noiseNodeStore, noiseNodeNumber, lineStore, lineNumber, draw)
     removeNode(draw, master)
 
->>>>>>> 38e7c4ada6c4ce7ba2c3faf57ee5b67534acc10b
 """
 Below are the functions for
 
