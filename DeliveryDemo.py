@@ -103,7 +103,7 @@ def loadMat(draw,master):
     storeNG, storeNR, storeNH = readFile(filename)
     plotMatrix(draw,master,1)
 
-def generateGraph(NG,NH,NR,typeGraph):
+def generateGraph(NG,NH,NR,typeGraph,setScale):
     
     nmbOutputs = len(NG)
 
@@ -126,19 +126,19 @@ def generateGraph(NG,NH,NR,typeGraph):
     #creating coordinates
     #the below functions can be chosen and generate position for the network and return them
     if(typeGraph=="circular"):
-        pos = nx.circular_layout(plot,scale=2000,center=(500,500))
+        pos = nx.circular_layout(plot,scale=setScale,center=(500,500))
         print("circular layout")
     if(typeGraph=="kamada_kawai"):
-        pos = nx.kamada_kawai_layout(plot, scale=2000, center=(500,500), dim=2)
+        pos = nx.kamada_kawai_layout(plot, scale=setScale, center=(500,500), dim=2)
         print("kamada_kawai layout")
     if(typeGraph=="spring"):
-        pos = nx.spring_layout(plot, scale=2000, center=(500,500))
+        pos = nx.spring_layout(plot, scale=setScale, center=(500,500))
         print("spring layout")
     if(typeGraph=="spectral"):
-        pos = nx.spectral_layout(plot, scale=2000, center=(500,500))
+        pos = nx.spectral_layout(plot, scale=setScale, center=(500,500))
         print("spectral layout")
     if(typeGraph=="spiral"):
-        pos = nx.spiral_layout(plot, scale=2000, center=(500,500))
+        pos = nx.spiral_layout(plot, scale=setScale, center=(500,500))
         print("spiral layout")
 
     return pos
@@ -156,8 +156,8 @@ def plotNoise(draw,master):
     nmbOutputs = len(NG)
     nmbNoise = len(NH[0])
 
-    pos = generateGraph(NG,NR,NH,1)
-    posNoise = generateGraph(NH,NR,NG,1)
+    pos = generateGraph(NG,NR,NH,1,2000)
+    posNoise = generateGraph(NH,NR,NG,1,1500)
     #below function will read through the mat file and try to find how many modules their are
     #plot each function in a circle
 
@@ -204,7 +204,7 @@ def plotMatrix(draw,master,init):
 
     nmbOutputs = len(NG)
 
-    pos = generateGraph(NG,NR,NH,3)
+    pos = generateGraph(NG,NR,NH,3,2000)
 
     for x in range(nmbOutputs):
         addOutput(draw, pos[x][0], pos[x][1],master)
@@ -276,9 +276,10 @@ def toAdjecencyMatrix(draw,master):
                         if(lineStore[y][2]==currentOutput):
                             nodeB = lineStore[y][1]
                             for a in range(noiseNodeNumber):
-                                if(nodeB == noiseNodeStore[a][1]):
-                                    print(nodeB.nmb)
-                                    NH[x][nodeB.nmb] = 1
+                                if(noiseNodeStore[a]!=0):
+                                    if(nodeB == noiseNodeStore[a][1]):
+                                        print(nodeB.nmb)
+                                        NH[x][nodeB.nmb] = 1
             else:
                 NH = storeNH
 
@@ -395,7 +396,6 @@ def removeNode(w, master):
     global lineNumber
 
     number_of_nodes, btnStore, lineStore, lineNumber = removeNodeCall(draw,master,number_of_nodes,btnStore,lineStore,lineNumber)
-
 
 """
 below are the functions regarding
@@ -600,7 +600,7 @@ def removeNoise():
     global lineStore
 
     noiseNodeStore, lineStore = removeNoiseNodeCall(noiseNodeStore, noiseNodeNumber, lineStore, lineNumber, draw)
-
+    removeNode(draw,master)
 """
 Below are the functions for
 
