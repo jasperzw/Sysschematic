@@ -19,7 +19,6 @@ widgetId is what you call to remove it from the canvas in draw.delete(widgetId)
 
 lineStore[x][1] and lineStore[x][2] are the modules connected by the line and lineStore[x][3] is the transfer
 """
-scale_prev = float(1)
 number_of_nodes = 0
 btnStore = []
 lineStore = [[]]
@@ -63,7 +62,7 @@ def initMainMenu(frame, canvas):
     Button(frame, text="load noise view", command= lambda: plotNoise(draw,master), height = 1, width=20).grid(row=0, column=2, padx=2, pady=2)
     Button(frame, text="load transfer view", command= lambda: plotMatrix(draw,master,0), height = 1, width=20).grid(row=1, column=2, padx=2, pady=2)
     Button(frame, text="change line view", command= lambda: Dashed_line(draw,master), height = 1, width=20).grid(row=2, column=2, padx=2, pady=2)
-    
+
     #column 3
     OptionMenu(frame, layoutMethod, *layout).grid(row=0, column=3)
 #same as main menu initializes the submenu
@@ -104,9 +103,9 @@ def loadMat(draw,master):
     plotMatrix(draw,master,1)
 
 def generateGraph(NG,NH,NR,typeGraph):
-    
-    nmbOutputs = len(NG)
 
+    nmbOutputs = len(NG)
+    nmbOutputs = len(NG[0])
     #below function will read through the mat file and try to find how many modules their are
 
     #using the network functions create a direction graph (nodes with a connection with a direction so connection 1 to 2 has a direction and is not the same as 2 to 1)
@@ -117,7 +116,7 @@ def generateGraph(NG,NH,NR,typeGraph):
         for y in range(nmbOutputs):
             if(NG[x][y]==1):
                 plot.add_edge(y,x)
-   
+
     print("number of nodes: ", plot.number_of_nodes() ," number of edges: ", plot.number_of_edges())
 
     pos = []
@@ -227,10 +226,10 @@ def plotMatrix(draw,master,init):
         for y in range(len(NR[x])):
             if(NR[x][y]==1):
                 addNH(outputStore[x],master,draw,1,y)
- 
+
 
     #connecting each output is below
-    
+
 
 def toAdjecencyMatrix(draw,master):
     global storeNG
@@ -288,6 +287,7 @@ def toAdjecencyMatrix(draw,master):
                         excitation = excitationStore[y][1]
                         nmb = int(excitation.nmb)
                         NR[x][nmb] = 1
+
     storeNG = NG
     storeNR = NR
     storeNH = NH
@@ -598,8 +598,10 @@ def selectNoiseNode(node):
 def removeNoise():
     global noiseNodeStore
     global lineStore
+    global noiseNodeNumber
 
-    noiseNodeStore, lineStore = removeNoiseNodeCall(noiseNodeStore, noiseNodeNumber, lineStore, lineNumber, draw)
+    noiseNodeStore, lineStore, noiseNodeNumber = removeNoiseNodeCall(noiseNodeStore, noiseNodeNumber, lineStore, lineNumber, draw)
+    removeNode(draw, master)
 
 """
 Below are the functions for
