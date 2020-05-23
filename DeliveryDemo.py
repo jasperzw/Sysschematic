@@ -201,8 +201,10 @@ def toAdjecencyMatrix(draw,master):
     global storeNH
     global storeNR
     global butTestStore
+    global outputNumber
+    global outputStore
 
-    storeNG, storeNR, storeNH = toAdjecencyMatrixCall(draw,master,overlay,storeNG,storeNH,storeNR,lineStore,lineNumber,outputStore,outputNumber,excitationStore,excitationNumber,noiseNodeStore,noiseNodeNumber)
+    storeNG, storeNR, storeNH, outputNumber, outputStore = toAdjecencyMatrixCall(draw,master,overlay,storeNG,storeNH,storeNR,lineStore,lineNumber,outputStore,outputNumber,excitationStore,excitationNumber,noiseNodeStore,noiseNodeNumber)
 
     return storeNG, storeNR, storeNH
 

@@ -1,6 +1,7 @@
 import scipy.io as sio
 import math
 import networkx as nx
+import numpy as np
 
 def  readFile(fileLocation):
     mat = sio.loadmat(fileLocation)
@@ -47,6 +48,8 @@ def toAdjecencyMatrixCall(draw,master,overlay,storeNG,storeNH,storeNR,lineStore,
                         #found a lineconnection to currentOutput
                         nodeB = lineStore[y][1]
                         #print(nodeB.nmb)
+                        print(x)
+                        print(nodeB.nmb)
                         NG[x][nodeB.nmb] = 1
 
 
@@ -58,7 +61,6 @@ def toAdjecencyMatrixCall(draw,master,overlay,storeNG,storeNH,storeNR,lineStore,
                             for a in range(noiseNodeNumber):
                                 if(noiseNodeStore[a]!=0):
                                     if(nodeB == noiseNodeStore[a][1]):
-                                        print(nodeB.nmb)
                                         NH[x][nodeB.nmb] = 1
             else:
                 NH = storeNH
@@ -69,6 +71,34 @@ def toAdjecencyMatrixCall(draw,master,overlay,storeNG,storeNH,storeNR,lineStore,
                         excitation = excitationStore[y][1]
                         nmb = int(excitation.nmb)
                         NR[x][nmb] = 1
+
+
+    x = 0
+    while( x < (len(NG))):
+        emptyrow = 0;
+        for y in range(len(NG)):
+            if(NG[x][y]==0):
+                emptyrow = emptyrow + 1;
+        if(emptyrow==len(NG)):
+            emptycolumn = 0;
+            for y in range(len(NG)):
+                if(NG[y][x]==0):
+                    emptycolumn = emptycolumn + 1;
+            if(emptycolumn==len(NG)):
+                NG.pop(x)
+                NH = list(NH)
+                NH.pop(x)
+                for y in range(len(NG)):
+                    NG[y].pop(x)
+                NH = np.asarray(NH, dtype=np.float32)
+
+                a = 0
+                while(a<outputNumber):
+                    if(outputStore[a]!=0 and outputStore[a][1].nmb>x):
+                        outputStore[a][1].nmb = outputStore[a][1].nmb -1
+                    a = a + 1
+                outputNumber = outputNumber - 1
+        x = x + 1
 
     storeNG = NG
     storeNR = NR
@@ -84,7 +114,7 @@ def toAdjecencyMatrixCall(draw,master,overlay,storeNG,storeNH,storeNR,lineStore,
     for value in storeNH:
         print(value)
 
-    return NG, NR, NH
+    return NG, NR, NH, outputNumber, outputStore
 
 def generateGraph(NG,NH,NR, typeGraph, setScale, layoutMethod):
 
