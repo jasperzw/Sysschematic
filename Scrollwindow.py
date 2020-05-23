@@ -28,6 +28,7 @@ class Zoom_Advanced(Frame):
         hbar.grid(row=1, column=0, sticky='we')
         # Create canvas and put image on it
         self.canvas = mainframe
+        self.canvas.configure(xscrollcommand=hbar.set, yscrollcommand=vbar.set)
         self.canvas.update()  # wait till canvas is created
         vbar.configure(command=self.scroll_y)  # bind scrollbars to the canvas
         hbar.configure(command=self.scroll_x)
@@ -38,12 +39,13 @@ class Zoom_Advanced(Frame):
         self.canvas.bind('<ButtonPress-1>', self.move_from)
         self.canvas.bind('<B1-Motion>', self.move_to)
         self.canvas.bind('<MouseWheel>', self.wheel)  # with Windows and MacOS, but not Linux
+        self.canvas.bind('<Button-4>', self.wheel)
+        self.canvas.bind('<Button-5>', self.wheel)
         self.canvas.bind('i',   self.wheel)  # only with Linux, wheel scroll down
         self.canvas.bind('o',   self.wheel)  # only with Linux, wheel scroll up
-        self.imscale = 1; #scale for the image
-        self.delta = 1.05  # zoom magnitude
-        self.height = 500
-        self.width = 500
+        self.delta = 0.75  # zoom magnitude
+        self.canvas.configure(scrollregion=self.canvas.bbox('all'))
+        self.currentZoom = 1
         # Put image into container rectangle and use it to set proper coordinates to the image
     #    self.container = self.canvas.create_rectangle(0, 0, self.width, self.height, width=0)
         # Plot some optional random rectangles for the test purposes
@@ -73,17 +75,22 @@ class Zoom_Advanced(Frame):
 #        else: return  # zoom only inside image area
         scale = 1.0
 #         Respond to Windows (event.delta) wheel event
-        if event.delta == -120:  # scroll down
-            i = min(self.width, self.height)
+        if event.delta == -120 or event.num == 5:  # scroll down
+
             #if int(i * self.imscale) < 30: return  # image is less than 30 pixels
-            self.imscale /= self.delta
-            scale        /= self.delta
-        if event.delta == 120:  # scroll up
-            i = min(self.canvas.winfo_width(), self.canvas.winfo_height())
-            #if i < self.imscale: return  # 1 pixel is bigger than the visible area
-            self.imscale *= self.delta
             scale        *= self.delta
+        if event.delta == 120 or event.num == 4:  # scroll up
+            #i = min(self.canvas.winfo_width(), self.canvas.winfo_height())
+            #if i < self.imscale: return  # 1 pixel is bigger than the visible area
+            scale        /= self.delta
+
+        self.currentZoom *= scale
+
         self.canvas.scale('all', x, y, scale, scale)  # rescale all canvas objects
+        self.canvas.configure(scrollregion=self.canvas.bbox('all'))
+        print('the current used scale: ', self.currentZoom, " with delta adjusment: ",scale)
+
+        self.canvas.event_generate("<<zoomCall>>", when="tail")
 
 class popupWindow(object):
     def __init__(self,master):
@@ -97,3 +104,7 @@ class popupWindow(object):
     def cleanup(self):
         self.value=self.e.get()
         self.top.destroy()
+
+def _create_circle(self, x, y, r, **kwargs):
+    return self.create_oval(x-r, y-r, x+r, y+r, **kwargs)
+Canvas.create_circle = _create_circle

@@ -1,13 +1,12 @@
 # Importing tkinter module
 from tkinter import *
-from exampleLib import *
-from matImport import readFile
+from matImport import readFile, toAdjecencyMatrixCall, generateGraph
 from tkinter.filedialog import askopenfilename
 import math
 from Scrollwindow import *
 from node import removeNodeCall
 from noise import addNoiseNodeCall, selectNoiseNodeCall, removeNoiseNodeCall
-import networkx as nx
+
 
 """
 initializing all global components
@@ -39,11 +38,7 @@ currentAmountOutputSelected = 1 #this variable is so we know the order that outp
 #global declare is unnecessary since they are declared in the upper script outside any function
 #variable which indicates if a click means a module add
 clickOperation=0
-#A simple function to draw circles in a canvas
-def _create_circle(self, x, y, r, **kwargs):
-    return self.create_oval(x-r, y-r, x+r, y+r, **kwargs)
-Canvas.create_circle = _create_circle
-
+currentView = 0
 
 #initializes the main menu. you have to pass the mainmenu frame and the canvas so that it could pass the canvas id when clearing it
 def initMainMenu(frame, canvas):
@@ -51,12 +46,12 @@ def initMainMenu(frame, canvas):
     #column 0
     Button(frame, text="load .mat file", command= lambda: loadMat(draw, master), height = 1, width=20).grid(row=0, padx=2, pady=2)
     Button(frame, text="export .mat file", command= lambda: toAdjecencyMatrix(draw, master), height = 1, width=20).grid(row=1, padx=2, pady=2)
-    Button(frame, text="load example network", command= lambda: draw_example(draw,-10, -150,master), height = 1, width=20).grid(row=2, padx=2, pady=2)
+    Button(frame, text="change node view", command= lambda: switchView(draw, master), height = 1, width=20).grid(row=2, padx=2, pady=2)
 
     #column 1
     Button(frame, text="Options", height = 1, width=20).grid(row=0, column=1, padx=2, pady=2)
     Button(frame, text="Go to global view", height = 1, width=20).grid(row=1, column=1, padx=2, pady=2)
-    Button(frame, text="Clear window", command= lambda: clearWindow(canvas), height = 1, width=20).grid(row=2, column=1, padx=2, pady=2)
+    Button(frame, text="Clear window", command= lambda: clearWindow(canvas,1), height = 1, width=20).grid(row=2, column=1, padx=2, pady=2)
 
     #column 2
     Button(frame, text="load noise view", command= lambda: plotNoise(draw,master), height = 1, width=20).grid(row=0, column=2, padx=2, pady=2)
@@ -100,63 +95,27 @@ def loadMat(draw,master):
     global storeNH
     filename = askopenfilename()
     storeNG, storeNR, storeNH = readFile(filename)
-    plotMatrix(draw,master,1)
-
-def generateGraph(NG,NH,NR,typeGraph, setScale):
-
-    nmbOutputs = len(NG)
-    nmbOutputs2 = len(NG[0])
-    #below function will read through the mat file and try to find how many modules their are
-
-    #using the network functions create a direction graph (nodes with a connection with a direction so connection 1 to 2 has a direction and is not the same as 2 to 1)
-    plot = nx.DiGraph()
-    plot.add_nodes_from(range(nmbOutputs))
-
-    for x in range(nmbOutputs):
-        for y in range(nmbOutputs2):
-            if(NG[x][y]==1):
-                plot.add_edge(y,x)
-
-    print("number of nodes: ", plot.number_of_nodes() ," number of edges: ", plot.number_of_edges())
-
-    pos = []
-
-    typeGraph = layoutMethod.get()
-    #creating coordinates
-    #the below functions can be chosen and generate position for the network and return them
-    if(typeGraph=="circular"):
-        pos = nx.circular_layout(plot,scale=setScale,center=(500,500))
-        print("circular layout")
-    if(typeGraph=="kamada_kawai"):
-        pos = nx.kamada_kawai_layout(plot, scale=setScale, center=(500,500), dim=2)
-        print("kamada_kawai layout")
-    if(typeGraph=="spring"):
-        pos = nx.spring_layout(plot, scale=setScale, center=(500,500))
-        print("spring layout")
-    if(typeGraph=="spectral"):
-        pos = nx.spectral_layout(plot, scale=setScale, center=(500,500))
-        print("spectral layout")
-    if(typeGraph=="spiral"):
-        pos = nx.spiral_layout(plot, scale=setScale, center=(500,500))
-        print("spiral layout")
-
-    return pos
+    #plotMatrix(draw,master,1)
+    abstractPlot(draw,master,storeNG,storeNR,storeNH)
 
 def plotNoise(draw,master):
     global overlay
     global lineNumber
     global lineStore
 
+    if(currentView==0):
+        switchView(draw,master)
+
     NG, NR, NH = toAdjecencyMatrix(draw,master)
-    clearWindow(draw)
+    clearWindow(draw,0)
     overlay = 1
 
 
     nmbOutputs = len(NG)
     nmbNoise = len(NH[0])
 
-    pos = generateGraph(NG,NR,NH,1,2000)
-    posNoise = generateGraph(NH,NR,NG,1,1500)
+    pos = generateGraph(NG,NR,NH,1,500*unit.currentZoom, layoutMethod)
+    posNoise = generateGraph(NH,NR,NG,1,300*unit.currentZoom, layoutMethod)
     #below function will read through the mat file and try to find how many modules their are
     #plot each function in a circle
 
@@ -192,7 +151,7 @@ def plotMatrix(draw,master,init):
         NH = storeNH
     else:
         NG, NR, NH = toAdjecencyMatrix(draw,master)
-        clearWindow(draw)
+        clearWindow(draw,0)
         #store noise so that the adjecency function can pick it from global variables
         storeNH = NH
 
@@ -203,7 +162,7 @@ def plotMatrix(draw,master,init):
 
     nmbOutputs = len(NG)
 
-    pos = generateGraph(NG,NR,NH,3,2000)
+    pos = generateGraph(NG,NR,NH,3,500*unit.currentZoom,layoutMethod)
 
     for x in range(nmbOutputs):
         addOutput(draw, pos[x][0], pos[x][1],master)
@@ -216,7 +175,7 @@ def plotMatrix(draw,master,init):
                 node2 = outputStore[x]
                 connectOutputs(node1,node2,draw,master,1)
 
-
+"""
     for x in range(len(NH)):
         for y in range(len(NH[x])):
             if(NH[x][y]==1):
@@ -226,7 +185,7 @@ def plotMatrix(draw,master,init):
         for y in range(len(NR[x])):
             if(NR[x][y]==1):
                 addNH(outputStore[x],master,draw,1,y)
-
+"""
 
     #connecting each output is below
 
@@ -235,76 +194,50 @@ def toAdjecencyMatrix(draw,master):
     global storeNG
     global storeNH
     global storeNR
-    NG = []
-    NR = []
-    NH = []
 
-    #set everything first to zero
-    for x in range(outputNumber):
-        new = []
-        for y in range(outputNumber):
-            new.append(0)
-        NG.append(new)
-        new = []
-        for y in range(noiseNodeNumber):
-            new.append(0)
-        NH.append(new)
-        new = []
-        for y in range(excitationNumber):
-            new.append(0)
-        NR.append(new)
-    #create NG matrix
-    #print(noiseNodeStore)
-    for x in range(outputNumber):
-        if(outputStore[x]!=0):
-            currentOutput = outputStore[x][1]
-            #check for connections to create NG
-            for y in range(lineNumber):
-                #print("now scanning for node: ",x," at linestore: ",lineStore[y]," for button: ",currentOutput)
-                if(lineStore[y]!=0):
-                    if(lineStore[y][2]==currentOutput):
-                        #found a lineconnection to currentOutput
-                        nodeB = lineStore[y][1]
-                        #print(nodeB.nmb)
-                        NG[x][nodeB.nmb] = 1
+    storeNG, storeNR, storeNH = toAdjecencyMatrixCall(draw,master,overlay,storeNG,storeNH,storeNR,lineStore,lineNumber,outputStore,outputNumber,excitationStore,excitationNumber,noiseNodeStore,noiseNodeNumber)
 
+    return storeNG, storeNR, storeNH
 
-            if(overlay==1):
-                for y in range(lineNumber):
-                    if(lineStore[y]!=0):
-                        if(lineStore[y][2]==currentOutput):
-                            nodeB = lineStore[y][1]
-                            for a in range(noiseNodeNumber):
-                                if(noiseNodeStore[a]!=0):
-                                    if(nodeB == noiseNodeStore[a][1]):
-                                        print(nodeB.nmb)
-                                        NH[x][nodeB.nmb] = 1
-            else:
-                NH = storeNH
+def abstractPlot(draw,master,NG,NR,NH):
 
-            for y in range(excitationNumber):
-                if(excitationStore[y]!=0):
-                    if(excitationStore[y][4]==currentOutput):
-                        excitation = excitationStore[y][1]
-                        nmb = int(excitation.nmb)
-                        NR[x][nmb] = 1
+    pos = generateGraph(NG,NR,NH,3,500*unit.currentZoom, layoutMethod)
 
-    storeNG = NG
-    storeNR = NR
-    storeNH = NH
+    nmbOutputs = len(NG)
 
-    print("NG is generated as following:")
-    for value in storeNG:
-        print(value)
-    print("NR is generated as following:")
-    for value in storeNR:
-        print(value)
-    print("NH is generated as following:")
-    for value in storeNH:
-        print(value)
+    #make all the connectiosn tussen connectOutputs
+    for x in range(nmbOutputs):
+        for y in range(nmbOutputs):
+            if(NG[x][y]==1):
+                draw.create_line(pos[x][0], pos[x][1], pos[y][0], pos[y][1])
 
-    return NG, NR, NH
+    for x in range(nmbOutputs):
+        draw.create_circle(pos[x][0], pos[x][1], 5*unit.currentZoom, fill="red")
 
+def switchView(draw, master):
+    global storeNG
+    global storeNR
+    global storeNH
+    global currentView
+
+    if(currentView == 0):
+        print("changing to detail")
+        draw.delete("all")
+        plotMatrix(draw,master,1)
+        currentView = 1
+    else:
+        if(currentView == 1):
+            NG = storeNG
+            NR = storeNR
+            NH = storeNH
+            print("changing to abstract")
+            clearWindow(draw,0)
+            abstractPlot(draw,master,NG,NR,NH)
+            storeNG = NG
+            storeNR = NR
+            storeNH = NH
+
+            currentView = 0
 """
 Below we have the subsection of:
 
@@ -342,6 +275,8 @@ def addNode(w,x,y,master,node1,node2):
         global overlay
         node = 0
 
+        height = 20
+        width = 30
 
         node_name = "G"
         if(overlay):
@@ -362,7 +297,7 @@ def addNode(w,x,y,master,node1,node2):
         pixelVirtual = PhotoImage(width=3,height=1)
         if(number_of_nodes==0):
             btn = Button(master, text = str(node_name)+str(number_2)+","+str(number_1), command = lambda: selectNode(w,0) , bg = "cyan")
-            save = [w.create_window(x, y, window=btn),btn,x,y]
+            save = [w.create_window(x, y, window=btn, height=height, width=width),btn,x,y]
             #append it on th end
             btnStore.append(save)
             number_of_nodes = number_of_nodes + 1
@@ -374,7 +309,7 @@ def addNode(w,x,y,master,node1,node2):
                 if(btnStore[m]==0):
                     node = m
                     btn = Button(master, text = str(node_name)+str(number_2)+","+str(number_1), command = lambda: selectNode(w,node) , bg = "cyan")
-                    save = [w.create_window(x, y, window=btn),btn,x,y]
+                    save = [w.create_window(x, y, window=btn, height=height, width=width),btn,x,y]
                     btnStore[m] = save
                     #print("added node in existing place")
 
@@ -382,7 +317,7 @@ def addNode(w,x,y,master,node1,node2):
             if(number_of_nodes!=0 and node == 0):
                 temp = number_of_nodes
                 btn = Button(master, text = str(node_name)+str(number_2)+","+str(number_1), command = lambda: selectNode(w,temp) , bg = "cyan")
-                save = [w.create_window(x, y, window=btn),btn,x,y]
+                save = [w.create_window(x, y, window=btn, height=height, width=width),btn,x,y]
                 btnStore.append(save)
                 number_of_nodes = number_of_nodes + 1
                 #print("appended node to back of list")
@@ -626,8 +561,11 @@ def addOutput(draw, x, y, master):
         img1Btn.order = 0
         img1Btn["border"] = "0"
 
+        height = 50
+        width = 50
 
-        save = [draw.create_window(x, y, window=img1Btn),img1Btn,x,y,draw.create_window(x+10,y+5,window=nmb),nmb]
+
+        save = [draw.create_window(x, y, window=img1Btn, width=width, height=height),img1Btn,x,y,draw.create_window(x+10,y+5,window=nmb),nmb]
 
         #earch if their is a empty entry.
         for m in range(outputNumber):
@@ -737,7 +675,7 @@ def Dashed_line(draw,master):
                     draw.itemconfig(lineStore[x][0],fill = "black")
             lineshow = 1
 
-def clearWindow(canvas):
+def clearWindow(canvas,canReset):
     #remove everythin and set all global to 0
     global number_of_nodes
     global outputNumber
@@ -756,6 +694,7 @@ def clearWindow(canvas):
     global storeNR
     global storeNH
     global overlay
+    global unit
     canvas.delete("all")
     number_of_nodes = 0
     outputNumber = 0
@@ -772,6 +711,12 @@ def clearWindow(canvas):
     noiseNodeStore = []
     storeNG = storeNR = storeNH = []
     overlay = 0
+    if(canReset==1):
+        if(unit.currentZoom > 1):
+            unit.canvas.scale('all', unit.currentZoom, unit.currentZoom, 1, 1)
+        if(unit.currentZoom < 1):
+            unit.canvas.scale('all', 1, 1, unit.currentZoom, unit.currentZoom)
+        unit.currentZoom = 1
 
 
 
@@ -942,6 +887,7 @@ Below you will find the basic setup of the grid
 
 -------------------------------------------------------- Grid interface setup and initialization --------------------------------------------------------
 """
+
 # creating Tk window
 master = Tk()
 master.configure(background="gray")
@@ -993,5 +939,4 @@ initSubMenu(subMenu)
 unit = Zoom_Advanced(draw)
 #bind button Release to the clickevent
 unit.canvas.bind("<ButtonRelease-1>",clickEvent)
-
 mainloop()
