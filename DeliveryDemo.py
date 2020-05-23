@@ -221,7 +221,7 @@ def abstractPlot(draw,master,NG,NR,NH):
 
     for x in range(nmbOutputs):
         widget = draw.create_circle(pos[x][0], pos[x][1], 5*unit.currentZoom, fill="red")
-        text = draw.create_text(pos[x][0], pos[x][1], unit.currentZoom, text="w"+str(widget))
+        text = draw.create_text(pos[x][0], pos[x][1], text="w"+str(widget),width=50)
         temp = [widget, pos[x][0], pos[x][1], 5*unit.currentZoom,1]
         butTestStore.append(temp)
         butTestNumber += 1
