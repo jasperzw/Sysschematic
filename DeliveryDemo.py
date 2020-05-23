@@ -39,6 +39,8 @@ currentAmountOutputSelected = 1 #this variable is so we know the order that outp
 #variable which indicates if a click means a module add
 clickOperation=0
 currentView = 0
+butTestStore = []
+butTestNumber = 0
 
 #initializes the main menu. you have to pass the mainmenu frame and the canvas so that it could pass the canvas id when clearing it
 def initMainMenu(frame, canvas):
@@ -194,13 +196,15 @@ def toAdjecencyMatrix(draw,master):
     global storeNG
     global storeNH
     global storeNR
+    global butTestStore
 
     storeNG, storeNR, storeNH = toAdjecencyMatrixCall(draw,master,overlay,storeNG,storeNH,storeNR,lineStore,lineNumber,outputStore,outputNumber,excitationStore,excitationNumber,noiseNodeStore,noiseNodeNumber)
 
     return storeNG, storeNR, storeNH
 
 def abstractPlot(draw,master,NG,NR,NH):
-
+    global butTestStore
+    global butTestNumber
     pos = generateGraph(NG,NR,NH,3,500*unit.currentZoom, layoutMethod)
 
     nmbOutputs = len(NG)
@@ -212,7 +216,11 @@ def abstractPlot(draw,master,NG,NR,NH):
                 draw.create_line(pos[x][0], pos[x][1], pos[y][0], pos[y][1])
 
     for x in range(nmbOutputs):
-        draw.create_circle(pos[x][0], pos[x][1], 5*unit.currentZoom, fill="red")
+        widget = draw.create_circle(pos[x][0], pos[x][1], 5*unit.currentZoom, fill="red")
+        text = draw.create_text(pos[x][0], pos[x][1], text="w"+str(widget), width=50)
+        temp = [widget, pos[x][0], pos[x][1], 5*unit.currentZoom,1]
+        butTestStore.append(temp)
+        butTestNumber += 1
 
 def switchView(draw, master):
     global storeNG
@@ -855,6 +863,8 @@ def clickEvent(event):
     global clickOperation
     x = draw.canvasx(event.x)
     y = draw.canvasy(event.y)
+    if(clickOperation==0):
+        circleScan(draw,master,x,y)
     if(clickOperation==1):
         addNode(event.widget, x, y, master)
         clickOperation=0
@@ -866,6 +876,30 @@ def clickEvent(event):
     if(clickOperation==3):
         addNoiseNode(draw, x, y, master)
         clickOperation=0
+
+def circleScan(draw,master,x,y):
+    print("scanning for button at: ",x,",",y)
+    #draw.create_circle(x,y,10,fill="green")
+    for f in range(butTestNumber):
+        xObj = draw.coords(butTestStore[f][0])[0]+butTestStore[f][3]*unit.currentZoom
+        yObj = draw.coords(butTestStore[f][0])[1]+butTestStore[f][3]*unit.currentZoom
+        xN = math.pow((x-xObj),2)
+        yN = math.pow((y-yObj),2)
+
+        dis = math.sqrt(xN + yN)
+        if(f==3):
+            print("current dis: ",dis," for node ", butTestStore[f][0] , " at ",draw.coords(butTestStore[f][0]))
+            print("xN: ", xN , " yN: ",yN)
+        if (dis < butTestStore[f][3]*unit.currentZoom):
+            if(butTestStore[f][4]==0):
+                butTestStore[f][4] = 1
+                draw.itemconfig(butTestStore[f][0],fill="blue")
+                print("buttond found!")
+            else:
+                butTestStore[f][4] = 0
+                draw.itemconfig(butTestStore[f][0],fill="red")
+                print("buttond found!")
+
 
 """"
     Zoom_buttons(unit.imscale)

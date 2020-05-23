@@ -44,7 +44,7 @@ class Zoom_Advanced(Frame):
         self.canvas.bind('i',   self.wheel)  # only with Linux, wheel scroll down
         self.canvas.bind('o',   self.wheel)  # only with Linux, wheel scroll up
         self.delta = 0.75  # zoom magnitude
-        self.canvas.configure(scrollregion=self.canvas.bbox('all'))
+        #self.canvas.configure(scrollregion=self.canvas.bbox('all'))
         self.currentZoom = 1
         # Put image into container rectangle and use it to set proper coordinates to the image
     #    self.container = self.canvas.create_rectangle(0, 0, self.width, self.height, width=0)
@@ -87,10 +87,8 @@ class Zoom_Advanced(Frame):
         self.currentZoom *= scale
 
         self.canvas.scale('all', x, y, scale, scale)  # rescale all canvas objects
-        self.canvas.configure(scrollregion=self.canvas.bbox('all'))
+        #self.canvas.configure(scrollregion=self.canvas.bbox('all'))
         print('the current used scale: ', self.currentZoom, " with delta adjusment: ",scale)
-
-        self.canvas.event_generate("<<zoomCall>>", when="tail")
 
 class popupWindow(object):
     def __init__(self,master):
