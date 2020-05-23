@@ -147,6 +147,10 @@ def plotMatrix(draw,master,init):
     global overlay
     global storeNH
 
+    if(currentView==0):
+        switchView(draw,master)
+        overlay = 0
+        return
     if(init):
         NG = storeNG
         NR = storeNR
@@ -217,7 +221,7 @@ def abstractPlot(draw,master,NG,NR,NH):
 
     for x in range(nmbOutputs):
         widget = draw.create_circle(pos[x][0], pos[x][1], 5*unit.currentZoom, fill="red")
-        text = draw.create_text(pos[x][0], pos[x][1], text="w"+str(widget), width=50)
+        text = draw.create_text(pos[x][0], pos[x][1], unit.currentZoom, text="w"+str(widget))
         temp = [widget, pos[x][0], pos[x][1], 5*unit.currentZoom,1]
         butTestStore.append(temp)
         butTestNumber += 1
@@ -227,25 +231,28 @@ def switchView(draw, master):
     global storeNR
     global storeNH
     global currentView
+    global overlay
 
-    if(currentView == 0):
-        print("changing to detail")
-        draw.delete("all")
-        plotMatrix(draw,master,1)
-        currentView = 1
-    else:
-        if(currentView == 1):
-            NG = storeNG
-            NR = storeNR
-            NH = storeNH
-            print("changing to abstract")
-            clearWindow(draw,0)
-            abstractPlot(draw,master,NG,NR,NH)
-            storeNG = NG
-            storeNR = NR
-            storeNH = NH
+    if(overlay==0):
+        if(currentView == 0):
+            currentView = 1
+            print("changing to detail")
+            draw.delete("all")
+            plotMatrix(draw,master,1)
 
-            currentView = 0
+        else:
+            if(currentView == 1):
+                NG = storeNG
+                NR = storeNR
+                NH = storeNH
+                print("changing to abstract")
+                clearWindow(draw,0)
+                abstractPlot(draw,master,NG,NR,NH)
+                storeNG = NG
+                storeNR = NR
+                storeNH = NH
+
+                currentView = 0
 """
 Below we have the subsection of:
 
