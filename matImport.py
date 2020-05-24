@@ -47,10 +47,13 @@ def toAdjecencyMatrixCall(draw,master,overlay,storeNG,storeNH,storeNR,lineStore,
                     if(lineStore[y][2]==currentOutput):
                         #found a lineconnection to currentOutput
                         nodeB = lineStore[y][1]
-                        #print(nodeB.nmb)
-                        print(x)
-                        print(nodeB.nmb)
-                        NG[x][nodeB.nmb] = 1
+                        for a in range(outputNumber):
+                            if(outputStore[a]!=0):
+                                nodeA = outputStore[a][1]
+                                if(nodeA==nodeB):
+                                    print(x)
+                                    print(nodeB.nmb)
+                                    NG[x][nodeB.nmb] = 1
 
 
             if(overlay==1):
@@ -94,8 +97,8 @@ def toAdjecencyMatrixCall(draw,master,overlay,storeNG,storeNH,storeNR,lineStore,
 
                 a = 0
                 while(a<outputNumber):
-                    if(outputStore[a]!=0 and outputStore[a][1].nmb>x):
-                        outputStore[a][1].nmb = outputStore[a][1].nmb -1
+                    if(outputStore[a]!=0 and int(outputStore[a][1].nmb)>int(x)):
+                        outputStore[a][1].nmb = int(outputStore[a][1].nmb) -1
                     a = a + 1
                 outputNumber = outputNumber - 1
         x = x + 1
