@@ -146,6 +146,8 @@ def plotNoise(draw,master):
 def plotMatrix(draw,master,init):
     global overlay
     global storeNH
+    global storeNG
+    global storeNR
 
     if(currentView==0):
         switchView(draw,master)
@@ -160,6 +162,8 @@ def plotMatrix(draw,master,init):
         clearWindow(draw,0)
         #store noise so that the adjecency function can pick it from global variables
         storeNH = NH
+        storeNG = NG
+        storeNR = NR
 
     overlay = 0
 
