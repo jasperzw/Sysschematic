@@ -15,11 +15,12 @@ def  readFile(fileLocation):
 
     return NG, NR, NH
 
-def toAdjecencyMatrixCall(draw,master,overlay,storeNG,storeNH,storeNR,lineStore,lineNumber,outputStore,outputNumber,excitationStore,excitationNumber,noiseNodeStore,noiseNodeNumber):
+def toAdjecencyMatrixCall(draw,master,overlay,storeNG,storeNH,storeNR,lineStore,lineNumber,outputStore,outputNumber,excitationStore,excitationNumber,noiseNodeStore,noiseNodeNumber,KnownNodes):
 
     NG = []
     NR = []
     NH = []
+    KnownNodes = []
 
     #set everything first to zero
     for x in range(outputNumber):
@@ -35,6 +36,7 @@ def toAdjecencyMatrixCall(draw,master,overlay,storeNG,storeNH,storeNR,lineStore,
         for y in range(excitationNumber):
             new.append(0)
         NR.append(new)
+        KnownNodes.append(0)
     #create NG matrix
     #print(noiseNodeStore)
     for x in range(outputNumber):
@@ -55,6 +57,8 @@ def toAdjecencyMatrixCall(draw,master,overlay,storeNG,storeNH,storeNR,lineStore,
                                     print(nodeB.nmb)
                                     NG[x][nodeB.nmb] = 1
 
+            if(currentOutput.stat==3):
+                KnownNodes[x]=1
 
             if(overlay==1):
                 for y in range(lineNumber):
@@ -94,7 +98,7 @@ def toAdjecencyMatrixCall(draw,master,overlay,storeNG,storeNH,storeNR,lineStore,
                 for y in range(len(NG)):
                     NG[y].pop(x)
                 NH = np.asarray(NH, dtype=np.float32)
-
+                KnownNodes.pop(x)
                 a = 0
                 while(a<outputNumber):
                     if(outputStore[a]!=0 and int(outputStore[a][1].nmb)>int(x)):
@@ -116,8 +120,10 @@ def toAdjecencyMatrixCall(draw,master,overlay,storeNG,storeNH,storeNR,lineStore,
     print("NH is generated as following:")
     for value in storeNH:
         print(value)
+    print("KnownNodes is generated as following:")
+    print(KnownNodes)
 
-    return NG, NR, NH, outputNumber, outputStore
+    return NG, NR, NH, outputNumber, outputStore, KnownNodes
 
 def generateGraph(NG,NH,NR, typeGraph, setScale, layoutMethod):
 

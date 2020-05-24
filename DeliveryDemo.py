@@ -32,6 +32,7 @@ excitationNumber = 0
 noiseNodeNumber = 0
 noiseNodeStore = []
 storeNG = storeNR = storeNH = []
+KnownNodes = []
 lineshow = 1;
 overlay = 0 #overlay value 0 means the NG matrix and overlay 1 is the Noise overlay
 currentAmountOutputSelected = 1 #this variable is so we know the order that outputs are connected. it is not zero because unselected are 0
@@ -74,6 +75,7 @@ def initSubMenu(frame):
     Button(frame, text="remove noise", command= lambda: removeNH(master, draw,0), height = 1, width=20).pack(padx=2, pady=2)
     Button(frame, text="add external excitation", command= lambda: addNHCall(master, draw,1), height = 1, width=20).pack(padx=2, pady=2)
     Button(frame, text="remove external excitation", command= lambda: removeNH(master, draw,1), height = 1, width=20).pack(padx=2, pady=2)
+    Button(frame, text="Make known", command= lambda: Makeknown(master, draw), height = 1, width=20).pack(padx=2, pady=2)
     #Button(frame, text="remove noise source", command= lambda: removeNoise(), height = 1, width=20).pack(padx=2, pady=2)
     #Button(frame, text="Toggle noise", command= lambda: addWidget(2), height = 1, width=20).pack(padx=2, pady=2)
 
@@ -104,11 +106,14 @@ def plotNoise(draw,master):
     global overlay
     global lineNumber
     global lineStore
+    global outputStore
+    global outputNumber
+    global KnownNodes
 
     if(currentView==0):
         switchView(draw,master)
 
-    NG, NR, NH = toAdjecencyMatrix(draw,master)
+    NG, NR, NH, KnownNodes= toAdjecencyMatrix(draw,master)
     clearWindow(draw,0)
     overlay = 1
 
@@ -141,6 +146,12 @@ def plotNoise(draw,master):
                 node2 = outputStore[x]
                 connectOutputs(node1,node2,draw,master,1)
 
+    for x in range(len(KnownNodes)):
+        if(KnownNodes[x]):
+            for y in range(outputNumber):
+                if(outputStore[y][1].nmb==x):
+                    selectOutput(outputStore[y][1])
+                    Makeknown(draw, master)
 
 
 def plotMatrix(draw,master,init):
@@ -148,6 +159,9 @@ def plotMatrix(draw,master,init):
     global storeNH
     global storeNG
     global storeNR
+    global Makeknown
+    global outputStore
+    global outputNumber
 
     if(currentView==0):
         switchView(draw,master)
@@ -158,7 +172,7 @@ def plotMatrix(draw,master,init):
         NR = storeNR
         NH = storeNH
     else:
-        NG, NR, NH = toAdjecencyMatrix(draw,master)
+        NG, NR, NH, KnownNodes = toAdjecencyMatrix(draw,master)
         clearWindow(draw,0)
         #store noise so that the adjecency function can pick it from global variables
         storeNH = NH
@@ -185,6 +199,13 @@ def plotMatrix(draw,master,init):
                 node2 = outputStore[x]
                 connectOutputs(node1,node2,draw,master,1)
 
+    for x in range(len(KnownNodes)):
+        if(KnownNodes[x]):
+            for y in range(outputNumber):
+                if(outputStore[y][1].nmb==x):
+                    selectOutput(outputStore[y][1])
+                    Makeknown(draw, master)
+
 """
     for x in range(len(NH)):
         for y in range(len(NH[x])):
@@ -207,10 +228,11 @@ def toAdjecencyMatrix(draw,master):
     global butTestStore
     global outputNumber
     global outputStore
+    global KnownNodes
 
-    storeNG, storeNR, storeNH, outputNumber, outputStore = toAdjecencyMatrixCall(draw,master,overlay,storeNG,storeNH,storeNR,lineStore,lineNumber,outputStore,outputNumber,excitationStore,excitationNumber,noiseNodeStore,noiseNodeNumber)
+    storeNG, storeNR, storeNH, outputNumber, outputStore, KnownNodes= toAdjecencyMatrixCall(draw,master,overlay,storeNG,storeNH,storeNR,lineStore,lineNumber,outputStore,outputNumber,excitationStore,excitationNumber,noiseNodeStore,noiseNodeNumber, KnownNodes)
 
-    return storeNG, storeNR, storeNH
+    return storeNG, storeNR, storeNH, KnownNodes
 
 def abstractPlot(draw,master,NG,NR,NH):
     global butTestStore
@@ -659,7 +681,7 @@ def selectOutput(id):
         for a in range(lineNumber):
             if (id==lineStore[a][1] or id==lineStore[a][2]):
                 draw.itemconfig(lineStore[a][0], fill="red")
-    else:
+    elif(id.stat==2):
         imgWhite = PhotoImage(file="data/outputS.png")
         id.image=imgWhite
         id.stat = 1
@@ -671,6 +693,45 @@ def selectOutput(id):
         for a in range(lineNumber):
             if (id==lineStore[a][1] or id==lineStore[a][2]):
                 draw.itemconfig(lineStore[a][0], fill="black")
+    elif(id.stat==3):
+        imgGreen = PhotoImage(file="data/outputGreenS.png")
+        id.image = imgGreen
+        id.stat = 4
+        id.order = currentAmountOutputSelected
+        currentAmountOutputSelected = currentAmountOutputSelected + 1
+        nmb.configure(bg="limegreen")
+        id.configure(image=imgGreen)
+        print("setting output green")
+        for a in range(lineNumber):
+            if (id==lineStore[a][1] or id==lineStore[a][2]):
+                draw.itemconfig(lineStore[a][0], fill="red")
+    elif(id.stat==4):
+        imgBlue = PhotoImage(file="data/outputBlueS.png")
+        id.image = imgBlue
+        id.stat = 3
+        id.order = currentAmountOutputSelected
+        currentAmountOutputSelected = currentAmountOutputSelected + 1
+        id.configure(image=imgBlue)
+        nmb.configure(bg="blue")
+        print("setting output Blue")
+        for a in range(lineNumber):
+            if (id==lineStore[a][1] or id==lineStore[a][2]):
+                draw.itemconfig(lineStore[a][0], fill="black")
+
+def Makeknown(draw,master):
+    global currentAmountOutputSelected
+    global outputStore
+    global outputNumber
+    global lineStore
+    global lineNumber
+    for x in range(outputNumber):
+        if(outputStore[x]!=0):
+            if(outputStore[x][1].stat==2):
+                outputStore[x][1].stat = 4
+                selectOutput(outputStore[x][1])
+            if(outputStore[x][1].stat==4):
+                outputStore[x][1].stat = 2
+                selectOutput(outputStore[x][1])
 
 """
 below are the remaining functions
