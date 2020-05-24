@@ -6,7 +6,7 @@ import math
 from Scrollwindow import *
 from node import removeNodeCall
 from noise import addNoiseNodeCall, selectNoiseNodeCall, removeNoiseNodeCall
-
+import numpy as np
 
 """
 initializing all global components
@@ -42,7 +42,7 @@ clickOperation=0
 currentView = 0
 butTestStore = []
 butTestNumber = 0
-
+knownNodenumber = 0
 #initializes the main menu. you have to pass the mainmenu frame and the canvas so that it could pass the canvas id when clearing it
 def initMainMenu(frame, canvas):
 
@@ -76,6 +76,7 @@ def initSubMenu(frame):
     Button(frame, text="add external excitation", command= lambda: addNHCall(master, draw,1), height = 1, width=20).pack(padx=2, pady=2)
     Button(frame, text="remove external excitation", command= lambda: removeNH(master, draw,1), height = 1, width=20).pack(padx=2, pady=2)
     Button(frame, text="Make known", command= lambda: Makeknown(master, draw), height = 1, width=20).pack(padx=2, pady=2)
+    #Button(frame, text="Reduction", command= lambda: Reduction(master, draw), height = 1, width=20).pack(padx=2, pady=2)
     #Button(frame, text="remove noise source", command= lambda: removeNoise(), height = 1, width=20).pack(padx=2, pady=2)
     #Button(frame, text="Toggle noise", command= lambda: addWidget(2), height = 1, width=20).pack(padx=2, pady=2)
 
@@ -151,7 +152,7 @@ def plotNoise(draw,master):
             for y in range(outputNumber):
                 if(outputStore[y][1].nmb==x):
                     selectOutput(outputStore[y][1])
-                    Makeknown(draw, master)
+                    Makeknown(master, draw)
 
 
 def plotMatrix(draw,master,init):
@@ -204,7 +205,7 @@ def plotMatrix(draw,master,init):
             for y in range(outputNumber):
                 if(outputStore[y][1].nmb==x):
                     selectOutput(outputStore[y][1])
-                    Makeknown(draw, master)
+                    Makeknown(master, draw)
 
 """
     for x in range(len(NH)):
@@ -718,26 +719,91 @@ def selectOutput(id):
             if (id==lineStore[a][1] or id==lineStore[a][2]):
                 draw.itemconfig(lineStore[a][0], fill="black")
 
-def Makeknown(draw,master):
+def Makeknown(master, draw):
     global currentAmountOutputSelected
     global outputStore
     global outputNumber
     global lineStore
     global lineNumber
+    global knownNodenumber
     for x in range(outputNumber):
         if(outputStore[x]!=0):
             if(outputStore[x][1].stat==2):
                 outputStore[x][1].stat = 4
                 selectOutput(outputStore[x][1])
+                knownNodenumber +=1
             if(outputStore[x][1].stat==4):
                 outputStore[x][1].stat = 2
                 selectOutput(outputStore[x][1])
+                knownNodenumber -=1
 
 """
 below are the remaining functions
 
 -------------------------------------------------------- Remaining --------------------------------------------------------
 """
+
+def Reduction(master, draw):
+    global outputNumber
+    global outputStore
+    global lineStore
+    global lineNumber
+    global knownNodenumber
+    A1 = []
+    L = []
+    L11 = []
+    L12 = []
+    L21 = []
+    L22 = []
+    NG, NR, NH, KnownNodes= toAdjecencyMatrix(draw,master)
+    for x in range(len(NG)):
+        A1.append(0)
+        for y in range(len(NG)):
+            A1[x]=A1[x]+NG[x][y]
+    for x in range(len(NG)):
+        new = []
+        for y in range(len(NG)):
+            if(y==x):
+                new.append(A1[x])
+            else:
+                new.append(-NG[x][y])
+        L.append(new)
+    for x in range(len(NG)-knownNodenumber):
+        new = []
+        for y in range(len(NG)-knownNodenumber):
+            new.append(L[x][y])
+        L11.append(new)
+    for x in range(knownNodenumber):
+        new = []
+        for y in range(len(NG)-knownNodenumber):
+            new.append(L[len(NG)-knownNodenumber+x][y])
+        L12.append(new)
+    for x in range(len(NG)-knownNodenumber):
+        new = []
+        for y in range(knownNodenumber):
+            new.append(L[x][len(NG)-knownNodenumber+y])
+        L21.append(new)
+    for x in range(knownNodenumber):
+        new = []
+        for y in range(knownNodenumber):
+            new.append(L[len(NG)-knownNodenumber+x][len(NG)-knownNodenumber+y])
+        L22.append(new)
+    L11 = np.array(L11)
+    L12 = np.transpose(np.array(L12))
+    L21 = np.transpose(np.array(L21))
+    L22 = np.linalg.inv(np.array(L22))
+    L12_22 = np.dot(L12,L22)
+    L12_22_21 = np.dot(L12_22,L21)
+    Lhat = np.subtract(L11,L12_22_21)
+    A = np.subtract(Lhat,np.diag(Lhat))
+    A = np.list(A)
+    for x in range(len(A)):
+        for y in range(len(A)):
+            if(A[x][y]!=0):
+                A[x][y]=1
+    print(A)
+
+
 def Dashed_line(draw,master):
     global lineshow
     global lineStore
