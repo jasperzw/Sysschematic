@@ -30,6 +30,7 @@ class Zoom_Advanced(Frame):
         self.canvas = mainframe
         self.canvas.configure(xscrollcommand=hbar.set, yscrollcommand=vbar.set)
         self.canvas.update()  # wait till canvas is created
+        self.textSize = 2
         vbar.configure(command=self.scroll_y)  # bind scrollbars to the canvas
         hbar.configure(command=self.scroll_x)
         # Make the canvas expandable
@@ -85,8 +86,17 @@ class Zoom_Advanced(Frame):
             scale        /= self.delta
 
         self.currentZoom *= scale
-
+        self.textSize *= scale
+        roundedTextSize = round(self.textSize)
+        if(roundedTextSize < 1):
+            roundedTextSize = 1
+        print("current text size: ", roundedTextSize)
         self.canvas.scale('all', x, y, scale, scale)  # rescale all canvas objects
+        wNotList = self.canvas.find_withtag("wNotation")
+        for x in wNotList:
+            self.canvas.itemconfig(x,font=("Courier", roundedTextSize))
+
+
         #self.canvas.configure(scrollregion=self.canvas.bbox('all'))
         print('the current used scale: ', self.currentZoom, " with delta adjusment: ",scale)
 

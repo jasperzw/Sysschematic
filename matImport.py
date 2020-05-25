@@ -55,7 +55,7 @@ def toAdjecencyMatrixCall(draw,master,overlay,storeNG,storeNH,storeNR,lineStore,
                                 if(nodeA==nodeB):
                                     print(x)
                                     print(nodeB.nmb)
-                                    NG[x][nodeB.nmb] = 1
+                                    NG[x][nodeB.nmb-1] = 1
 
             if(currentOutput.stat==3):
                 KnownNodes[x]=1
