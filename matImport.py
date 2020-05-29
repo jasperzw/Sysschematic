@@ -151,7 +151,7 @@ def generateGraph(NG,NH,NR, typeGraph, setScale, layoutMethod):
         pos = nx.circular_layout(plot,scale=setScale,center=(500,500))
         print("circular layout")
     if(typeGraph=="kamada_kawai"):
-        pos = nx.kamada_kawai_layout(plot, scale=setScale, center=(500,500), dim=2)
+        pos = nx.kamada_kawai_layout(plot, scale=setScale, center=(500,500))
         print("kamada_kawai layout")
     if(typeGraph=="spring"):
         pos = nx.spring_layout(plot, scale=setScale, center=(500,500))

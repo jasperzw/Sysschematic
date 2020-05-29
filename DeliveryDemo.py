@@ -136,7 +136,7 @@ def plotNoise(draw,master):
 
     for x in range(nmbOutputs):
         for y in range(nmbOutputs):
-            if(NG[x][y]>0):
+            if(NG[x][y]==1):
                 node1 = outputStore[y]
                 node2 = outputStore[x]
                 connectOutputs(node1,node2,draw,master,0)
@@ -146,17 +146,17 @@ def plotNoise(draw,master):
 
     for x in range(len(NH)):
         for y in range(len(NH[x])):
-            if(NH[x][y]>0):
+            if(NH[x][y]==1):
                 node1 = noiseNodeStore[y]
                 node2 = outputStore[x]
                 connectOutputs(node1,node2,draw,master,1)
 
-    for x in range(len(KnownNodes)):
-        if(KnownNodes[x]):
-            for y in range(outputNumber):
-                if(outputStore[y][1].nmb==x):
-                    selectOutput(outputStore[y][1])
-                    Makeknown(master, draw)
+    #for x in range(len(KnownNodes)):
+    #    if(KnownNodes[x]):
+    #       for y in range(outputNumber):
+    #            if(outputStore[y][1].nmb==x):
+    #                selectOutput(outputStore[y][1])
+    #                Makeknown(master, draw)
 
 
 def plotMatrix(draw,master,init):
@@ -215,11 +215,7 @@ def plotMatrix(draw,master,init):
     #                Makeknown(master, draw)
 
     #this is a priority to put the circle and text aboven the lines
-    draw.tag_raise("nodes")
-    draw.tag_raise("rect")
-    draw.tag_raise("wNotation")
 
-"""
     for x in range(len(NH)):
         for y in range(len(NH[x])):
             if(NH[x][y]==1):
@@ -229,7 +225,10 @@ def plotMatrix(draw,master,init):
         for y in range(len(NR[x])):
             if(NR[x][y]==1):
                 addNH(outputStore[x],master,draw,1,y)
-"""
+
+    draw.tag_raise("nodes")
+    draw.tag_raise("rect")
+    draw.tag_raise("wNotation")
 
     #connecting each output is below
 
@@ -298,27 +297,6 @@ Below we have the subsection of:
 
 Each function uses the global variables to store the nodes and to make changes
 """
-
-def selectNode(w,node):
-    global btnStore
-    global number_of_nodes
-    global lineStore
-    global lineNumber
-
-    #simpely edit the node its color based on the node object given in the argument
-
-    #print("the node which is to be selected", node)
-    if(btnStore[node][1]["bg"]=="cyan"):
-        btnStore[node][1]["bg"]="lime"
-        for x in range(lineNumber):
-            if lineStore[x][3]==btnStore[node][1]:
-                w.itemconfig(lineStore[x][0], fill="red")
-    else:
-        btnStore[node][1]["bg"]="cyan"
-        for x in range(lineNumber):
-            if lineStore[x][3]==btnStore[node][1]:
-                w.itemconfig(lineStore[x][0], fill="black")
-
 # adding a node
 def addNode(w,x,y,master,node1,node2):
         global number_of_nodes
@@ -327,9 +305,12 @@ def addNode(w,x,y,master,node1,node2):
         global outputNumber
         global overlay
         node = 0
+        textSize = round(2*unit.currentZoom)
+        if(textSize<1):
+            textSize = 1
 
         height = 3*unit.currentZoom
-        width = 5*unit.currentZoom
+        width = 7*unit.currentZoom
 
         node_name = "G"
         if(overlay):
@@ -350,8 +331,9 @@ def addNode(w,x,y,master,node1,node2):
         pixelVirtual = PhotoImage(width=3,height=1)
         if(number_of_nodes==0):
             btn = nodeHolder()
+            btn.stat = 1
             btn.id = w.create_rectangle(x-width,y-height,x+width,y+height,fill="cyan",tags="rect")
-            btn.text = w.create_text(x,y,text=str(node_name)+str(number_2)+","+str(number_1),width=0, font=("Courier", 2),tags="wNotation")
+            btn.text = w.create_text(x,y,text=str(node_name)+str(number_2)+","+str(number_1),width=0, font=("Courier", textSize),tags="wNotation")
             save = [btn.id,btn,x,y]
             #append it on th end
             btnStore.append(save)
@@ -363,8 +345,9 @@ def addNode(w,x,y,master,node1,node2):
             for m in range(number_of_nodes-1):
                 if(btnStore[m]==0):
                     btn = nodeHolder()
+                    btn.stat = 1
                     btn.id = w.create_rectangle(x-width,y-height,x+width,y+height,fill="cyan",tags="rect")
-                    btn.text = w.create_text(x,y,text=str(node_name)+str(number_2)+","+str(number_1),width=0, font=("Courier", 2),tags="wNotation")
+                    btn.text = w.create_text(x,y,text=str(node_name)+str(number_2)+","+str(number_1),width=0, font=("Courier", textSize),tags="wNotation")
                     save = [btn.id,btn,x,y]
                     btnStore[m] = save
                     #print("added node in existing place")
@@ -372,8 +355,9 @@ def addNode(w,x,y,master,node1,node2):
             #if no space is free and it is not the initial node append a new one on the end.
             if(number_of_nodes!=0 and node == 0):
                 btn = nodeHolder()
+                btn.stat = 1
                 btn.id = w.create_rectangle(x-width,y-height,x+width,y+height,fill="cyan",tags="rect")
-                btn.text = w.create_text(x,y,text=str(node_name)+str(number_2)+","+str(number_1),width=0, font=("Courier", 2),tags="wNotation")
+                btn.text = w.create_text(x,y,text=str(node_name)+str(number_2)+","+str(number_1),width=0, font=("Courier", textSize),tags="wNotation")
                 save = [btn.id,btn,x,y]
                 btnStore.append(save)
                 number_of_nodes = number_of_nodes + 1
@@ -399,42 +383,6 @@ var = 1 it becomes that if(NorH) is true when we add a excitation signal. We use
 and therefor the fastes one and change it if needed for excitation
 """
 
-def toggleNH(noise,NorH):
-    global noiseStore
-    global noiseNumber
-
-    nmb = 0
-    selectNumber = noiseNumber
-    selectStore = noiseStore
-    if(NorH):
-        selectNumber = excitationNumber
-        selectStore = excitationStore
-
-    for x in range(selectNumber):
-        if(selectStore[x]!=0):
-            if(selectStore[x][1]==noise):
-                nmb=selectStore[x][6]
-    #switch color base on stat variable bound to the noise.
-    if(noise.stat==1):
-        noiseImgKnown = PhotoImage(file="data/noiseKnown.png")
-        if(NorH):
-            noiseImgKnown = PhotoImage(file="data/signalKnown.png")
-        noise.image = noiseImgKnown
-        nmb.configure(bg="blue")
-        if(NorH):
-            nmb.configure(bg="red")
-        noise.configure(image=noiseImgKnown)
-        noise.stat=2
-    else:
-        noiseImg = PhotoImage(file="data/noise.png")
-        if(NorH):
-            noiseImg = PhotoImage(file="data/signal.png")
-        noise.image = noiseImg
-        nmb.configure(bg="white")
-        if(NorH):
-            nmb.configure(bg="yellow")
-        noise.configure(image=noiseImg)
-        noise.stat=1
 
 
 def addNHCall(master, draw,NorH):
@@ -461,7 +409,7 @@ def addNHCall(master, draw,NorH):
     else:
         clickOperation=3
 
-def addNH(node,master, draw,NorH,nmb):
+def addNH(node,master,draw,NorH,nmb):
     global outputStore
     global outputNumber
     global noiseNumber
@@ -469,28 +417,24 @@ def addNH(node,master, draw,NorH,nmb):
     global excitationStore
     global excitationNumber
     switch = 0
+    width = 8*unit.currentZoom
+    heigth = 8*unit.currentZoom
     #print("NorH: ",NorH)
     #move the x y to left above the center of the output
-    x = node[2] - 30
-    y = node[3] - 50
+    x,y = trueCoordinates(draw,node)
+    marker = nodeHolder()
+    textSize = round(2*unit.currentZoom)
+    if(textSize<1):
+        textSize = 1
+
     if(NorH==1):
-        x = node[2] + 30
-        y = node[3] - 50
-
-
-    #creating noise button
-    noiseImg = PhotoImage(file="data/noise.png")
-    if(NorH):
-        noiseImg = PhotoImage(file="data/signal.png")
-    nmbLabel = Label(master, text=str(nmb), bg="white")
-    noise = Button(master, image = noiseImg, highlightthickness = 0, bd = 0)
-    if(NorH):
-        nmbLabel.configure(bg="yellow")
-    noise.configure(command = lambda: toggleNH(noise,NorH))
-    noise.image = noiseImg
-    noise.stat = 1
-    noise.nmb = nmb
-    save = [draw.create_window(x,y, window=noise),noise,x,y,node[1],draw.create_window(x,y,window=nmbLabel),nmbLabel]
+        marker.arc = draw.create_arc(x,y,x+width,y-heigth,fill="yellow")
+        marker.text = draw.create_text(x+width*(11/16), y-heigth*(11/16), text="V",width=0, font=("Courier", textSize),tags="wNotation")
+    else:
+        marker.arc = draw.create_arc(x,y,x-width,y-heigth,fill="green",start=90)
+        marker.text = draw.create_text(x-width*(11/16), y-heigth*(11/16), text="R",width=0, font=("Courier", textSize),tags="wNotation")
+    marker.stat = 1
+    save = [marker.arc,marker,x,y,node[1]]
 
     #store noise in a open spot
     if(node!=0):
@@ -526,7 +470,6 @@ def removeNH(master, draw, NorH):
     if(overlay==1):
         removeNoise()
     else:
-
         node = 0
 
         #print("trying to remove the noise")
@@ -546,7 +489,7 @@ def removeNH(master, draw, NorH):
                     if(excitationStore[x][4] == node[1]):
                         #print("removing excitation")
                         #remove it
-                        draw.delete(excitationStore[x][5])
+                        draw.delete(excitationStore[x][1].text)
                         draw.delete(excitationStore[x][0])
                         excitationStore[x] = 0
                         if(x == excitationNumber):
@@ -558,7 +501,7 @@ def removeNH(master, draw, NorH):
                     if(noiseStore[x][4] == node[1]):
                         #print("removing noise")
                         #remove it
-                        draw.delete(noiseStore[x][5])
+                        draw.delete(noiseStore[x][1].text)
                         draw.delete(noiseStore[x][0])
                         noiseStore[x] = 0
                         if(x == noiseNumber):
@@ -578,14 +521,13 @@ def addNoiseNode(draw,x,y,master):
     global noiseNodeNumber
     global noiseNodeStore
 
-    img1Btn = Button(master, highlightthickness = 0, bd = 0)
-    img1Btn.configure(command = lambda: selectNoiseNode(img1Btn))
-    noiseNodeNumber, noiseNodeStore = addNoiseNodeCall(draw,x,y,master,noiseNodeNumber,noiseNodeStore, img1Btn)
+    img1Btn = nodeHolder()
+    noiseNodeNumber, noiseNodeStore = addNoiseNodeCall(draw,x,y,master,noiseNodeNumber,noiseNodeStore, img1Btn,unit)
 
 def selectNoiseNode(node):
     global currentAmountOutputSelected
 
-    currentAmountOutputSelected = selectNoiseNodeCall(draw,master,noiseNodeNumber,noiseNodeStore, currentAmountOutputSelected, node)
+    currentAmountOutputSelected = selectNoiseNodeCall(draw,master,noiseNodeNumber,noiseNodeStore, currentAmountOutputSelected, node,lineNumber,lineStore)
 
 def removeNoise():
     global noiseNodeStore
@@ -614,7 +556,9 @@ def addOutput(draw, x, y, master):
         img1Btn.nmb =0
         img1Btn.stat = 1
         img1Btn.zoom = 5*unit.currentZoom
-
+        textSize = round(2*unit.currentZoom)
+        if(textSize<1):
+            textSize = 1
         #use same save technique so that all the functions remain functional
         save = [img1Btn.widget,img1Btn,x,y]
 
@@ -622,7 +566,7 @@ def addOutput(draw, x, y, master):
         for m in range(outputNumber):
             if(outputStore[m]==0):
                 img1Btn.nmb=m+1
-                nmb = draw.create_text(x, y, text="W"+str(m+1),width=0, font=("Courier", 2),tags="wNotation")
+                nmb = draw.create_text(x, y, text="W"+str(m+1),width=0, font=("Courier", textSize),tags="wNotation")
                 save.append(nmb)
                 outputStore[m] = save
                 switch = 1
@@ -630,7 +574,7 @@ def addOutput(draw, x, y, master):
                 #initial output
         if(outputNumber==0):
             img1Btn.nmb=1
-            nmb = draw.create_text(x, y, text="W"+str(1),width=0, font=("Courier", 2),tags="wNotation")
+            nmb = draw.create_text(x, y, text="W"+str(1),width=0, font=("Courier", textSize),tags="wNotation")
             save.append(nmb)
             outputStore.append(save)
             outputNumber = outputNumber + 1
@@ -639,7 +583,7 @@ def addOutput(draw, x, y, master):
         #append if no empty entry
         if(switch==0):
             img1Btn.nmb=outputNumber+1
-            nmb = draw.create_text(x, y, text="W"+str(outputNumber+1),width=0, font=("Courier", 2),tags="wNotation")
+            nmb = draw.create_text(x, y, text="W"+str(outputNumber+1),width=0, font=("Courier", textSize),tags="wNotation")
             save.append(nmb)
             outputStore.append(save)
             outputNumber = outputNumber + 1
@@ -933,6 +877,7 @@ def connectOutputs(node1,node2,draw,master, placeBtn):
     temp = 0
     node3 = 0
 
+
     for x in range(lineNumber):
         if(lineStore[x]!=0):
             if(node1[1]==lineStore[x][1] and node2[1]==lineStore[x][2]):
@@ -967,7 +912,7 @@ def connectOutputs(node1,node2,draw,master, placeBtn):
             addNode(draw,(x_transfer+x_middle)/2,(y_transfer+y_middle)/2,master,node1,node2)
             for x in range(number_of_nodes):
                 if(btnStore[x]!=0):
-                    if(btnStore[x][2==(x_transfer+x_middle)/2] and btnStore[x][3]==(y_transfer+y_middle)/2):
+                    if(btnStore[x][2]==(x_transfer+x_middle)/2 and btnStore[x][3]==(y_transfer+y_middle)/2):
                         node3 = btnStore[x]
         else:
             #create a fake note
@@ -1031,6 +976,7 @@ def clickEvent(event):
 
     if(clickOperation==2):
         addOutput(event.widget, x, y, master)
+        print("node added at: ",x,",",y)
         clickOperation=0
 
     if(clickOperation==3):
@@ -1051,17 +997,19 @@ def circleScan(draw,master,x,y):
 
         dis = math.sqrt(xN + yN)
         #if within radius (unit.currentZoom is correct for the zoom in)
-        if (dis < outputStore[f][1].zoom*unit.currentZoom):
+        if (dis < 5*unit.currentZoom):
             id = outputStore[f][1]
             if(outputStore[f][1].stat==1):
+                print("circle selected at: ",xObj,",",yObj)
                 id.order = currentAmountOutputSelected
                 currentAmountOutputSelected = currentAmountOutputSelected + 1
                 outputStore[f][1].stat = 2
                 draw.itemconfig(outputStore[f][0],fill="blue")
-                print("buttond found!")
+                #print("buttond found!")
                 for a in range(lineNumber):
-                    if (id==lineStore[a][1] or id==lineStore[a][2]):
-                        draw.itemconfig(lineStore[a][0], fill="red")
+                    if(lineStore[a]!=0):
+                        if (id==lineStore[a][1] or id==lineStore[a][2]):
+                            draw.itemconfig(lineStore[a][0], fill="red")
             else:
                 id.order = 0
                 currentAmountOutputSelected = currentAmountOutputSelected - 1
@@ -1069,13 +1017,56 @@ def circleScan(draw,master,x,y):
                 draw.itemconfig(outputStore[f][0],fill="red")
                 print("buttond found!")
                 for a in range(lineNumber):
-                    if (id==lineStore[a][1] or id==lineStore[a][2]):
-                        draw.itemconfig(lineStore[a][0], fill="black")
+                    if(lineStore[a]!=0):
+                        if (id==lineStore[a][1] or id==lineStore[a][2]):
+                            draw.itemconfig(lineStore[a][0], fill="black")
+
+    for f in range(noiseNodeNumber):
+        xObj, yObj = trueCoordinates(draw,noiseNodeStore[f])
+        xN = math.pow((x-xObj),2)
+        yN = math.pow((y-yObj),2)
+
+        dis = math.sqrt(xN + yN)
+        #if within radius (unit.currentZoom is correct for the zoom in)
+        if (dis < 5*unit.currentZoom):
+            id = noiseNodeStore[f]
+            selectNoiseNode(id)
+
+    for f in range(number_of_nodes):
+        if(btnStore[f]!=0):
+            xObj, yObj = trueCoordinates(draw,btnStore[f])
+            yObj -= 2*unit.currentZoom
+            height = 3*unit.currentZoom
+            width = 5*unit.currentZoom
+            #print("searching for x: ",xObj," y: ",yObj)
+            #print(x,",",y)
+            if(xObj-width<x and x<xObj+width):
+                if(yObj-height<y and y<yObj+height):
+                    if(btnStore[f][1].stat==1):
+                        draw.itemconfig(btnStore[f][0], fill="yellow")
+                        btnStore[f][1].stat=2
+                        for a in range(lineNumber):
+                            if(lineStore[a]!=0):
+                                if lineStore[a][3]==btnStore[f][1]:
+                                    draw.itemconfig(lineStore[a][0], fill="red")
+
+                    else:
+                        draw.itemconfig(btnStore[f][0], fill="cyan")
+                        btnStore[f][1].stat=1
+                        for a in range(lineNumber):
+                            if(lineStore[a]!=0):
+                                if lineStore[a][3]==btnStore[f][1]:
+                                    draw.itemconfig(lineStore[a][0], fill="black")
+
+
+
 
 def trueCoordinates(draw,node):
     #draw.coords obtains the current coordinates based on the widget id. + the radius multiply by zoom to shift the left corner of the widget to the center.
-    xObj = draw.coords(node[0])[0]+node[1].zoom*unit.currentZoom
-    yObj = draw.coords(node[0])[1]+node[1].zoom*unit.currentZoom
+    xObj = draw.coords(node[0])[0]+5*unit.currentZoom
+    yObj = draw.coords(node[0])[1]+5*unit.currentZoom
+    #xObj = draw.canvasx(node[2])
+    #yObj = draw.canvasy(node[3])
     return xObj, yObj
 
 """"
