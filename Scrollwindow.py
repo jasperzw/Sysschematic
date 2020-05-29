@@ -86,8 +86,7 @@ class Zoom_Advanced(Frame):
             scale        /= self.delta
 
         self.currentZoom *= scale
-        self.textSize *= scale
-        roundedTextSize = round(self.textSize)
+        roundedTextSize = round(self.textSize*self.currentZoom)
         if(roundedTextSize < 1):
             roundedTextSize = 1
         print("current text size: ", roundedTextSize)
