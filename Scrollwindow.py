@@ -1,5 +1,7 @@
 from tkinter import *
 
+reloadStatus = 0
+
 class AutoScrollbar(Scrollbar):
     ''' A scrollbar that hides itself if it's not needed.
         Works only if you use the grid geometry manager '''
@@ -115,3 +117,23 @@ class popupWindow(object):
 def _create_circle(self, x, y, r, **kwargs):
     return self.create_oval(x-r, y-r, x+r, y+r, **kwargs)
 Canvas.create_circle = _create_circle
+
+def reloadCall(subMenu,reload,currentAmountOutputSelected,selectedNode):
+    global reloadStatus
+
+    if((currentAmountOutputSelected == 1 or currentAmountOutputSelected > 2) and reloadStatus == 1):
+        print("removing the select window")
+        for x in reload:
+            x.pack_forget()
+        reloadStatus = 0
+    elif(currentAmountOutputSelected == 2 and reloadStatus == 0):
+        print("loading in the select window")
+        print("node: ",selectedNode.nmb)
+        for x in range(6):
+            reload[x].pack(padx=2, pady=2)
+        for x in range(5):
+            x += 6
+            print(selectedNode.nodeMode[x-6].get())
+            reload[x].configure(variable=selectedNode.nodeMode[x-6])
+            reload[x].pack(padx=2, pady=2)
+        reloadStatus = 1
