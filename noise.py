@@ -38,6 +38,7 @@ def addNoiseNodeCall(draw, x, y, master, noiseNodeNumber, noiseNodeStore, img1Bt
     if(switch==0):
         save[1].nmb=noiseNodeNumber+1
         nmb = draw.create_text(x, y, text="e"+str(noiseNodeNumber+1),width=0, font=("Courier", textSize),tags="wNotation")
+        save.append(nmb)
         noiseNodeStore.append(save)
         noiseNodeNumber = noiseNodeNumber + 1
 
@@ -80,7 +81,7 @@ def removeNoiseNodeCall(noiseNodeStore, noiseNodeNumber, lineStore, lineNumber, 
                     if(lineStore[i]!=0):
                         if(lineStore[i][1]==noiseNodeStore[x][1] or lineStore[i][2]==noiseNodeStore[x][1]):
                             #print("i: ",i," is deleted")
-                            lineStore[3][1].stat == 2
+                            lineStore[i][1].stat == 2
                             draw.delete(lineStore[i][0])
                             lineStore[i]=0
                 draw.delete(noiseNodeStore[x][4])

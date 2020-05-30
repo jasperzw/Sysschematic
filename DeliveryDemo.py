@@ -69,21 +69,31 @@ def initMainMenu(frame, canvas):
     OptionMenu(frame, layoutMethod, *layout).grid(row=0, column=3)
 #same as main menu initializes the submenu
 def initSubMenu(frame):
+
     #Label(frame, text="currently selected:", bg="gray").pack()
     #Button(frame, text="Add transfer", command= lambda: addWidget(1), height = 1, width=20).pack(padx=2, pady=2)
     Button(frame, text="connect Transfer/module", command= lambda: connectCall(draw,master), height = 1, width=20).pack(padx=2, pady=2)
     Button(frame, text="Remove transfer", command= lambda: removeNode(draw, master),  height = 1, width=20).pack(padx=2, pady=2)
     Button(frame, text="add output", command= lambda: addWidget(2), height = 1, width=20).pack(padx=2, pady=2)
-    Button(frame, text="remove output", command= lambda: removeOutput(draw, master), height = 1, width=20).pack(padx=2, pady=2)
-    Button(frame, text="add noise", command= lambda: addNHCall(master, draw,0), height = 1, width=20).pack(padx=2, pady=2)
-    Button(frame, text="remove noise", command= lambda: removeNH(master, draw,0), height = 1, width=20).pack(padx=2, pady=2)
-    Button(frame, text="add external excitation", command= lambda: addNHCall(master, draw,1), height = 1, width=20).pack(padx=2, pady=2)
-    Button(frame, text="remove external excitation", command= lambda: removeNH(master, draw,1), height = 1, width=20).pack(padx=2, pady=2)
-    Button(frame, text="Make known", command= lambda: Makeknown(master, draw), height = 1, width=20).pack(padx=2, pady=2)
+
+    #in reload every button or Checkbox is stored which is reloaded on calling reloadCall when currentAmountOutputSelected > 1
+    reload = [
+    Button(frame, text="remove output", command= lambda: removeOutput(draw, master), height = 1, width=20),
+    Button(frame, text="add noise", command= lambda: addNHCall(master, draw,0), height = 1, width=20),
+    Button(frame, text="remove noise", command= lambda: removeNH(master, draw,0), height = 1, width=20),
+    Button(frame, text="add external excitation", command= lambda: addNHCall(master, draw,1), height = 1, width=20),
+    Button(frame, text="remove external excitation", command= lambda: removeNH(master, draw,1), height = 1, width=20),
+    Button(frame, text="Make known", command= lambda: Makeknown(master, draw), height = 1, width=20),
+    Checkbutton(frame, text="Measurable", height = 1, width=20),
+    Checkbutton(frame, text="Unmeasurable", height = 1, width=20),
+    Checkbutton(frame, text="Blue", height = 1, width=20),
+    Checkbutton(frame, text="Yellow", height = 1, width=20),
+    Checkbutton(frame, text="Green", height = 1, width=20),
+    ]
+    return reload
     #Button(frame, text="Reduction", command= lambda: Reduction(master, draw), height = 1, width=20).pack(padx=2, pady=2)
     #Button(frame, text="remove noise source", command= lambda: removeNoise(), height = 1, width=20).pack(padx=2, pady=2)
     #Button(frame, text="Toggle noise", command= lambda: addWidget(2), height = 1, width=20).pack(padx=2, pady=2)
-
 """
 below are all the functions for
 
@@ -91,7 +101,6 @@ below are all the functions for
 
 used to plot adjency matrix and return everything to Adjecency matrix
 """
-
 
 # Load mat will move everything in from the specific mat file.
 def loadMat(draw,master):
@@ -310,7 +319,7 @@ def addNode(w,x,y,master,node1,node2):
             textSize = 1
 
         height = 3*unit.currentZoom
-        width = 7*unit.currentZoom
+        width = 5*unit.currentZoom
 
         node_name = "G"
         if(overlay):
@@ -459,7 +468,7 @@ def addNH(node,master,draw,NorH,nmb):
                 noiseNumber = noiseNumber + 1
             #print("noise or excitation added! number: ",noise)
 
-def removeNH(master, draw, NorH):
+def removeNH(draw, master, NorH):
     global noiseStore
     global noiseNumber
     global outputStore
@@ -557,8 +566,13 @@ def addOutput(draw, x, y, master):
         img1Btn.stat = 1
         img1Btn.zoom = 5*unit.currentZoom
         textSize = round(2*unit.currentZoom)
+        img1Btn.nodeMode = []
         if(textSize<1):
             textSize = 1
+
+        for i in range(5):
+            img1Btn.nodeMode.append(IntVar())
+
         #use same save technique so that all the functions remain functional
         save = [img1Btn.widget,img1Btn,x,y]
 
@@ -604,7 +618,7 @@ def removeOutput(draw,master):
                     if(lineStore[i]!=0):
                         if(lineStore[i][1]==outputStore[x][1] or lineStore[i][2]==outputStore[x][1]):
                             #print("i: ",i," is deleted")
-                            lineStore[i][3]["bg"]="lime"
+                            lineStore[i][1].stat == 2
                             draw.delete(lineStore[i][0])
                             removeNode(draw, master)
                             lineStore[i]=0
@@ -990,73 +1004,85 @@ def circleScan(draw,master,x,y):
     #draw.create_circle(x,y,10,fill="green")
     #circle through all known nodes to check within their radius
     for f in range(outputNumber):
-        #the zoom function and drag messes with the old coordintes with trueCoordinates you obtain the in that view correct coordinates
-        xObj, yObj = trueCoordinates(draw,outputStore[f])
-        xN = math.pow((x-xObj),2)
-        yN = math.pow((y-yObj),2)
+        if(outputStore[f]!=0):
+            #the zoom function and drag messes with the old coordintes with trueCoordinates you obtain the in that view correct coordinates
+            xObj, yObj = trueCoordinates(draw,outputStore[f])
+            xN = math.pow((x-xObj),2)
+            yN = math.pow((y-yObj),2)
 
-        dis = math.sqrt(xN + yN)
-        #if within radius (unit.currentZoom is correct for the zoom in)
-        if (dis < 5*unit.currentZoom):
-            id = outputStore[f][1]
-            if(outputStore[f][1].stat==1):
-                print("circle selected at: ",xObj,",",yObj)
-                id.order = currentAmountOutputSelected
-                currentAmountOutputSelected = currentAmountOutputSelected + 1
-                outputStore[f][1].stat = 2
-                draw.itemconfig(outputStore[f][0],fill="blue")
-                #print("buttond found!")
-                for a in range(lineNumber):
-                    if(lineStore[a]!=0):
-                        if (id==lineStore[a][1] or id==lineStore[a][2]):
-                            draw.itemconfig(lineStore[a][0], fill="red")
-            else:
-                id.order = 0
-                currentAmountOutputSelected = currentAmountOutputSelected - 1
-                outputStore[f][1].stat = 1
-                draw.itemconfig(outputStore[f][0],fill="red")
-                print("buttond found!")
-                for a in range(lineNumber):
-                    if(lineStore[a]!=0):
-                        if (id==lineStore[a][1] or id==lineStore[a][2]):
-                            draw.itemconfig(lineStore[a][0], fill="black")
+            dis = math.sqrt(xN + yN)
+            #if within radius (unit.currentZoom is correct for the zoom in)
+            if (dis < 5*unit.currentZoom):
+                id = outputStore[f][1]
+                if(outputStore[f][1].stat==1):
+                    print("circle selected at: ",xObj,",",yObj)
+                    id.order = currentAmountOutputSelected
+                    currentAmountOutputSelected = currentAmountOutputSelected + 1
+                    outputStore[f][1].stat = 2
+                    draw.itemconfig(outputStore[f][0],fill="blue")
+                    #print("buttond found!")
+                    for a in range(lineNumber):
+                        if(lineStore[a]!=0):
+                            if (id==lineStore[a][1] or id==lineStore[a][2]):
+                                draw.itemconfig(lineStore[a][0], fill="red")
+                else:
+                    id.order = 0
+                    currentAmountOutputSelected = currentAmountOutputSelected - 1
+                    outputStore[f][1].stat = 1
+                    draw.itemconfig(outputStore[f][0],fill="red")
+                    print("buttond found!")
+                    for a in range(lineNumber):
+                        if(lineStore[a]!=0):
+                            if (id==lineStore[a][1] or id==lineStore[a][2]):
+                                draw.itemconfig(lineStore[a][0], fill="black")
 
     for f in range(noiseNodeNumber):
-        xObj, yObj = trueCoordinates(draw,noiseNodeStore[f])
-        xN = math.pow((x-xObj),2)
-        yN = math.pow((y-yObj),2)
+        if(noiseNodeStore[f]!=0):
+            xObj, yObj = trueCoordinates(draw,noiseNodeStore[f])
+            xN = math.pow((x-xObj),2)
+            yN = math.pow((y-yObj),2)
 
-        dis = math.sqrt(xN + yN)
-        #if within radius (unit.currentZoom is correct for the zoom in)
-        if (dis < 5*unit.currentZoom):
-            id = noiseNodeStore[f]
-            selectNoiseNode(id)
+            dis = math.sqrt(xN + yN)
+            #if within radius (unit.currentZoom is correct for the zoom in)
+            if (dis < 5*unit.currentZoom):
+                id = noiseNodeStore[f]
+                selectNoiseNode(id)
 
     for f in range(number_of_nodes):
         if(btnStore[f]!=0):
-            xObj, yObj = trueCoordinates(draw,btnStore[f])
-            yObj -= 2*unit.currentZoom
-            height = 3*unit.currentZoom
-            width = 5*unit.currentZoom
-            #print("searching for x: ",xObj," y: ",yObj)
-            #print(x,",",y)
-            if(xObj-width<x and x<xObj+width):
-                if(yObj-height<y and y<yObj+height):
-                    if(btnStore[f][1].stat==1):
-                        draw.itemconfig(btnStore[f][0], fill="yellow")
-                        btnStore[f][1].stat=2
-                        for a in range(lineNumber):
-                            if(lineStore[a]!=0):
-                                if lineStore[a][3]==btnStore[f][1]:
-                                    draw.itemconfig(lineStore[a][0], fill="red")
+            if(btnStore[f]!=0):
+                xObj, yObj = trueCoordinates(draw,btnStore[f])
+                yObj -= 2*unit.currentZoom
+                height = 3*unit.currentZoom
+                width = 5*unit.currentZoom
+                #print("searching for x: ",xObj," y: ",yObj)
+                #print(x,",",y)
+                if(xObj-width<x and x<xObj+width):
+                    if(yObj-height<y and y<yObj+height):
+                        if(btnStore[f][1].stat==1):
+                            draw.itemconfig(btnStore[f][0], fill="yellow")
+                            btnStore[f][1].stat=2
+                            for a in range(lineNumber):
+                                if(lineStore[a]!=0):
+                                    if lineStore[a][3]==btnStore[f][1]:
+                                        draw.itemconfig(lineStore[a][0], fill="red")
 
-                    else:
-                        draw.itemconfig(btnStore[f][0], fill="cyan")
-                        btnStore[f][1].stat=1
-                        for a in range(lineNumber):
-                            if(lineStore[a]!=0):
-                                if lineStore[a][3]==btnStore[f][1]:
-                                    draw.itemconfig(lineStore[a][0], fill="black")
+                        else:
+                            draw.itemconfig(btnStore[f][0], fill="cyan")
+                            btnStore[f][1].stat=1
+                            for a in range(lineNumber):
+                                if(lineStore[a]!=0):
+                                    if lineStore[a][3]==btnStore[f][1]:
+                                        draw.itemconfig(lineStore[a][0], fill="black")
+    #reload the right view if a node is selected
+    selectedNode = 0
+    if(currentAmountOutputSelected == 2):
+        for x in range(outputNumber):
+            if(outputStore[x]!=0):
+                if(outputStore[x][1].stat==2):
+                    selectedNode=outputStore[x][1]
+                    print("found node and giving it to reloadCall")
+    reloadCall(subMenu,reload,currentAmountOutputSelected,selectedNode)
 
 
 
@@ -1135,7 +1161,7 @@ layoutMethod.set(layout[1])
 
 #bind functions to events
 initMainMenu(mainMenu, draw)
-initSubMenu(subMenu)
+reload = initSubMenu(subMenu)
 
 #set the draw canvas with the scroll and pan option
 unit = Zoom_Advanced(draw)
