@@ -1,6 +1,6 @@
 # Importing tkinter module
 from tkinter import *
-from matImport import readFile, toAdjecencyMatrixCall, generateGraph
+from matImport import readFile, toAdjacencyMatrixCall, generateGraph
 from tkinter.filedialog import askopenfilename
 import math
 from Scrollwindow import *
@@ -52,7 +52,7 @@ def initMainMenu(frame, canvas):
 
     #column 0
     Button(frame, text="load .mat file", command= lambda: loadMat(draw, master), height = 1, width=20).grid(row=0, padx=2, pady=2)
-    Button(frame, text="export .mat file", command= lambda: toAdjecencyMatrix(draw, master), height = 1, width=20).grid(row=1, padx=2, pady=2)
+    Button(frame, text="export .mat file", command= lambda: toAdjacencyMatrix(draw, master), height = 1, width=20).grid(row=1, padx=2, pady=2)
     Button(frame, text="change node view", command= lambda: switchView(draw, master), height = 1, width=20).grid(row=2, padx=2, pady=2)
 
     #column 1
@@ -97,9 +97,9 @@ def initSubMenu(frame):
 """
 below are all the functions for
 
--------------------------------------------------------- Adjecency Matrix --------------------------------------------------------
+-------------------------------------------------------- Adjacency Matrix --------------------------------------------------------
 
-used to plot adjency matrix and return everything to Adjecency matrix
+used to plot adjency matrix and return everything to Adjacency matrix
 """
 
 # Load mat will move everything in from the specific mat file.
@@ -127,7 +127,7 @@ def plotNoise(draw,master):
     if(currentView==0):
         switchView(draw,master)
 
-    NG, NR, NH, KnownNodes= toAdjecencyMatrix(draw,master)
+    NG, NR, NH, KnownNodes= toAdjacencyMatrix(draw,master)
     clearWindow(draw,0)
     overlay = 1
 
@@ -188,9 +188,9 @@ def plotMatrix(draw,master,init):
         NR = storeNR
         NH = storeNH
     else:
-        NG, NR, NH, KnownNodes = toAdjecencyMatrix(draw,master)
+        NG, NR, NH, KnownNodes = toAdjacencyMatrix(draw,master)
         clearWindow(draw,0)
-        #store noise so that the adjecency function can pick it from global variables
+        #store noise so that the Adjacency function can pick it from global variables
         storeNH = NH
         storeNG = NG
         storeNR = NR
@@ -242,7 +242,7 @@ def plotMatrix(draw,master,init):
     #connecting each output is below
 
 
-def toAdjecencyMatrix(draw,master):
+def toAdjacencyMatrix(draw,master):
     global storeNG
     global storeNH
     global storeNR
@@ -251,7 +251,7 @@ def toAdjecencyMatrix(draw,master):
     global outputStore
     global KnownNodes
 
-    storeNG, storeNR, storeNH, outputNumber, outputStore, KnownNodes= toAdjecencyMatrixCall(draw,master,overlay,storeNG,storeNH,storeNR,lineStore,lineNumber,outputStore,outputNumber,excitationStore,excitationNumber,noiseNodeStore,noiseNodeNumber, KnownNodes)
+    storeNG, storeNR, storeNH, outputNumber, outputStore, KnownNodes= toAdjacencyMatrixCall(draw,master,overlay,storeNG,storeNH,storeNR,lineStore,lineNumber,outputStore,outputNumber,excitationStore,excitationNumber,noiseNodeStore,noiseNodeNumber, KnownNodes)
 
     return storeNG, storeNR, storeNH, KnownNodes
 
@@ -723,7 +723,7 @@ def Reduction(master, draw):
     L12 = []
     L21 = []
     L22 = []
-    NG, NR, NH, KnownNodes= toAdjecencyMatrix(draw,master)
+    NG, NR, NH, KnownNodes= toAdjacencyMatrix(draw,master)
     for x in range(len(NG)):
         A1.append(0)
         for y in range(len(NG)):
