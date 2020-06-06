@@ -7,6 +7,7 @@ from Scrollwindow import *
 from node import removeNodeCall
 from noise import addNoiseNodeCall, selectNoiseNodeCall, removeNoiseNodeCall
 import numpy as np
+import copy
 
 """
 initializing all global components
@@ -75,7 +76,7 @@ def initSubMenu(frame):
     Button(frame, text="connect Transfer/module", command= lambda: connectCall(draw,master), height = 1, width=20).pack(padx=2, pady=2)
     Button(frame, text="Remove transfer", command= lambda: removeNode(draw, master),  height = 1, width=20).pack(padx=2, pady=2)
     Button(frame, text="add output", command= lambda: addWidget(2), height = 1, width=20).pack(padx=2, pady=2)
-
+    Button(frame, text="Emersion", command= lambda: Emersion(master, draw), height = 1, width=20).pack(padx=2, pady=2)
     #in reload every button or Checkbox is stored which is reloaded on calling reloadCall when currentAmountOutputSelected > 1
     reload = [
     Button(frame, text="remove output", command= lambda: removeOutput(draw, master), height = 1, width=20),
@@ -91,7 +92,7 @@ def initSubMenu(frame):
     Checkbutton(frame, text="Green", height = 1, width=20),
     ]
     return reload
-    #Button(frame, text="Reduction", command= lambda: Reduction(master, draw), height = 1, width=20).pack(padx=2, pady=2)
+
     #Button(frame, text="remove noise source", command= lambda: removeNoise(), height = 1, width=20).pack(padx=2, pady=2)
     #Button(frame, text="Toggle noise", command= lambda: addWidget(2), height = 1, width=20).pack(padx=2, pady=2)
 """
@@ -700,10 +701,11 @@ def Makeknown(master, draw):
                 outputStore[x][1].stat = 4
                 selectOutput(outputStore[x][1])
                 knownNodenumber +=1
-            if(outputStore[x][1].stat==4):
+            elif(outputStore[x][1].stat==4):
                 outputStore[x][1].stat = 2
                 selectOutput(outputStore[x][1])
                 knownNodenumber -=1
+
 
 """
 below are the remaining functions
@@ -711,19 +713,72 @@ below are the remaining functions
 -------------------------------------------------------- Remaining --------------------------------------------------------
 """
 
-def Reduction(master, draw):
+def UnknownNodesbottom(NG, NR, NH, KnownNodes):
+    global knownNodenumber
+    correct_nodes = 0
+    len_knownnodes = len(KnownNodes)-1
+    while(knownNodenumber>correct_nodes):
+        #Check if the bottom node is a known node
+        if(KnownNodes[len_knownnodes-correct_nodes]):
+            correct_nodes += 1
+        #If not, place the first known node at the bottom
+        else:
+            a = 0
+            x = 0
+            while(a==0):
+                if(KnownNodes[x]):
+                    #Switch the nodes in NG matrix
+                    row1 = copy.deepcopy(NG[x])
+                    row2 = copy.deepcopy(NG[len_knownnodes-correct_nodes])
+                    NG[x] = row2
+                    NG[len_knownnodes-correct_nodes] = row1
+                    column1 = []
+                    column2 = []
+                    for y in range(len(NG)):
+                        column1.append(NG[y][x])
+                        column2.append(NG[y][len_knownnodes-correct_nodes])
+                    for y in range(len(NG)):
+                        NG[y][x] = column2[y]
+                        NG[y][len_knownnodes-correct_nodes] = column1[y]
+                    #Switch the nodes in NH matrix
+                    rowNH1 = copy.deepcopy(NH[x])
+                    rowNH2 = copy.deepcopy(NH[len_knownnodes-correct_nodes])
+                    NH[x] = rowNH2
+                    NH[len_knownnodes-correct_nodes] = rowNH1
+                    #Switch the nodes in KnownNodes list
+                    KnownNodes[x] = 0
+                    KnownNodes[len_knownnodes-correct_nodes] = 1
+                    a = 1
+                x +=1
+    if(False==(isinstance(NG, list))):
+        print(isinstance(NG, list))
+        NG = NG.tolist()
+    if(False==(isinstance(NH,np.ndarray))):
+        print(isinstance(NH,np.ndarray))
+        NH = np.array(NH)
+    return NG, NR, NH, KnownNodes
+
+def Emersion(master, draw):
     global outputNumber
     global outputStore
     global lineStore
     global lineNumber
     global knownNodenumber
+    global storeNG
+    global storeNH
+    global storeNR
     A1 = []
     L = []
     L11 = []
     L12 = []
     L21 = []
     L22 = []
+    B = []
     NG, NR, NH, KnownNodes= toAdjacencyMatrix(draw,master)
+    NG, NR, NH, KnownNodes= UnknownNodesbottom(NG, NR, NH, KnownNodes)
+    print(knownNodenumber)
+    R = NR
+    #Change NG into a Laplacian form
     for x in range(len(NG)):
         A1.append(0)
         for y in range(len(NG)):
@@ -757,19 +812,59 @@ def Reduction(master, draw):
             new.append(L[len(NG)-knownNodenumber+x][len(NG)-knownNodenumber+y])
         L22.append(new)
     L11 = np.array(L11)
+    print(L11)
     L12 = np.transpose(np.array(L12))
+    print(L12)
     L21 = np.transpose(np.array(L21))
+    print(L21)
     L22 = np.linalg.inv(np.array(L22))
+    print(L22)
+    #Use kron reduction to calculate the new laplacian
     L12_22 = np.dot(L12,L22)
     L12_22_21 = np.dot(L12_22,L21)
     Lhat = np.subtract(L11,L12_22_21)
+    #Change the laplacian into an Adjacency matrix
     A = np.subtract(Lhat,np.diag(Lhat))
-    A = np.list(A)
+    A = A.tolist()
+    #unweigh the matrix A
     for x in range(len(A)):
         for y in range(len(A)):
             if(A[x][y]!=0):
                 A[x][y]=1
+            else:
+                A[x][y]=0;
+    print("New NG after emersion is:")
     print(A)
+    #Set the new NH as the old NH
+    B = NH
+    #Find the nodes to which the unknown nodes used to point (before emersion)
+    itteration = 0
+    while(itteration<knownNodenumber):
+        for x in range(len(B)):
+            if(KnownNodes[x]):          #unkown node is found
+                for y in range(len(B[0])):
+                    if(NG[y][x]):       #nodes to which the unkown node point
+                        for a in range(len(B[0])):
+                            if(NH[x][a]):
+                                NH[y][a] = 1
+        itteration += 1
+    r = 0
+    B = B.tolist()
+    for x in range (len(KnownNodes)):
+        if(KnownNodes[x]):
+            B.pop(x-r)
+            r = r + 1
+            KnownNodes[x] = 0
+            knownNodenumber -= 1
+    print("New NH after emersion is:")
+    B = np.array(B)
+    print(B)
+    clearWindow(draw,0)
+    storeNG = A
+    storeNH = B
+    storeNR = R
+    plotMatrix(draw,master,1)
+    print("End of Emersion")
 
 
 def Dashed_line(draw,master):
@@ -907,7 +1002,7 @@ def connectOutputs(node1,node2,draw,master, placeBtn):
         y_middle = (node1[3] + node2[3])/2
 
         #draw the curve
-
+        #slope
         if((node2[2]-node1[2])!=0):
             theta = math.degrees(math.atan((node2[3]-node1[3])/(node2[2]-node1[2])))
         else:
@@ -947,6 +1042,54 @@ def connectOutputs(node1,node2,draw,master, placeBtn):
         gamma = 45/2 #adjust the angle of the arrow
         length_arrow = 5 #adjust the lenght of the arrow
 
+        """
+        p1 = [0,0]
+        p2 = [0,0]
+        p3 = [0,0]
+        p1[0] = node1[2]
+        p1[1] = node1[3]
+        p2[0] = node2[2]
+        p2[1] = node2[3]
+        p3[0] = node3[2]
+        p3[1] = node3[3]
+        xa, ya, radius = define_circle(p1, p2, p3)
+        #function y = -ya + sqrt(-(x+xa)^2 radius^2)
+        x_arrow0 = (x_middle+node2[2])/2
+        y_arrow0 = ya + math.sqrt(math.pow(radius,2)-math.pow((x_arrow0-xa),2))
+        epsilon = math.atan((node2[3]-y_arrow0)/(node2[2]-x_arrow0))
+        sign_2 = 1
+        if(node1[2]>node2[2]):
+            sign_2 = -1
+
+
+        test 2
+
+        sign_2 = 1
+        if(node1[2]<node2[2]):
+            length = node2[2]-node1[2]
+        else:
+            length = node1[2]-node2[2]
+            sign_2 = -1
+        x_axis_left = length/2
+        x_axis_middle = 0
+        y_axis_bottom = 0
+        y_axis_middle = height_curve
+        # make function y = ax^2 + b
+        b = y_axis_middle
+        a = -b/(math.pow(x_axis_left,2))
+        #use slope to calculate degree y' = 2ax
+        x_arrow = -length/4
+        y_arrow = a*math.pow(x_arrow,2) + b
+        slope = 2*a*x_arrow
+        slope_degrees = math.degrees(math.atan(slope))
+        print(slope_degrees)
+        print(theta)
+        #translate back to the actual position
+        epsilon = theta+sign_2*slope_degrees
+        x_arrow0 = node1[2]+ x_arrow*math.cos(math.radians(theta))-y_arrow*math.sin(math.radians(theta))
+        y_arrow0 = node1[3]+ y_arrow*math.cos(math.radians(theta))+x_arrow*math.sin(math.radians(theta))
+        """
+
         sign_2 = 1
         if(node1[2]>node2[2]):
             sign_2 = -1
@@ -970,6 +1113,26 @@ def connectOutputs(node1,node2,draw,master, placeBtn):
         draw.tag_raise("nodes")
         draw.tag_raise("rect")
         draw.tag_raise("wNotation")
+
+def define_circle(p1, p2, p3):
+    """
+    Returns the center and radius of the circle passing the given 3 points.
+    In case the 3 points form a line, returns (None, infinity).
+    """
+    temp = p2[0] * p2[0] + p2[1] * p2[1]
+    bc = (p1[0] * p1[0] + p1[1] * p1[1] - temp) / 2
+    cd = (temp - p3[0] * p3[0] - p3[1] * p3[1]) / 2
+    det = (p1[0] - p2[0]) * (p2[1] - p3[1]) - (p2[0] - p3[0]) * (p1[1] - p2[1])
+
+    if abs(det) < 1.0e-6:
+        return (None, np.inf)
+
+    # Center of circle
+    cx = (bc*(p2[1] - p3[1]) - cd*(p1[1] - p2[1])) / det
+    cy = ((p1[0] - p2[0]) * cd - (p2[0] - p3[0]) * bc) / det
+
+    radius = np.sqrt((cx - p1[0])**2 + (cy - p1[1])**2)
+    return (cx, cy, radius)
 
 def addWidget(input):
     #set the clickOperation variable
