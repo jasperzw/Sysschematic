@@ -677,7 +677,7 @@ def selectOutput(f,draw):
                     draw.itemconfig(lineStore[a][0], fill="black")
     elif(outputStore[f][1].stat==3):
         id.order = currentAmountOutputSelected
-        currentAmountOutputSelected = currentAmountOutputSelected - 1
+        currentAmountOutputSelected = currentAmountOutputSelected + 1
         outputStore[f][1].stat = 4
         draw.itemconfig(outputStore[f][0],fill="pink")
         print("buttond found!")
@@ -713,6 +713,7 @@ def Makeknown(master, draw):
                 outputStore[x][1].stat = 2
                 selectOutput(x,draw)
                 knownNodenumber -=1
+    reloadCall(subMenu,reload,currentAmountOutputSelected,0)
 
 
 """
@@ -943,7 +944,10 @@ def clearWindow(canvas,canReset):
     noiseNumber = 0
     excitationStore = []
     excitationNumber = 0
-    currentAmountOutputSelected = 0
+    currentAmountOutputSelected = 1
+    """
+    ^^moet het niet 1 zijn???^^
+    """
     linestore = 0
     lineNumber = 0
     noiseNodeNumber = 0
@@ -1253,7 +1257,7 @@ def circleScan(draw,master,x,y):
     if(currentAmountOutputSelected == 2):
         for x in range(outputNumber):
             if(outputStore[x]!=0):
-                if(outputStore[x][1].stat==2):
+                if(outputStore[x][1].stat==2 or outputStore[x][1].stat==4):
                     selectedNode=outputStore[x][1]
                     print("found node and giving it to reloadCall")
     reloadCall(subMenu,reload,currentAmountOutputSelected,selectedNode)
