@@ -627,66 +627,54 @@ def removeOutput(draw,master):
                 draw.delete(outputStore[x][0])
                 outputStore[x] = 0
 
-def selectOutput(id):
+def selectOutput(f,draw):
     global currentAmountOutputSelected
-    #each output has a stat variable which indicates state. stat == 1 is not selected, stat == 2 is selected
-    #work in progress image swap werkt nog niet
-    nmb = 0
-    #finding corresponding label
-    for x in range(outputNumber):
-        if(outputStore[x]!=0):
-            if(outputStore[x][1]==id):
-                nmb=outputStore[x][5]
-
-
-    if(id.stat==1):
-        imgGreen = PhotoImage(file="data/outputGreenS.png")
-        id.image = imgGreen
-        id.stat = 2
+    global lineNumber
+    global outputStore
+    global lineNumber
+    id = outputStore[f][1]
+    #each output has a stat variable which indicates state. stat == 1 is not selected, stat == 2 is selected. stat == 4 is unknown node
+    print("Succes")
+    if(outputStore[f][1].stat==1):
         id.order = currentAmountOutputSelected
         currentAmountOutputSelected = currentAmountOutputSelected + 1
-        nmb.configure(bg="limegreen")
-        id.configure(image=imgGreen)
-        print("setting output green")
+        outputStore[f][1].stat = 2
+        draw.itemconfig(outputStore[f][0],fill="pink")
+        #print("buttond found!")
         for a in range(lineNumber):
-            if (id==lineStore[a][1] or id==lineStore[a][2]):
-                draw.itemconfig(lineStore[a][0], fill="red")
-    elif(id.stat==2):
-        imgWhite = PhotoImage(file="data/outputS.png")
-        id.image=imgWhite
-        id.stat = 1
+            if(lineStore[a]!=0):
+                if (id==lineStore[a][1] or id==lineStore[a][2]):
+                    draw.itemconfig(lineStore[a][0], fill="red")
+    elif(outputStore[f][1].stat==2):
         id.order = 0
         currentAmountOutputSelected = currentAmountOutputSelected - 1
-        nmb.configure(bg="white")
-        id.configure(image=imgWhite)
-        print("setting output white")
+        outputStore[f][1].stat = 1
+        draw.itemconfig(outputStore[f][0],fill="red")
+        print("buttond found!")
         for a in range(lineNumber):
-            if (id==lineStore[a][1] or id==lineStore[a][2]):
-                draw.itemconfig(lineStore[a][0], fill="black")
-    elif(id.stat==3):
-        imgGreen = PhotoImage(file="data/outputGreenS.png")
-        id.image = imgGreen
-        id.stat = 4
+            if(lineStore[a]!=0):
+                if (id==lineStore[a][1] or id==lineStore[a][2]):
+                    draw.itemconfig(lineStore[a][0], fill="black")
+    elif(outputStore[f][1].stat==3):
         id.order = currentAmountOutputSelected
-        currentAmountOutputSelected = currentAmountOutputSelected + 1
-        nmb.configure(bg="limegreen")
-        id.configure(image=imgGreen)
-        print("setting output green")
+        currentAmountOutputSelected = currentAmountOutputSelected - 1
+        outputStore[f][1].stat = 4
+        draw.itemconfig(outputStore[f][0],fill="pink")
+        print("buttond found!")
         for a in range(lineNumber):
-            if (id==lineStore[a][1] or id==lineStore[a][2]):
-                draw.itemconfig(lineStore[a][0], fill="red")
-    elif(id.stat==4):
-        imgBlue = PhotoImage(file="data/outputBlueS.png")
-        id.image = imgBlue
-        id.stat = 3
-        id.order = currentAmountOutputSelected
-        currentAmountOutputSelected = currentAmountOutputSelected + 1
-        id.configure(image=imgBlue)
-        nmb.configure(bg="blue")
-        print("setting output Blue")
+            if(lineStore[a]!=0):
+                if (id==lineStore[a][1] or id==lineStore[a][2]):
+                    draw.itemconfig(lineStore[a][0], fill="red")
+    else:
+        id.order = 0
+        currentAmountOutputSelected = currentAmountOutputSelected - 1
+        outputStore[f][1].stat = 3
+        draw.itemconfig(outputStore[f][0],fill="blue")
+        print("buttond found!")
         for a in range(lineNumber):
-            if (id==lineStore[a][1] or id==lineStore[a][2]):
-                draw.itemconfig(lineStore[a][0], fill="black")
+            if(lineStore[a]!=0):
+                if (id==lineStore[a][1] or id==lineStore[a][2]):
+                    draw.itemconfig(lineStore[a][0], fill="black")
 
 def Makeknown(master, draw):
     global currentAmountOutputSelected
@@ -699,11 +687,11 @@ def Makeknown(master, draw):
         if(outputStore[x]!=0):
             if(outputStore[x][1].stat==2):
                 outputStore[x][1].stat = 4
-                selectOutput(outputStore[x][1])
+                selectOutput(x,draw)
                 knownNodenumber +=1
             elif(outputStore[x][1].stat==4):
                 outputStore[x][1].stat = 2
-                selectOutput(outputStore[x][1])
+                selectOutput(x,draw)
                 knownNodenumber -=1
 
 
@@ -1098,11 +1086,11 @@ def connectOutputs(node1,node2,draw,master, placeBtn):
         if(node1>node2):
             x_arrow0 = (x_middle+node2[2])/2 + math.cos(math.radians(90-theta))*height_curve/5.4*2
             y_arrow0 = (y_middle+node2[3])/2 - math.sin(math.radians(90-theta))*height_curve/5.4*2
-            epsilon = 180-gamma-theta-90-5*sign_2
+            epsilon = 180-gamma-theta-90-6*sign_2
         else:
             x_arrow0 = (x_middle+node2[2])/2 - math.cos(math.radians(90-theta))*height_curve/5.4*2
             y_arrow0 = (y_middle+node2[3])/2 + math.sin(math.radians(90-theta))*height_curve/5.4*2
-            epsilon = 180-gamma-theta-90+5*sign_2
+            epsilon = 180-gamma-theta-90+6*sign_2
 
         x_arrow1 = x_arrow0 - sign_2*math.sin(math.radians(epsilon))*length_arrow
         y_arrow1 = y_arrow0 - sign_2*math.cos(math.radians(epsilon))*length_arrow
@@ -1166,6 +1154,7 @@ def clickEvent(event):
 
 def circleScan(draw,master,x,y):
     global currentAmountOutputSelected
+    global outputStore
     #this function scans the mouse click and tries to find if it is within a circle
     print("scanning for button at: ",x,",",y)
     #draw.create_circle(x,y,10,fill="green")
@@ -1180,28 +1169,7 @@ def circleScan(draw,master,x,y):
             dis = math.sqrt(xN + yN)
             #if within radius (unit.currentZoom is correct for the zoom in)
             if (dis < 5*unit.currentZoom):
-                id = outputStore[f][1]
-                if(outputStore[f][1].stat==1):
-                    print("circle selected at: ",xObj,",",yObj)
-                    id.order = currentAmountOutputSelected
-                    currentAmountOutputSelected = currentAmountOutputSelected + 1
-                    outputStore[f][1].stat = 2
-                    draw.itemconfig(outputStore[f][0],fill="blue")
-                    #print("buttond found!")
-                    for a in range(lineNumber):
-                        if(lineStore[a]!=0):
-                            if (id==lineStore[a][1] or id==lineStore[a][2]):
-                                draw.itemconfig(lineStore[a][0], fill="red")
-                else:
-                    id.order = 0
-                    currentAmountOutputSelected = currentAmountOutputSelected - 1
-                    outputStore[f][1].stat = 1
-                    draw.itemconfig(outputStore[f][0],fill="red")
-                    print("buttond found!")
-                    for a in range(lineNumber):
-                        if(lineStore[a]!=0):
-                            if (id==lineStore[a][1] or id==lineStore[a][2]):
-                                draw.itemconfig(lineStore[a][0], fill="black")
+                selectOutput(f,draw)
 
     for f in range(noiseNodeNumber):
         if(noiseNodeStore[f]!=0):
