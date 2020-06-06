@@ -1040,7 +1040,7 @@ def connectOutputs(node1,node2,draw,master, placeBtn):
         #draw the arrow
 
         gamma = 45/2 #adjust the angle of the arrow
-        length_arrow = 5 #adjust the lenght of the arrow
+        length_arrow = 5*unit.currentZoom #adjust the lenght of the arrow
         """
         sign_2 = 1
         if(node1[2]>node2[2]):
