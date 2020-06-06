@@ -15,7 +15,7 @@ def  readFile(fileLocation):
 
     return NG, NR, NH
 
-def toAdjecencyMatrixCall(draw,master,overlay,storeNG,storeNH,storeNR,lineStore,lineNumber,outputStore,outputNumber,excitationStore,excitationNumber,noiseNodeStore,noiseNodeNumber,KnownNodes):
+def toAdjacencyMatrixCall(draw,master,overlay,storeNG,storeNH,storeNR,lineStore,lineNumber,outputStore,outputNumber,excitationStore,excitationNumber,noiseNodeStore,noiseNodeNumber,KnownNodes):
 
     NG = []
     NR = []
