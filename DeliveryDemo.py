@@ -7,6 +7,7 @@ from Scrollwindow import *
 from node import removeNodeCall
 from noise import addNoiseNodeCall, selectNoiseNodeCall, removeNoiseNodeCall
 import numpy as np
+import networkx as nx
 
 """
 initializing all global components
@@ -127,34 +128,52 @@ def plotNoise(draw,master):
     if(currentView==0):
         switchView(draw,master)
 
-    NG, NR, NH, KnownNodes= toAdjecencyMatrix(draw,master)
+    NG, NR, NH, KnownNodes = toAdjecencyMatrix(draw,master)
     clearWindow(draw,0)
     overlay = 1
 
 
-    nmbOutputs = len(NG)
+    amountNodes = len(NG)
     nmbNoise = len(NH[0])
 
     pos = generateGraph(NG,NR,NH,1,500*unit.currentZoom, layoutMethod)
-    posNoise = generateGraph(NH,NR,NG,1,300*unit.currentZoom, layoutMethod)
+    plotNoise = nx.DiGraph()
+    plotNoise.add_nodes_from(pos.keys())
+    for n in range(amountNodes):
+        plotNoise.nodes[n]['pos'] = pos[n]
+
+    nmbOutputs = len(NH)
+    nmbOutputs2 = len(NH[0])
+    #print("nmbOutputs: ",nmbOutputs," nmbOutputs2: ",nmbOutputs2)
+    plotNoise.add_nodes_from(range(amountNodes,amountNodes+nmbOutputs))
+    for x in range(nmbOutputs):
+        for y in range(len(NH[x])):
+            if(NH[x][y] == 1):
+                #print("added edge from y: ",y+amountNodes," to x: ",x, " for: ", NH[x][y])
+                plotNoise.add_edge(y+amountNodes,x)
+    posNoise = nx.spring_layout(plotNoise, scale=500*unit.currentZoom, center=(500,500))
+    print(posNoise)
+
+
     #below function will read through the mat file and try to find how many modules their are
     #plot each function in a circle
 
-    for x in range(nmbOutputs):
+    for x in range(amountNodes):
         addOutput(draw, pos[x][0], pos[x][1],master)
 
-    for x in range(nmbOutputs):
-        for y in range(nmbOutputs):
+    for x in range(amountNodes):
+        for y in range(amountNodes):
             if(NG[x][y]==1):
                 node1 = outputStore[y]
                 node2 = outputStore[x]
                 connectOutputs(node1,node2,draw,master,0)
 
-    for x in range(len(NH[0])):
-        addNoiseNode(draw, posNoise[x][0], posNoise[x][1],master)
 
-    for x in range(len(NH)):
-        for y in range(len(NH[x])):
+    for x in range(nmbOutputs2):
+        addNoiseNode(draw, posNoise[x+amountNodes][0], posNoise[x+amountNodes][1],master)
+
+    for x in range(nmbOutputs):
+        for y in range(nmbOutputs2):
             if(NH[x][y]==1):
                 node1 = noiseNodeStore[y]
                 node2 = outputStore[x]
@@ -228,12 +247,12 @@ def plotMatrix(draw,master,init):
     for x in range(len(NH)):
         for y in range(len(NH[x])):
             if(NH[x][y]==1):
-                addNH(outputStore[x],master,draw,0,y)
+                addNH(outputStore[x],master,draw,1,y)
 
     for x in range(len(NR)):
         for y in range(len(NR[x])):
             if(NR[x][y]==1):
-                addNH(outputStore[x],master,draw,1,y)
+                addNH(outputStore[x],master,draw,0,y)
 
     draw.tag_raise("nodes")
     draw.tag_raise("rect")
@@ -432,6 +451,7 @@ def addNH(node,master,draw,NorH,nmb):
     #move the x y to left above the center of the output
     x,y = trueCoordinates(draw,node)
     marker = nodeHolder()
+    marker.nmb = nmb
     textSize = round(2*unit.currentZoom)
     if(textSize<1):
         textSize = 1
