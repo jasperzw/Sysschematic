@@ -130,7 +130,7 @@ def plotNoise(draw,master):
     if(currentView==0):
         switchView(draw,master)
 
-    NG, NR, NH, KnownNodes = toAdjecencyMatrix(draw,master)
+    NG, NR, NH, KnownNodes = toAdjacencyMatrix(draw,master)
     clearWindow(draw,0)
     overlay = 1
 
@@ -655,7 +655,6 @@ def selectOutput(f,draw):
     global lineNumber
     id = outputStore[f][1]
     #each output has a stat variable which indicates state. stat == 1 is not selected, stat == 2 is selected. stat == 4 is unknown node
-    print("Succes")
     if(outputStore[f][1].stat==1):
         id.order = currentAmountOutputSelected
         currentAmountOutputSelected = currentAmountOutputSelected + 1
@@ -786,9 +785,10 @@ def Emersion(master, draw):
     L22 = []
     B = []
     NG, NR, NH, KnownNodes= toAdjacencyMatrix(draw,master)
+    KnownNodes_start = copy.deepcopy(KnownNodes)
     NG, NR, NH, KnownNodes= UnknownNodesbottom(NG, NR, NH, KnownNodes)
     R = NR
-    #Change NG into a Laplacian form
+    #Change NG into a Laplacian form L
     #creating Diagonal A1
     for x in range(len(NG)):
         A1.append(0)
@@ -830,12 +830,9 @@ def Emersion(master, draw):
     #Use kron reduction to calculate the new laplacian
     L12_22 = L12.dot(L22)
     L12_22_21 = L12_22.dot(L21)
-    print(L12_22_21)
     Lhat = np.subtract(L11,L12_22_21)
-    print(Lhat)
     #Change the laplacian into an Adjacency matrix
     A = np.subtract(Lhat,np.diag(np.diag(Lhat)))
-    print(A)
     A = A.tolist()
     #unweigh the matrix A
     for x in range(len(A)):
@@ -844,8 +841,27 @@ def Emersion(master, draw):
                 A[x][y]=1
             else:
                 A[x][y]=0;
+    #adding the old nodes with no connection
+    G = []
+    p = 0
+    for x in range(len(NG)):
+        if (KnownNodes_start[x]):
+            p +=1
+            new = []
+            for y in range(len(NG)):
+                new.append(0);
+        else:
+            new = []
+            r = 0;
+            for y in range(len(NG)):
+                if(KnownNodes_start[y]):
+                    r +=1
+                    new.append(0)
+                else:
+                    new.append(A[x-p][y-r])
+        G.append(new)
     print("New NG after emersion is:")
-    print(A)
+    print(G)
     #Set the new NH as the old NH
     B = NH
     #Find the nodes to which the unknown nodes used to point (before emersion)
@@ -871,7 +887,7 @@ def Emersion(master, draw):
     B = np.array(B)
     print(B)
     clearWindow(draw,0)
-    storeNG = A
+    storeNG = G
     storeNH = B
     storeNR = R
     plotMatrix(draw,master,1)
