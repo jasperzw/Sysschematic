@@ -1041,8 +1041,11 @@ def connectOutputs(node1,node2,draw,master, placeBtn):
 
         gamma = 45/2 #adjust the angle of the arrow
         length_arrow = 5 #adjust the lenght of the arrow
-
         """
+        sign_2 = 1
+        if(node1[2]>node2[2]):
+            sign_2 = -1
+
         p1 = [0,0]
         p2 = [0,0]
         p3 = [0,0]
@@ -1055,12 +1058,10 @@ def connectOutputs(node1,node2,draw,master, placeBtn):
         xa, ya, radius = define_circle(p1, p2, p3)
         #function y = -ya + sqrt(-(x+xa)^2 radius^2)
         x_arrow0 = (x_middle+node2[2])/2
-        y_arrow0 = ya + math.sqrt(math.pow(radius,2)-math.pow((x_arrow0-xa),2))
-        epsilon = math.atan((node2[3]-y_arrow0)/(node2[2]-x_arrow0))
-        sign_2 = 1
-        if(node1[2]>node2[2]):
-            sign_2 = -1
-
+        y_arrow0 = ya + math.sqrt(math.pow(radius,2)-math.pow((x_arrow0-xa),2)) -1
+        #derivative y'
+        #slope = (x_arrow0-xa)/math.sqrt(math.pow(radius,2)-math.pow((x_arrow0-xa),2))
+        epsilon = math.degrees(math.atan(((node2[3]-y_arrow0)/(node2[2]-x_arrow0))))
 
         test 2
 
@@ -1093,13 +1094,16 @@ def connectOutputs(node1,node2,draw,master, placeBtn):
         sign_2 = 1
         if(node1[2]>node2[2]):
             sign_2 = -1
-        epsilon = 180-gamma-theta-height_curve/20-90
+
         if(node1>node2):
-            x_arrow0 = (x_middle+node2[2])/2 + math.cos(math.radians(90-theta))*height_curve/5*2
-            y_arrow0 = (y_middle+node2[3])/2 - math.sin(math.radians(90-theta))*height_curve/5*2
+            x_arrow0 = (x_middle+node2[2])/2 + math.cos(math.radians(90-theta))*height_curve/5.4*2
+            y_arrow0 = (y_middle+node2[3])/2 - math.sin(math.radians(90-theta))*height_curve/5.4*2
+            epsilon = 180-gamma-theta-90-5*sign_2
         else:
-            x_arrow0 = (x_middle+node2[2])/2 - math.cos(math.radians(90-theta))*height_curve/5*2
-            y_arrow0 = (y_middle+node2[3])/2 + math.sin(math.radians(90-theta))*height_curve/5*2
+            x_arrow0 = (x_middle+node2[2])/2 - math.cos(math.radians(90-theta))*height_curve/5.4*2
+            y_arrow0 = (y_middle+node2[3])/2 + math.sin(math.radians(90-theta))*height_curve/5.4*2
+            epsilon = 180-gamma-theta-90+5*sign_2
+
         x_arrow1 = x_arrow0 - sign_2*math.sin(math.radians(epsilon))*length_arrow
         y_arrow1 = y_arrow0 - sign_2*math.cos(math.radians(epsilon))*length_arrow
         alpha = gamma+epsilon
