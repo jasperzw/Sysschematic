@@ -7,11 +7,9 @@ from Scrollwindow import *
 from node import removeNodeCall
 from noise import addNoiseNodeCall, selectNoiseNodeCall, removeNoiseNodeCall
 import numpy as np
-<<<<<<< HEAD
 import networkx as nx
-=======
 import copy
->>>>>>> 48df341355505af1ed386f4220094831f0b63384
+
 
 """
 initializing all global components
@@ -761,9 +759,11 @@ def UnknownNodesbottom(NG, NR, NH, KnownNodes):
                     KnownNodes[len_knownnodes-correct_nodes] = 1
                     a = 1
                 x +=1
+    #change NG to a list if it is not already
     if(False==(isinstance(NG, list))):
         print(isinstance(NG, list))
         NG = NG.tolist()
+    #change NH to an array if it is not already
     if(False==(isinstance(NH,np.ndarray))):
         print(isinstance(NH,np.ndarray))
         NH = np.array(NH)
@@ -787,9 +787,9 @@ def Emersion(master, draw):
     B = []
     NG, NR, NH, KnownNodes= toAdjacencyMatrix(draw,master)
     NG, NR, NH, KnownNodes= UnknownNodesbottom(NG, NR, NH, KnownNodes)
-    print(knownNodenumber)
     R = NR
     #Change NG into a Laplacian form
+    #creating Diagonal A1
     for x in range(len(NG)):
         A1.append(0)
         for y in range(len(NG)):
@@ -822,20 +822,20 @@ def Emersion(master, draw):
         for y in range(knownNodenumber):
             new.append(L[len(NG)-knownNodenumber+x][len(NG)-knownNodenumber+y])
         L22.append(new)
+    #L = np.array(L)
     L11 = np.array(L11)
-    print(L11)
     L12 = np.transpose(np.array(L12))
-    print(L12)
     L21 = np.transpose(np.array(L21))
-    print(L21)
     L22 = np.linalg.inv(np.array(L22))
-    print(L22)
     #Use kron reduction to calculate the new laplacian
-    L12_22 = np.dot(L12,L22)
-    L12_22_21 = np.dot(L12_22,L21)
+    L12_22 = L12.dot(L22)
+    L12_22_21 = L12_22.dot(L21)
+    print(L12_22_21)
     Lhat = np.subtract(L11,L12_22_21)
+    print(Lhat)
     #Change the laplacian into an Adjacency matrix
-    A = np.subtract(Lhat,np.diag(Lhat))
+    A = np.subtract(Lhat,np.diag(np.diag(Lhat)))
+    print(A)
     A = A.tolist()
     #unweigh the matrix A
     for x in range(len(A)):
@@ -863,8 +863,8 @@ def Emersion(master, draw):
     B = B.tolist()
     for x in range (len(KnownNodes)):
         if(KnownNodes[x]):
-            B.pop(x-r)
-            r = r + 1
+    #        B.pop(x-r)
+    #        r = r + 1
             KnownNodes[x] = 0
             knownNodenumber -= 1
     print("New NH after emersion is:")
