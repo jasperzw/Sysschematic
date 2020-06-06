@@ -74,15 +74,15 @@ def initSubMenu(frame):
     #Button(frame, text="Add transfer", command= lambda: addWidget(1), height = 1, width=20).pack(padx=2, pady=2)
     Button(frame, text="connect Transfer/module", command= lambda: connectCall(draw,master), height = 1, width=20).pack(padx=2, pady=2)
     Button(frame, text="Remove transfer", command= lambda: removeNode(draw, master),  height = 1, width=20).pack(padx=2, pady=2)
-    Button(frame, text="add output", command= lambda: addWidget(2), height = 1, width=20).pack(padx=2, pady=2)
+    Button(frame, text="add node", command= lambda: addWidget(2), height = 1, width=20).pack(padx=2, pady=2)
 
     #in reload every button or Checkbox is stored which is reloaded on calling reloadCall when currentAmountOutputSelected > 1
     reload = [
-    Button(frame, text="remove output", command= lambda: removeOutput(draw, master), height = 1, width=20),
-    Button(frame, text="add noise", command= lambda: addNHCall(master, draw,0), height = 1, width=20),
-    Button(frame, text="remove noise", command= lambda: removeNH(master, draw,0), height = 1, width=20),
-    Button(frame, text="add external excitation", command= lambda: addNHCall(master, draw,1), height = 1, width=20),
-    Button(frame, text="remove external excitation", command= lambda: removeNH(master, draw,1), height = 1, width=20),
+    Button(frame, text="remove node", command= lambda: removeOutput(draw, master), height = 1, width=20),
+    Button(frame, text="add external excitation", command= lambda: addNHCall(master, draw,0), height = 1, width=20),
+    Button(frame, text="remove external excitation", command= lambda: removeNH(draw,master,0), height = 1, width=20),
+    Button(frame, text="add noise", command= lambda: addNHCall(master, draw,1), height = 1, width=20),
+    Button(frame, text="remove noise", command= lambda: removeNH(master, draw,1), height = 1, width=20),
     Button(frame, text="Make known", command= lambda: Makeknown(master, draw), height = 1, width=20),
     Checkbutton(frame, text="Measurable", height = 1, width=20),
     Checkbutton(frame, text="Unmeasurable", height = 1, width=20),
