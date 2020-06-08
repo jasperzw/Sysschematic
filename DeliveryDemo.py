@@ -787,6 +787,7 @@ def Emersion(master, draw):
     B = []
     NG, NR, NH, KnownNodes= toAdjacencyMatrix(draw,master)
     KnownNodes_start = copy.deepcopy(KnownNodes)
+    KnownNodes_start_1 = copy.deepcopy(KnownNodes)
     NG, NR, NH, KnownNodes= UnknownNodesbottom(NG, NR, NH, KnownNodes)
     R = NR
     #Change NG into a Laplacian form L
@@ -857,8 +858,22 @@ def Emersion(master, draw):
                     new.append(A[x][y])
         G.append(new)
     #switching to the right position
+
+    B = NH
+    #Find the nodes to which the unknown nodes used to point (before emersion)
+    itteration = 0
+    while(itteration<knownNodenumber):
+        for x in range(len(B)):
+            if(KnownNodes[x]):          #unkown node is found
+                for y in range(len(B[0])):
+                    if(NG[y][x]):       #nodes to which the unkown node point
+                        for a in range(len(B[0])):
+                            if(NH[x][a]):
+                                NH[y][a] = 1
+        itteration += 1
     switched_nodes = 0
     len_knownnodes = len(KnownNodes_start)-1
+    print(B)
     while(knownNodenumber>switched_nodes):
         #Check if the bottom node is a known node
         if(KnownNodes_start[len_knownnodes-switched_nodes]):
@@ -883,6 +898,10 @@ def Emersion(master, draw):
                         G[y][x] = column2[y]
                         G[y][len_knownnodes-switched_nodes] = column1[y]
                     #Switch the nodes in KnownNodes list
+                    rowNH1 = copy.deepcopy(B[x])
+                    rowNH2 = copy.deepcopy(B[len_knownnodes-switched_nodes])
+                    B[x] = rowNH2
+                    B[len_knownnodes-switched_nodes] = rowNH1
                     KnownNodes_start[x] = 0
                     KnownNodes_start[len_knownnodes-switched_nodes] = 1
                     a = 1
@@ -890,25 +909,17 @@ def Emersion(master, draw):
     print("New NG after emersion is:")
     print(G)
     #Set the new NH as the old NH
-    B = NH
-    #Find the nodes to which the unknown nodes used to point (before emersion)
-    itteration = 0
-    while(itteration<knownNodenumber):
-        for x in range(len(B)):
-            if(KnownNodes[x]):          #unkown node is found
-                for y in range(len(B[0])):
-                    if(NG[y][x]):       #nodes to which the unkown node point
-                        for a in range(len(B[0])):
-                            if(NH[x][a]):
-                                NH[y][a] = 1
-        itteration += 1
+    print(B)
     r = 0
     B = B.tolist()
-    for x in range (len(KnownNodes)):
-        if(KnownNodes[x]):
-    #        B.pop(x-r)
+    for x in range (len(KnownNodes_start_1)):
+        if(KnownNodes_start_1[x]):
+            new = []
+            for y in range(len(B[0])):
+                new.append(0)
+            B[x]=new
     #        r = r + 1
-            KnownNodes[x] = 0
+            KnownNodes_start_1[x] = 0
             knownNodenumber -= 1
     print("New NH after emersion is:")
     B = np.array(B)
