@@ -842,25 +842,51 @@ def Emersion(master, draw):
                 A[x][y]=1
             else:
                 A[x][y]=0;
-    #adding the old nodes with no connection
+    #adding the old nodes with no connection at the bottom
     G = []
-    p = 0
     for x in range(len(NG)):
-        if (KnownNodes_start[x]):
-            p +=1
-            new = []
+        new = []
+        if(x>len(NG)-1-knownNodenumber):
             for y in range(len(NG)):
-                new.append(0);
+                new.append(0)
         else:
-            new = []
-            r = 0;
             for y in range(len(NG)):
-                if(KnownNodes_start[y]):
-                    r +=1
+                if(y>len(NG)-1-knownNodenumber):
                     new.append(0)
                 else:
-                    new.append(A[x-p][y-r])
+                    new.append(A[x][y])
         G.append(new)
+    #switching to the right position
+    switched_nodes = 0
+    len_knownnodes = len(KnownNodes_start)-1
+    while(knownNodenumber>switched_nodes):
+        #Check if the bottom node is a known node
+        if(KnownNodes_start[len_knownnodes-switched_nodes]):
+            switched_nodes += 1
+        #If not, place the first known node at the bottom
+        else:
+            a = 0
+            x = 0
+            while(a==0):
+                if(KnownNodes_start[x]):
+                    #Switch the nodes in NG matrix
+                    row1 = copy.deepcopy(G[x])
+                    row2 = copy.deepcopy(G[len_knownnodes-switched_nodes])
+                    G[x] = row2
+                    G[len_knownnodes-switched_nodes] = row1
+                    column1 = []
+                    column2 = []
+                    for y in range(len(G)):
+                        column1.append(G[y][x])
+                        column2.append(G[y][len_knownnodes-switched_nodes])
+                    for y in range(len(G)):
+                        G[y][x] = column2[y]
+                        G[y][len_knownnodes-switched_nodes] = column1[y]
+                    #Switch the nodes in KnownNodes list
+                    KnownNodes_start[x] = 0
+                    KnownNodes_start[len_knownnodes-switched_nodes] = 1
+                    a = 1
+                x +=1
     print("New NG after emersion is:")
     print(G)
     #Set the new NH as the old NH
