@@ -35,7 +35,8 @@ excitationNumber = 0
 noiseNodeNumber = 0
 noiseNodeStore = []
 storeNG = storeNR = storeNH = []
-KnownNodes = []
+NG_pms = NR_pms = NH_pms = []
+Unknownnodes = []
 lineshow = 1;
 overlay = 0 #overlay value 0 means the NG matrix and overlay 1 is the Noise overlay
 currentAmountOutputSelected = 1 #this variable is so we know the order that outputs are connected. it is not zero because unselected are 0
@@ -45,7 +46,7 @@ clickOperation=0
 currentView = 0
 butTestStore = []
 butTestNumber = 0
-knownNodenumber = 0
+unknownNodenumber = 0
 
 class nodeHolder():
      nmb = 0
@@ -67,6 +68,8 @@ def initMainMenu(frame, canvas):
     Button(frame, text="load noise view", command= lambda: plotNoise(draw,master), height = 1, width=20).grid(row=0, column=2, padx=2, pady=2)
     Button(frame, text="load transfer view", command= lambda: plotMatrix(draw,master,0), height = 1, width=20).grid(row=1, column=2, padx=2, pady=2)
     Button(frame, text="change line view", command= lambda: Dashed_line(draw,master), height = 1, width=20).grid(row=2, column=2, padx=2, pady=2)
+    #column 3
+    Button(frame, text="PMS", command= lambda: PMS(master, draw), height = 1, width=20).grid(row=1, column=3, padx=2, pady=2)
 
     #column 3
     OptionMenu(frame, layoutMethod, *layout).grid(row=0, column=3)
@@ -78,7 +81,7 @@ def initSubMenu(frame):
     Button(frame, text="connect Transfer/module", command= lambda: connectCall(draw,master), height = 1, width=20).pack(padx=2, pady=2)
     Button(frame, text="Remove transfer", command= lambda: removeNode(draw, master),  height = 1, width=20).pack(padx=2, pady=2)
     Button(frame, text="add output", command= lambda: addWidget(2), height = 1, width=20).pack(padx=2, pady=2)
-    Button(frame, text="Emersion", command= lambda: Emersion(master, draw), height = 1, width=20).pack(padx=2, pady=2)
+    Button(frame, text="Immersion", command= lambda: Immersion_call(master, draw), height = 1, width=20).pack(padx=2, pady=2)
     #in reload every button or Checkbox is stored which is reloaded on calling reloadCall when currentAmountOutputSelected > 1
     reload = [
     Button(frame, text="remove node", command= lambda: removeOutput(draw, master), height = 1, width=20),
@@ -86,7 +89,7 @@ def initSubMenu(frame):
     Button(frame, text="remove external excitation", command= lambda: removeNH(draw,master,0), height = 1, width=20),
     Button(frame, text="add noise", command= lambda: addNHCall(master, draw,1), height = 1, width=20),
     Button(frame, text="remove noise", command= lambda: removeNH(master, draw,1), height = 1, width=20),
-    Button(frame, text="Make known", command= lambda: Makeknown(master, draw), height = 1, width=20),
+    Button(frame, text="Make unknown", command= lambda: Makeknown(master, draw), height = 1, width=20),
     Checkbutton(frame, text="Measurable", height = 1, width=20),
     Checkbutton(frame, text="Unmeasurable", height = 1, width=20),
     Checkbutton(frame, text="Blue", height = 1, width=20),
@@ -125,12 +128,12 @@ def plotNoise(draw,master):
     global lineStore
     global outputStore
     global outputNumber
-    global KnownNodes
+    global Unknownnodes
 
     if(currentView==0):
         switchView(draw,master)
 
-    NG, NR, NH, KnownNodes = toAdjacencyMatrix(draw,master)
+    NG, NR, NH, Unknownnodes = toAdjacencyMatrix(draw,master)
     clearWindow(draw,0)
     overlay = 1
 
@@ -181,8 +184,8 @@ def plotNoise(draw,master):
                 node2 = outputStore[x]
                 connectOutputs(node1,node2,draw,master,1)
 
-    #for x in range(len(KnownNodes)):
-    #    if(KnownNodes[x]):
+    #for x in range(len(Unknownnodes)):
+    #    if(Unknownnodes[x]):
     #       for y in range(outputNumber):
     #            if(outputStore[y][1].nmb==x):
     #                selectOutput(outputStore[y][1])
@@ -209,7 +212,7 @@ def plotMatrix(draw,master,init):
         NR = storeNR
         NH = storeNH
     else:
-        NG, NR, NH, KnownNodes = toAdjacencyMatrix(draw,master)
+        NG, NR, NH, Unknownnodes = toAdjacencyMatrix(draw,master)
         clearWindow(draw,0)
         #store noise so that the Adjacency function can pick it from global variables
         storeNH = NH
@@ -237,8 +240,8 @@ def plotMatrix(draw,master,init):
                 node2 = outputStore[x]
                 connectOutputs(node1,node2,draw,master,1)
 
-    #for x in range(len(KnownNodes)):
-    #    if(KnownNodes[x]):
+    #for x in range(len(Unknownnodes)):
+    #    if(Unknownnodes[x]):
     #        for y in range(outputNumber):
     #            if(outputStore[y][1].nmb==x):
     #                selectOutput(outputStore[y][1])
@@ -270,11 +273,11 @@ def toAdjacencyMatrix(draw,master):
     global butTestStore
     global outputNumber
     global outputStore
-    global KnownNodes
+    global Unknownnodes
 
-    storeNG, storeNR, storeNH, outputNumber, outputStore, KnownNodes= toAdjacencyMatrixCall(draw,master,overlay,storeNG,storeNH,storeNR,lineStore,lineNumber,outputStore,outputNumber,excitationStore,excitationNumber,noiseNodeStore,noiseNodeNumber, KnownNodes)
+    storeNG, storeNR, storeNH, outputNumber, outputStore, Unknownnodes= toAdjacencyMatrixCall(draw,master,overlay,storeNG,storeNH,storeNR,lineStore,lineNumber,outputStore,outputNumber,excitationStore,excitationNumber,noiseNodeStore,noiseNodeNumber, Unknownnodes)
 
-    return storeNG, storeNR, storeNH, KnownNodes
+    return storeNG, storeNR, storeNH, Unknownnodes
 
 def abstractPlot(draw,master,NG,NR,NH):
     global butTestStore
@@ -702,17 +705,17 @@ def Makeknown(master, draw):
     global outputNumber
     global lineStore
     global lineNumber
-    global knownNodenumber
+    global unknownNodenumber
     for x in range(outputNumber):
         if(outputStore[x]!=0):
             if(outputStore[x][1].stat==2):
                 outputStore[x][1].stat = 4
                 selectOutput(x,draw)
-                knownNodenumber +=1
+                unknownNodenumber +=1
             elif(outputStore[x][1].stat==4):
                 outputStore[x][1].stat = 2
                 selectOutput(x,draw)
-                knownNodenumber -=1
+                unknownNodenumber -=1
     reloadCall(subMenu,reload,currentAmountOutputSelected,0)
 
 
@@ -722,41 +725,122 @@ below are the remaining functions
 -------------------------------------------------------- Remaining --------------------------------------------------------
 """
 
-def UnknownNodesbottom(NG, NR, NH, KnownNodes):
-    global knownNodenumber
+def PMS(master, draw):
+    global outputStore
+    global unknownNodenumber
+    global NG_pms
+    global NR_pms
+    global NH_pms
+    NG_pms, NR_pms, NH_pms, Unknownnodes_pms = toAdjacencyMatrix(draw,master)
+    call = popupWindow_i(master)
+    master.wait_window(call.top)
+    node = 0
+    i = int(call.value)-1
+    call = popupWindow_j(master)
+    master.wait_window(call.top)
+    node = 0
+    j = int(call.value)-1
+    D = (np.zeros(len(NG_pms))).tolist()
+    Y = (np.zeros(len(NG_pms))).tolist()
+    #fill the D and Y sets with the initial nodes
+    D[i] = 1
+    Y[j] = 1
+    for x in range(len(NG_pms)):
+        if(NG_pms[j][x]):
+            D[x]=1;
+    change = 1
+    while(change):
+        print("D:")
+        print(D)
+        print("Y:")
+        print(Y)
+        change = 0
+        Unknownnodes = []
+        for x in range(len(D)):
+            if(D[x] or Y[x]):
+                Unknownnodes.append(0)
+            else:
+                Unknownnodes.append(1)
+                unknownNodenumber +=1
+        print("Unknownnodes:")
+        print(Unknownnodes)
+        print(NG_pms)
+        NG = copy.deepcopy(NG_pms)
+        NH = copy.deepcopy(NH_pms)
+        NR = copy.deepcopy(NR_pms)
+        if(unknownNodenumber>0):
+            G, B, R = Immersion(NG,NR_pms,NH_pms,Unknownnodes,draw,master)
+        else:
+            G = NG
+            B = NH
+            R = NR
+        #looking for new outputs
+        print(NG_pms)
+        for x in range(len(B)):
+            if(B[j][x]):
+                for y in range(len(B)):
+                    if(B[y][x]):
+                        if(Y[y]==0):        #Checking if it is a new output
+                            change = 1
+                            Y[y]=1
+                            print(NG_pms[y])
+                            for a in range(len(NG_pms)):
+                                if(NG_pms[y][a]):
+                                    D[a]=1;
+                                    print(a)
+    Unknownnodes = []
+    for x in range(len(D)):
+        if(D[x] or Y[x]):
+            Unknownnodes.append(0)
+        else:
+            Unknownnodes.append(1)
+            unknownNodenumber +=1
+    print("Unknownnodes:")
+    print(Unknownnodes)
+    if(unknownNodenumber>0):
+        G, B, R = Immersion(NG_pms,NR_pms,NH_pms,Unknownnodes,draw,master)
+        clearWindow(draw,0)
+        storeNG = G
+        storeNH = B
+        storeNR = R
+        plotMatrix(draw,master,1)
+
+
+def Unknownnodesbottom(NG, NR, NH, Unknownnodes):
+    global unknownNodenumber
     correct_nodes = 0
-    len_knownnodes = len(KnownNodes)-1
-    while(knownNodenumber>correct_nodes):
-        #Check if the bottom node is a known node
-        if(KnownNodes[len_knownnodes-correct_nodes]):
+    len_Unknownnodes = len(Unknownnodes)-1
+    while(unknownNodenumber>correct_nodes):
+        #Check if the bottom node is a unknown node
+        if(Unknownnodes[len_Unknownnodes-correct_nodes]):
             correct_nodes += 1
-        #If not, place the first known node at the bottom
+        #If not, place the first unknown node at the bottom
         else:
             a = 0
             x = 0
             while(a==0):
-                if(KnownNodes[x]):
+                if(Unknownnodes[x]):
                     #Switch the nodes in NG matrix
                     row1 = copy.deepcopy(NG[x])
-                    row2 = copy.deepcopy(NG[len_knownnodes-correct_nodes])
+                    row2 = copy.deepcopy(NG[len_Unknownnodes-correct_nodes])
                     NG[x] = row2
-                    NG[len_knownnodes-correct_nodes] = row1
+                    NG[len_Unknownnodes-correct_nodes] = row1
                     column1 = []
                     column2 = []
                     for y in range(len(NG)):
                         column1.append(NG[y][x])
-                        column2.append(NG[y][len_knownnodes-correct_nodes])
+                        column2.append(NG[y][len_Unknownnodes-correct_nodes])
                     for y in range(len(NG)):
                         NG[y][x] = column2[y]
-                        NG[y][len_knownnodes-correct_nodes] = column1[y]
+                        NG[y][len_Unknownnodes-correct_nodes] = column1[y]
                     #Switch the nodes in NH matrix
                     rowNH1 = copy.deepcopy(NH[x])
-                    rowNH2 = copy.deepcopy(NH[len_knownnodes-correct_nodes])
+                    rowNH2 = copy.deepcopy(NH[len_Unknownnodes-correct_nodes])
                     NH[x] = rowNH2
-                    NH[len_knownnodes-correct_nodes] = rowNH1
-                    #Switch the nodes in KnownNodes list
-                    KnownNodes[x] = 0
-                    KnownNodes[len_knownnodes-correct_nodes] = 1
+                    NH[len_Unknownnodes-correct_nodes] = rowNH1
+                    #Switch the nodes in Unknownnodes list
+                    Unknownnodes[x] = 0
+                    Unknownnodes[len_Unknownnodes-correct_nodes] = 1
                     a = 1
                 x +=1
     #change NG to a list if it is not already
@@ -767,14 +851,29 @@ def UnknownNodesbottom(NG, NR, NH, KnownNodes):
     if(False==(isinstance(NH,np.ndarray))):
         print(isinstance(NH,np.ndarray))
         NH = np.array(NH)
-    return NG, NR, NH, KnownNodes
+    return NG, NR, NH, Unknownnodes
 
-def Emersion(master, draw):
+def Immersion_call(master,draw):
+    global storeNG
+    global storeNH
+    global storeNR
+    NG, NR, NH, Unknownnodes= toAdjacencyMatrix(draw,master)
+    G, B, R = Immersion(NG,NR,NH,Unknownnodes,draw,master)
+    clearWindow(draw,0)
+    storeNG = G
+    storeNH = B
+    storeNR = R
+    plotMatrix(draw,master,1)
+
+def Immersion(NG,NR,NH,Unknownnodes,draw,master):
+    global NG_pms
+    global NR_pms
+    global NH_pms
     global outputNumber
     global outputStore
     global lineStore
     global lineNumber
-    global knownNodenumber
+    global unknownNodenumber
     global storeNG
     global storeNH
     global storeNR
@@ -785,10 +884,9 @@ def Emersion(master, draw):
     L21 = []
     L22 = []
     B = []
-    NG, NR, NH, KnownNodes= toAdjacencyMatrix(draw,master)
-    KnownNodes_start = copy.deepcopy(KnownNodes)
-    KnownNodes_start_1 = copy.deepcopy(KnownNodes)
-    NG, NR, NH, KnownNodes= UnknownNodesbottom(NG, NR, NH, KnownNodes)
+    Unknownnodes_start = copy.deepcopy(Unknownnodes)
+    Unknownnodes_start_1 = copy.deepcopy(Unknownnodes)
+    NG, NR, NH, Unknownnodes= Unknownnodesbottom(NG, NR, NH, Unknownnodes)
     R = NR
     #Change NG into a Laplacian form L
     #creating Diagonal A1
@@ -804,31 +902,35 @@ def Emersion(master, draw):
             else:
                 new.append(-NG[x][y])
         L.append(new)
-    for x in range(len(NG)-knownNodenumber):
+    for x in range(len(NG)-unknownNodenumber):
         new = []
-        for y in range(len(NG)-knownNodenumber):
+        for y in range(len(NG)-unknownNodenumber):
             new.append(L[x][y])
         L11.append(new)
-    for x in range(knownNodenumber):
+    for x in range(unknownNodenumber):
         new = []
-        for y in range(len(NG)-knownNodenumber):
-            new.append(L[len(NG)-knownNodenumber+x][y])
+        for y in range(len(NG)-unknownNodenumber):
+            new.append(L[len(NG)-unknownNodenumber+x][y])
         L12.append(new)
-    for x in range(len(NG)-knownNodenumber):
+    for x in range(len(NG)-unknownNodenumber):
         new = []
-        for y in range(knownNodenumber):
-            new.append(L[x][len(NG)-knownNodenumber+y])
+        for y in range(unknownNodenumber):
+            new.append(L[x][len(NG)-unknownNodenumber+y])
         L21.append(new)
-    for x in range(knownNodenumber):
+    for x in range(unknownNodenumber):
         new = []
-        for y in range(knownNodenumber):
-            new.append(L[len(NG)-knownNodenumber+x][len(NG)-knownNodenumber+y])
+        for y in range(unknownNodenumber):
+            new.append(L[len(NG)-unknownNodenumber+x][len(NG)-unknownNodenumber+y])
         L22.append(new)
+    print(L22)
     #L = np.array(L)
     L11 = np.array(L11)
     L12 = np.transpose(np.array(L12))
     L21 = np.transpose(np.array(L21))
-    L22 = np.linalg.inv(np.array(L22))
+    if(np.linalg.det(L22)==0):
+        L22 = np.linalg.pinv(np.array(L22))
+    else:
+        L22 = np.linalg.inv(np.array(L22))
     #Use kron reduction to calculate the new laplacian
     L12_22 = L12.dot(L22)
     L12_22_21 = L12_22.dot(L21)
@@ -847,12 +949,12 @@ def Emersion(master, draw):
     G = []
     for x in range(len(NG)):
         new = []
-        if(x>len(NG)-1-knownNodenumber):
+        if(x>len(NG)-1-unknownNodenumber):
             for y in range(len(NG)):
                 new.append(0)
         else:
             for y in range(len(NG)):
-                if(y>len(NG)-1-knownNodenumber):
+                if(y>len(NG)-1-unknownNodenumber):
                     new.append(0)
                 else:
                     new.append(A[x][y])
@@ -860,76 +962,71 @@ def Emersion(master, draw):
     #switching to the right position
 
     B = NH
-    #Find the nodes to which the unknown nodes used to point (before emersion)
+    #Find the nodes to which the unknown nodes used to point (before Immersion)
     itteration = 0
-    while(itteration<knownNodenumber):
+    while(itteration<unknownNodenumber):
         for x in range(len(B)):
-            if(KnownNodes[x]):          #unkown node is found
+            if(Unknownnodes[x]):          #unknown node is found
                 for y in range(len(B[0])):
-                    if(NG[y][x]):       #nodes to which the unkown node point
+                    if(NG[y][x]):       #nodes to which the unknown node point
                         for a in range(len(B[0])):
                             if(NH[x][a]):
                                 NH[y][a] = 1
         itteration += 1
     switched_nodes = 0
-    len_knownnodes = len(KnownNodes_start)-1
+    len_Unknownnodes = len(Unknownnodes_start)-1
     print(B)
-    while(knownNodenumber>switched_nodes):
-        #Check if the bottom node is a known node
-        if(KnownNodes_start[len_knownnodes-switched_nodes]):
+    while(unknownNodenumber>switched_nodes):
+        #Check if the bottom node is a unknown node
+        if(Unknownnodes_start[len_Unknownnodes-switched_nodes]):
             switched_nodes += 1
-        #If not, place the first known node at the bottom
+        #If not, place the first unknown node at the bottom
         else:
             a = 0
             x = 0
             while(a==0):
-                if(KnownNodes_start[x]):
+                if(Unknownnodes_start[x]):
                     #Switch the nodes in NG matrix
                     row1 = copy.deepcopy(G[x])
-                    row2 = copy.deepcopy(G[len_knownnodes-switched_nodes])
+                    row2 = copy.deepcopy(G[len_Unknownnodes-switched_nodes])
                     G[x] = row2
-                    G[len_knownnodes-switched_nodes] = row1
+                    G[len_Unknownnodes-switched_nodes] = row1
                     column1 = []
                     column2 = []
                     for y in range(len(G)):
                         column1.append(G[y][x])
-                        column2.append(G[y][len_knownnodes-switched_nodes])
+                        column2.append(G[y][len_Unknownnodes-switched_nodes])
                     for y in range(len(G)):
                         G[y][x] = column2[y]
-                        G[y][len_knownnodes-switched_nodes] = column1[y]
-                    #Switch the nodes in KnownNodes list
+                        G[y][len_Unknownnodes-switched_nodes] = column1[y]
+                    #Switch the nodes in Unknownnodes list
                     rowNH1 = copy.deepcopy(B[x])
-                    rowNH2 = copy.deepcopy(B[len_knownnodes-switched_nodes])
+                    rowNH2 = copy.deepcopy(B[len_Unknownnodes-switched_nodes])
                     B[x] = rowNH2
-                    B[len_knownnodes-switched_nodes] = rowNH1
-                    KnownNodes_start[x] = 0
-                    KnownNodes_start[len_knownnodes-switched_nodes] = 1
+                    B[len_Unknownnodes-switched_nodes] = rowNH1
+                    Unknownnodes_start[x] = 0
+                    Unknownnodes_start[len_Unknownnodes-switched_nodes] = 1
                     a = 1
                 x +=1
-    print("New NG after emersion is:")
+    print("New NG after Immersion is:")
     print(G)
     #Set the new NH as the old NH
-    print(B)
     r = 0
     B = B.tolist()
-    for x in range (len(KnownNodes_start_1)):
-        if(KnownNodes_start_1[x]):
+    for x in range (len(Unknownnodes_start_1)):
+        if(Unknownnodes_start_1[x]):
             new = []
             for y in range(len(B[0])):
                 new.append(0)
             B[x]=new
     #        r = r + 1
-            KnownNodes_start_1[x] = 0
-            knownNodenumber -= 1
-    print("New NH after emersion is:")
+            Unknownnodes_start_1[x] = 0
+            unknownNodenumber -= 1
+    print("New NH after Immersion is:")
     B = np.array(B)
     print(B)
-    clearWindow(draw,0)
-    storeNG = G
-    storeNH = B
-    storeNR = R
-    plotMatrix(draw,master,1)
-    print("End of Emersion")
+    print("End of Immersion")
+    return G, B, R
 
 
 def Dashed_line(draw,master):
@@ -1238,7 +1335,7 @@ def circleScan(draw,master,x,y):
     #this function scans the mouse click and tries to find if it is within a circle
     print("scanning for button at: ",x,",",y)
     #draw.create_circle(x,y,10,fill="green")
-    #circle through all known nodes to check within their radius
+    #circle through all unknown nodes to check within their radius
     for f in range(outputNumber):
         if(outputStore[f]!=0):
             #the zoom function and drag messes with the old coordintes with trueCoordinates you obtain the in that view correct coordinates
