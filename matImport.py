@@ -79,7 +79,7 @@ def toAdjacencyMatrixCall(draw,master,overlay,storeNG,storeNH,storeNR,lineStore,
                             nmb = int(excitation.nmb)
                             NR[x][nmb] = 1
 
-
+    """
     x = 0
     while( x < (len(NG))):
         emptyrow = 0;
@@ -106,7 +106,7 @@ def toAdjacencyMatrixCall(draw,master,overlay,storeNG,storeNH,storeNR,lineStore,
                     a = a + 1
                 outputNumber = outputNumber - 1
         x = x + 1
-
+    """
     storeNG = NG
     storeNR = NR
     storeNH = NH
