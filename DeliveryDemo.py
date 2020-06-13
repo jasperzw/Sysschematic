@@ -77,6 +77,8 @@ def initSubMenu(frame):
     Button(frame, text="Remove transfer", command= lambda: removeNode(draw, master),  height = 1, width=20).pack(padx=2, pady=2)
     Button(frame, text="add output", command= lambda: addWidget(2), height = 1, width=20).pack(padx=2, pady=2)
     Button(frame, text="Emersion", command= lambda: Emersion(master, draw), height = 1, width=20).pack(padx=2, pady=2)
+    Button(frame, text="toggle transfer known", command= lambda: toggleTransfer(master, draw), height = 1, width=20).pack(padx=2, pady=2)
+    Button(frame, text="Perform test identifiability", command= lambda: testIdentifiability(master, draw), height = 1, width=20).pack(padx=2, pady=2)
     #in reload every button or Checkbox is stored which is reloaded on calling reloadCall when currentAmountOutputSelected > 1
     reload = [
     Button(frame, text="remove node", command= lambda: removeOutput(draw, master), height = 1, width=20),
@@ -102,6 +104,55 @@ below are all the functions for
 
 used to plot adjency matrix and return everything to Adjacency matrix
 """
+
+def toggleTransfer(master,draw):
+    for x in range(number_of_nodes):
+        if(btnStore[x]!=0):
+            if(btnStore[x][1].stat==2):
+                if(btnStore[x][1].known==0):
+                    btnStore[x][1].known = 1
+                else:
+                    btnStore[x][1].known = 1
+                x, y = trueCoordinates(draw,btnStore[x])
+                circleScan(draw,master,x,y)
+
+def testIdentifiability(master,draw):
+    NG = []
+    NR = []
+    NH = []
+    KnownNodes = []
+
+    #set everything first to zero
+    for x in range(outputNumber):
+        new = []
+        for y in range(outputNumber):
+            new.append(0)
+        NG.append(new)
+        new = []
+        for y in range(5):
+            new.append(0)
+        NH.append(new)
+        new = []
+        for y in range(5):
+            new.append(0)
+        NR.append(new)
+        KnownNodes.append(0)
+
+    for x in range(number_of_nodes):
+        if(btnStore[x]!=0):
+            if(btnStore[x][1].known==1):
+                NG[btnStore[x][5]-1][btnStore[x][4]-1] = 1
+    
+    for x in range(outputNumber):
+        if(outputStore[x]!=0):
+            if(outputStore[x][1].nodeMode[0].get()==1):
+                NR[x][x]==1
+            if(outputStore[x][1].nodeMode[1].get()==1):
+                NH[x][x]==1
+    print(NG)
+    print(NR)
+    print(NH)
+            
 
 # Load mat will move everything in from the specific mat file.
 def loadMat(draw,master):
@@ -342,9 +393,10 @@ def addNode(w,x,y,master,node1,node2):
         if(number_of_nodes==0):
             btn = nodeHolder()
             btn.stat = 1
+            btn.known = 0
             btn.id = w.create_rectangle(x-width,y-height,x+width,y+height,fill="cyan",tags="rect")
             btn.text = w.create_text(x,y,text=str(node_name)+str(number_2)+","+str(number_1),width=0, font=("Courier", textSize),tags="wNotation")
-            save = [btn.id,btn,x,y]
+            save = [btn.id,btn,x,y,number_1,number_2]
             #append it on th end
             btnStore.append(save)
             number_of_nodes = number_of_nodes + 1
@@ -356,9 +408,10 @@ def addNode(w,x,y,master,node1,node2):
                 if(btnStore[m]==0):
                     btn = nodeHolder()
                     btn.stat = 1
+                    btn.known = 0
                     btn.id = w.create_rectangle(x-width,y-height,x+width,y+height,fill="cyan",tags="rect")
                     btn.text = w.create_text(x,y,text=str(node_name)+str(number_2)+","+str(number_1),width=0, font=("Courier", textSize),tags="wNotation")
-                    save = [btn.id,btn,x,y]
+                    save = [btn.id,btn,x,y,number_1,number_2]
                     btnStore[m] = save
                     #print("added node in existing place")
 
@@ -366,9 +419,10 @@ def addNode(w,x,y,master,node1,node2):
             if(number_of_nodes!=0 and node == 0):
                 btn = nodeHolder()
                 btn.stat = 1
+                btn.known = 0
                 btn.id = w.create_rectangle(x-width,y-height,x+width,y+height,fill="cyan",tags="rect")
                 btn.text = w.create_text(x,y,text=str(node_name)+str(number_2)+","+str(number_1),width=0, font=("Courier", textSize),tags="wNotation")
-                save = [btn.id,btn,x,y]
+                save = [btn.id,btn,x,y,number_1,number_2]
                 btnStore.append(save)
                 number_of_nodes = number_of_nodes + 1
                 #print("appended node to back of list")
@@ -1235,7 +1289,10 @@ def circleScan(draw,master,x,y):
                                         draw.itemconfig(lineStore[a][0], fill="red")
 
                         else:
-                            draw.itemconfig(btnStore[f][0], fill="cyan")
+                            if(btnStore[f][1].known == 0):
+                                draw.itemconfig(btnStore[f][0], fill="cyan")
+                            else:
+                                draw.itemconfig(btnStore[f][0], fill="green")
                             btnStore[f][1].stat=1
                             for a in range(lineNumber):
                                 if(lineStore[a]!=0):
