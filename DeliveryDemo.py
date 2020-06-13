@@ -7,11 +7,9 @@ from Scrollwindow import *
 from node import removeNodeCall
 from noise import addNoiseNodeCall, selectNoiseNodeCall, removeNoiseNodeCall
 import numpy as np
-<<<<<<< HEAD
 import networkx as nx
-=======
 import copy
->>>>>>> 48df341355505af1ed386f4220094831f0b63384
+
 
 """
 initializing all global components
@@ -132,7 +130,7 @@ def plotNoise(draw,master):
     if(currentView==0):
         switchView(draw,master)
 
-    NG, NR, NH, KnownNodes = toAdjecencyMatrix(draw,master)
+    NG, NR, NH, KnownNodes = toAdjacencyMatrix(draw,master)
     clearWindow(draw,0)
     overlay = 1
 
@@ -199,6 +197,7 @@ def plotMatrix(draw,master,init):
     global Makeknown
     global outputStore
     global outputNumber
+    global excitationNumber
 
     if(currentView==0):
         switchView(draw,master)
@@ -213,6 +212,7 @@ def plotMatrix(draw,master,init):
     else:
         NG, NR, NH, KnownNodes = toAdjacencyMatrix(draw,master)
         clearWindow(draw,0)
+        excitationNumber = 0
         #store noise so that the Adjacency function can pick it from global variables
         storeNH = NH
         storeNG = NG
@@ -938,7 +938,6 @@ def clearWindow(canvas,canReset):
     noiseStore = []
     noiseNumber = 0
     excitationStore = []
-    excitationNumber = 0
     currentAmountOutputSelected = 0
     linestore = 0
     lineNumber = 0
@@ -948,6 +947,7 @@ def clearWindow(canvas,canReset):
     overlay = 0
     currentview = 0
     if(canReset==1):
+        excitationNumber = 0
         if(unit.currentZoom > 1):
             unit.canvas.scale('all', unit.currentZoom, unit.currentZoom, 1, 1)
         if(unit.currentZoom < 1):
