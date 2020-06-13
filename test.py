@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import matlab.engine
 eng = matlab.engine.start_matlab()
 x = 4.0
@@ -8,3 +9,6 @@ adj, fix = eng.testTable(nargout=2)
 a,b,d = eng.test_identifiability(adj,fix,nargout=3)
 print(adj)
 print(a,b,d)
+=======
+from oct2py import octave
+>>>>>>> 1f7721edcf9d466254a7b3e6b83bba26623414e7
