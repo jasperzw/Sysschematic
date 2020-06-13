@@ -6,6 +6,7 @@ import math
 from Scrollwindow import *
 from node import removeNodeCall
 from noise import addNoiseNodeCall, selectNoiseNodeCall, removeNoiseNodeCall
+from matlabCaller import test_identifiability_caller
 import numpy as np
 import networkx as nx
 import copy
@@ -82,6 +83,9 @@ def initSubMenu(frame):
     Button(frame, text="Remove transfer", command= lambda: removeNode(draw, master),  height = 1, width=20).pack(padx=2, pady=2)
     Button(frame, text="add output", command= lambda: addWidget(2), height = 1, width=20).pack(padx=2, pady=2)
     Button(frame, text="Emersion", command= lambda: Emersion(master, draw), height = 1, width=20).pack(padx=2, pady=2)
+    """
+        which function do we need? immersio or emersion?
+    """
     Button(frame, text="toggle transfer known", command= lambda: toggleTransfer(master, draw), height = 1, width=20).pack(padx=2, pady=2)
     Button(frame, text="Perform test identifiability", command= lambda: testIdentifiability(master, draw), height = 1, width=20).pack(padx=2, pady=2)
     Button(frame, text="Immersion", command= lambda: Immersion_call(master, draw), height = 1, width=20).pack(padx=2, pady=2)
@@ -93,8 +97,8 @@ def initSubMenu(frame):
     Button(frame, text="add noise", command= lambda: addNHCall(master, draw,1), height = 1, width=20),
     Button(frame, text="remove noise", command= lambda: removeNH(master, draw,1), height = 1, width=20),
     Button(frame, text="Make unknown", command= lambda: Makeknown(master, draw), height = 1, width=20),
-    Checkbutton(frame, text="Measurable", height = 1, width=20),
-    Checkbutton(frame, text="Unmeasurable", height = 1, width=20),
+    Checkbutton(frame, text="excitation measurable", height = 1, width=20),
+    Checkbutton(frame, text="noise measurable", height = 1, width=20),
     Checkbutton(frame, text="Blue", height = 1, width=20),
     Checkbutton(frame, text="Yellow", height = 1, width=20),
     Checkbutton(frame, text="Green", height = 1, width=20),
@@ -127,37 +131,97 @@ def testIdentifiability(master,draw):
     NR = []
     NH = []
     KnownNodes = []
-
     #set everything first to zero
+    print("test: ",noiseNumber)
     for x in range(outputNumber):
         new = []
         for y in range(outputNumber):
             new.append(0)
         NG.append(new)
         new = []
-        for y in range(5):
-            new.append(0)
+        if(noiseNumber!=0):
+            for y in range(noiseNumber):
+                new.append(0)
+        else:
+            for y in range(outputNumber):
+                new.append(0)
         NH.append(new)
         new = []
-        for y in range(5):
-            new.append(0)
+        if(excitationNumber!=0):
+            for y in range(excitationNumber):
+                new.append(0)
+        else:
+            for y in range(outputNumber):
+                new.append(0)
         NR.append(new)
         KnownNodes.append(0)
+
+    #run the above functions to generate a corresponding NG NR and NH matrix which we then fill with the measurable signals
 
     for x in range(number_of_nodes):
         if(btnStore[x]!=0):
             if(btnStore[x][1].known==1):
                 NG[btnStore[x][5]-1][btnStore[x][4]-1] = 1
 
+    #set kown transfer to measurable in NG matrix
+
     for x in range(outputNumber):
         if(outputStore[x]!=0):
+            print("nodeMode: ", outputStore[x][1].nodeMode[0].get() ," found at: ", outputStore[x][0])
             if(outputStore[x][1].nodeMode[0].get()==1):
-                NR[x][x]==1
+                for y in range(excitationNumber):
+                    if(excitationStore[y][4]==outputStore[x][1]):
+                        NR[x][excitationStore[y][1].nmb-1]=1
+                        print("set excitation to high")
             if(outputStore[x][1].nodeMode[1].get()==1):
-                NH[x][x]==1
-    print(NG)
-    print(NR)
-    print(NH)
+                for y in range(noiseNumber):
+                    if(noiseStore[y][4]==outputStore[x][1]):
+                        NH[x][noiseStore[y][1].nmb-1]=1
+                        print("set noise to high")
+
+    #check each node if they have the nosie or excitation measurable selected and the note that in the NH and NR matrix
+
+    adjG, adjR, adjH, unkown = toAdjacencyMatrix(draw,master)
+
+    replaceH = []
+    for x in range(len(adjH)):
+        new = []
+        for y in range(len(adjH[0])):
+            new.append(adjH[x][y])
+        replaceH.append(new)
+    #this function is simpely their because the NH matrix is not changed from when it was imported and needs to go in a different format which matlab can interpret
+    adjH = replaceH
+
+    #call the test_identifiability_caller to transfer everything to matlab
+    identifiability, identifiability_nodes, identifiability_modules = test_identifiability_caller(NG,NR,NH,adjG,adjR,adjH)
+
+    print("NG matrix: ",NG)
+    print("--------------------------------------------------------------------------------------")
+    print("NR matrix: ",NR)
+    print("--------------------------------------------------------------------------------------")
+    print("NH matrix: ",NH)
+    print("//////////////////////////////////////////////////////////////////////////////////////")
+    print("found the following")
+    print("NG matrix: ",identifiability)
+    print("--------------------------------------------------------------------------------------")
+    print("NR matrix: ",identifiability_nodes)
+    print("--------------------------------------------------------------------------------------")
+    print("NH matrix: ",identifiability_modules)
+    for x in range(len(identifiability_modules)):
+        for y in range(len(identifiability_modules[0])):
+            if(identifiability_modules[x][y]==1):
+                nodefrom = y + 1
+                nodeto = x + 1
+                #check which transfer is measurable
+                #print("module is 1 and trying to set the number of nodes for From: ",nodefrom," To: ",nodeto)
+                for f in range(number_of_nodes):
+                    if(btnStore[f]!=0):
+                        if(btnStore[f][4]==nodeto and btnStore[f][5]==nodefrom):
+                            #check which btn it is corresonding to
+                            #print("setting tranfer to known after identifiability check")
+                            draw.itemconfig(btnStore[f][0],fill="green")
+                            btnStore[f][1].known = 1
+                            #set the transfer to known
 
 
 # Load mat will move everything in from the specific mat file.
@@ -336,17 +400,19 @@ def toAdjacencyMatrix(draw,master):
 def abstractPlot(draw,master,NG,NR,NH):
     global butTestStore
     global butTestNumber
+    #generate the positions
     pos = generateGraph(NG,NR,NH,3,500*unit.currentZoom, layoutMethod)
-
     nmbOutputs = len(NG)
 
     #make all the connectiosn tussen connectOutputs
     for x in range(nmbOutputs):
         for y in range(nmbOutputs):
             if(NG[x][y]==1):
+                #first draw the lines
                 draw.create_line(pos[x][0], pos[x][1], pos[y][0], pos[y][1])
 
     for x in range(nmbOutputs):
+        #draw each node
         widget = draw.create_circle(pos[x][0], pos[x][1], 5*unit.currentZoom, fill="red")
 
 def switchView(draw, master):
