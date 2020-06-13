@@ -148,7 +148,7 @@ def testIdentifiability(master,draw):
         if(btnStore[x]!=0):
             if(btnStore[x][1].known==1):
                 NG[btnStore[x][5]-1][btnStore[x][4]-1] = 1
-    
+
     for x in range(outputNumber):
         if(outputStore[x]!=0):
             if(outputStore[x][1].nodeMode[0].get()==1):
@@ -158,7 +158,7 @@ def testIdentifiability(master,draw):
     print(NG)
     print(NR)
     print(NH)
-            
+
 
 # Load mat will move everything in from the specific mat file.
 def loadMat(draw,master):
@@ -782,19 +782,28 @@ below are the remaining functions
 
 def PMS(master, draw):
     global outputStore
+    global outputNumber
     global unknownNodenumber
     global NG_pms
     global NR_pms
     global NH_pms
+    global number_of_nodes
+    global btnStore
+    global lineStore
+    global lineNumber
     NG_pms, NR_pms, NH_pms, Unknownnodes_pms = toAdjacencyMatrix(draw,master)
-    call = popupWindow_i(master)
-    master.wait_window(call.top)
-    node = 0
-    i = int(call.value)-1
-    call = popupWindow_j(master)
-    master.wait_window(call.top)
-    node = 0
-    j = int(call.value)-1
+    for x in range(number_of_nodes):
+        if(btnStore[x]!=0):
+            if(btnStore[x][1].known==1):
+                for y in range(lineNumber):
+                    if(lineStore[y][3]==btnStore[x][1]):
+                        for a in range(outputNumber):
+                            if(lineStore[y][2]==outputStore[a][1]):
+                                j = a
+                            if(lineStore[y][1]==outputStore[a][1]):
+                                i = a
+
+
     D = (np.zeros(len(NG_pms))).tolist()
     Y = (np.zeros(len(NG_pms))).tolist()
     #fill the D and Y sets with the initial nodes
