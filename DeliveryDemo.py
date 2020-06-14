@@ -241,15 +241,21 @@ def plotNoise(draw,master):
     global outputStore
     global outputNumber
     global Unknownnodes
+    global excitationNumber
+    global storeNG
+    global storeNH
+    global storeNR
+
     if(currentView==0):
         switchView(draw,master)
     NG, NR, NH, Unknownnodes = toAdjacencyMatrix(draw,master)
+
     clearWindow(draw,0)
     overlay = 1
 
-
     amountNodes = len(NG)
     nmbNoise = len(NH[0])
+    excitationNumber = len(NR)
 
     pos = generateGraph(NG,NR,NH,1,500*unit.currentZoom, layoutMethod)
     plotNoise = nx.DiGraph()
@@ -293,14 +299,15 @@ def plotNoise(draw,master):
                 node1 = noiseNodeStore[y]
                 node2 = outputStore[x]
                 connectOutputs(node1,node2,draw,master,1)
-
     #for x in range(len(Unknownnodes)):
     #    if(Unknownnodes[x]):
     #       for y in range(outputNumber):
     #            if(outputStore[y][1].nmb==x):
     #                selectOutput(outputStore[y][1])
     #                Makeknown(master, draw)
-
+    storeNR = NR
+    storeNH = NH
+    storeNG = NG
 
 def plotMatrix(draw,master,init):
     global overlay
@@ -385,7 +392,7 @@ def toAdjacencyMatrix(draw,master):
     global outputNumber
     global outputStore
     global Unknownnodes
-
+    print(storeNR)
     storeNG, storeNR, storeNH, outputNumber, outputStore, Unknownnodes= toAdjacencyMatrixCall(draw,master,overlay,storeNG,storeNH,storeNR,lineStore,lineNumber,outputStore,outputNumber,excitationStore,excitationNumber,noiseNodeStore,noiseNodeNumber, Unknownnodes)
 
     return storeNG, storeNR, storeNH, Unknownnodes
@@ -604,8 +611,6 @@ def addNH(node,master,draw,NorH,nmb):
             if(NorH):
                 excitationStore.append(save)
                 excitationNumber = excitationNumber + 1
-                print("excitationNumber:")
-                print(excitationNumber)
             else:
                 noiseStore.append(save)
                 noiseNumber = noiseNumber + 1
