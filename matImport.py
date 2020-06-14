@@ -16,12 +16,10 @@ def  readFile(fileLocation):
     return NG, NR, NH
 
 def toAdjacencyMatrixCall(draw,master,overlay,storeNG,storeNH,storeNR,lineStore,lineNumber,outputStore,outputNumber,excitationStore,excitationNumber,noiseNodeStore,noiseNodeNumber,KnownNodes):
-
     NG = []
     NR = []
     NH = []
     KnownNodes = []
-
     #set everything first to zero
     for x in range(outputNumber):
         new = []
