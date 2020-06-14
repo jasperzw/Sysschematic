@@ -6,7 +6,7 @@ import math
 from Scrollwindow import *
 from node import removeNodeCall
 from noise import addNoiseNodeCall, selectNoiseNodeCall, removeNoiseNodeCall
-from matlabCaller import test_identifiability_caller
+#from matlabCaller import test_identifiability_caller
 import numpy as np
 import networkx as nx
 import copy
@@ -82,10 +82,6 @@ def initSubMenu(frame):
     Button(frame, text="connect Transfer/module", command= lambda: connectCall(draw,master), height = 1, width=20).pack(padx=2, pady=2)
     Button(frame, text="Remove transfer", command= lambda: removeNode(draw, master),  height = 1, width=20).pack(padx=2, pady=2)
     Button(frame, text="add output", command= lambda: addWidget(2), height = 1, width=20).pack(padx=2, pady=2)
-    Button(frame, text="Emersion", command= lambda: Emersion(master, draw), height = 1, width=20).pack(padx=2, pady=2)
-    """
-        which function do we need? immersio or emersion?
-    """
     Button(frame, text="toggle transfer known", command= lambda: toggleTransfer(master, draw), height = 1, width=20).pack(padx=2, pady=2)
     Button(frame, text="Perform test identifiability", command= lambda: testIdentifiability(master, draw), height = 1, width=20).pack(padx=2, pady=2)
     Button(frame, text="Immersion", command= lambda: Immersion_call(master, draw), height = 1, width=20).pack(padx=2, pady=2)
@@ -163,11 +159,8 @@ def testIdentifiability(master,draw):
             if(btnStore[x][1].known==1):
                 NG[btnStore[x][5]-1][btnStore[x][4]-1] = 1
 
-<<<<<<< HEAD
-    #set kown transfer to measurable in NG matrix
 
-=======
->>>>>>> 146fe8454864bf8e5bb759bec7a138381af0b9c7
+    #set kown transfer to measurable in NG matrix
     for x in range(outputNumber):
         if(outputStore[x]!=0):
             print("nodeMode: ", outputStore[x][1].nodeMode[0].get() ," found at: ", outputStore[x][0])
@@ -248,10 +241,8 @@ def plotNoise(draw,master):
     global outputStore
     global outputNumber
     global Unknownnodes
-
     if(currentView==0):
         switchView(draw,master)
-
     NG, NR, NH, Unknownnodes = toAdjacencyMatrix(draw,master)
     clearWindow(draw,0)
     overlay = 1
@@ -373,12 +364,11 @@ def plotMatrix(draw,master,init):
     for x in range(len(NH)):
         for y in range(len(NH[x])):
             if(NH[x][y]==1):
-                addNH(outputStore[x],master,draw,1,y)
-
+                addNH(outputStore[x],master,draw,0,y)
     for x in range(len(NR)):
         for y in range(len(NR[x])):
             if(NR[x][y]==1):
-                addNH(outputStore[x],master,draw,0,y)
+                addNH(outputStore[x],master,draw,1,y)
 
     draw.tag_raise("nodes")
     draw.tag_raise("rect")
@@ -614,6 +604,8 @@ def addNH(node,master,draw,NorH,nmb):
             if(NorH):
                 excitationStore.append(save)
                 excitationNumber = excitationNumber + 1
+                print("excitationNumber:")
+                print(excitationNumber)
             else:
                 noiseStore.append(save)
                 noiseNumber = noiseNumber + 1
@@ -858,6 +850,9 @@ def PMS(master, draw):
     global NG_pms
     global NR_pms
     global NH_pms
+    global storeNG
+    global storeNH
+    global storeNR
     global number_of_nodes
     global btnStore
     global lineStore
@@ -899,6 +894,7 @@ def PMS(master, draw):
                 unknownNodenumber +=1
         print("Unknownnodes:")
         print(Unknownnodes)
+        print("FirstNG:")
         print(NG_pms)
         NG = copy.deepcopy(NG_pms)
         NH = copy.deepcopy(NH_pms)
@@ -910,6 +906,7 @@ def PMS(master, draw):
             B = NH
             R = NR
         #looking for new outputs
+        print("SecondNG:")
         print(NG_pms)
         for x in range(len(B)):
             if(B[j][x]):
@@ -973,6 +970,11 @@ def Unknownnodesbottom(NG, NR, NH, Unknownnodes):
                     rowNH2 = copy.deepcopy(NH[len_Unknownnodes-correct_nodes])
                     NH[x] = rowNH2
                     NH[len_Unknownnodes-correct_nodes] = rowNH1
+                    #Switch the nodes in NR matrix
+                    rowNR1 = copy.deepcopy(NR[x])
+                    rowNR2 = copy.deepcopy(NR[len_Unknownnodes-correct_nodes])
+                    NR[x] = rowNR2
+                    NR[len_Unknownnodes-correct_nodes] = rowNR1
                     #Switch the nodes in Unknownnodes list
                     Unknownnodes[x] = 0
                     Unknownnodes[len_Unknownnodes-correct_nodes] = 1
@@ -980,12 +982,12 @@ def Unknownnodesbottom(NG, NR, NH, Unknownnodes):
                 x +=1
     #change NG to a list if it is not already
     if(False==(isinstance(NG, list))):
-        print(isinstance(NG, list))
         NG = NG.tolist()
     #change NH to an array if it is not already
     if(False==(isinstance(NH,np.ndarray))):
-        print(isinstance(NH,np.ndarray))
         NH = np.array(NH)
+    if(False==(isinstance(NR, list))):
+        NR = NR.tolist()
     return NG, NR, NH, Unknownnodes
 
 def Immersion_call(master,draw):
@@ -1022,7 +1024,6 @@ def Immersion(NG,NR,NH,Unknownnodes,draw,master):
     Unknownnodes_start = copy.deepcopy(Unknownnodes)
     Unknownnodes_start_1 = copy.deepcopy(Unknownnodes)
     NG, NR, NH, Unknownnodes= Unknownnodesbottom(NG, NR, NH, Unknownnodes)
-    R = NR
     #Change NG into a Laplacian form L
     #creating Diagonal A1
     for x in range(len(NG)):
@@ -1057,11 +1058,10 @@ def Immersion(NG,NR,NH,Unknownnodes,draw,master):
         for y in range(unknownNodenumber):
             new.append(L[len(NG)-unknownNodenumber+x][len(NG)-unknownNodenumber+y])
         L22.append(new)
-    print(L22)
-    #L = np.array(L)
     L11 = np.array(L11)
     L12 = np.transpose(np.array(L12))
     L21 = np.transpose(np.array(L21))
+    #if the inverse of L22 is not available use the pseudo inverse
     if(np.linalg.det(L22)==0):
         L22 = np.linalg.pinv(np.array(L22))
     else:
@@ -1096,7 +1096,7 @@ def Immersion(NG,NR,NH,Unknownnodes,draw,master):
         G.append(new)
     #switching to the right position
 
-    B = NH
+    B = copy.deepcopy(NH)
     #Find the nodes to which the unknown nodes used to point (before Immersion)
     itteration = 0
     while(itteration<unknownNodenumber):
@@ -1106,11 +1106,23 @@ def Immersion(NG,NR,NH,Unknownnodes,draw,master):
                     if(NG[y][x]):       #nodes to which the unknown node point
                         for a in range(len(B[0])):
                             if(NH[x][a]):
-                                NH[y][a] = 1
+                                B[y][a] = 1
+        itteration += 1
+
+    R = copy.deepcopy(NR)
+    #Same computation for NR as for NH
+    itteration = 0
+    while(itteration<unknownNodenumber):
+        for x in range(len(R)):
+            if(Unknownnodes[x]):          #unknown node is found
+                for y in range(len(R)):
+                    if(NG[y][x]):       #nodes to which the unknown node point
+                        for a in range(len(R)):
+                            if(NR[x][a]):
+                                R[y][a] = 1
         itteration += 1
     switched_nodes = 0
     len_Unknownnodes = len(Unknownnodes_start)-1
-    print(B)
     while(unknownNodenumber>switched_nodes):
         #Check if the bottom node is a unknown node
         if(Unknownnodes_start[len_Unknownnodes-switched_nodes]):
@@ -1134,11 +1146,17 @@ def Immersion(NG,NR,NH,Unknownnodes,draw,master):
                     for y in range(len(G)):
                         G[y][x] = column2[y]
                         G[y][len_Unknownnodes-switched_nodes] = column1[y]
-                    #Switch the nodes in Unknownnodes list
+                    #Switch the NH back
                     rowNH1 = copy.deepcopy(B[x])
                     rowNH2 = copy.deepcopy(B[len_Unknownnodes-switched_nodes])
                     B[x] = rowNH2
                     B[len_Unknownnodes-switched_nodes] = rowNH1
+                    #Switch the NR same as NH
+                    rowNR1 = copy.deepcopy(R[x])
+                    rowNR2 = copy.deepcopy(R[len_Unknownnodes-switched_nodes])
+                    R[x] = rowNR2
+                    R[len_Unknownnodes-switched_nodes] = rowNR1
+                    #Switch the nodes in Unknownnodes list
                     Unknownnodes_start[x] = 0
                     Unknownnodes_start[len_Unknownnodes-switched_nodes] = 1
                     a = 1
@@ -1154,6 +1172,7 @@ def Immersion(NG,NR,NH,Unknownnodes,draw,master):
             for y in range(len(B[0])):
                 new.append(0)
             B[x]=new
+            R[x]=new
     #        r = r + 1
             Unknownnodes_start_1[x] = 0
             unknownNodenumber -= 1
