@@ -92,7 +92,7 @@ def initSubMenu(frame):
     Button(frame, text="remove external excitation", command= lambda: removeNH(draw,master,0), height = 1, width=20),
     Button(frame, text="add noise", command= lambda: addNHCall(master, draw,1), height = 1, width=20),
     Button(frame, text="remove noise", command= lambda: removeNH(master, draw,1), height = 1, width=20),
-    Button(frame, text="Make unknown", command= lambda: Makeknown(master, draw), height = 1, width=20),
+    Button(frame, text="Make unknown", command= lambda: makeunkown(master, draw), height = 1, width=20),
     Checkbutton(frame, text="excitation measurable", height = 1, width=20),
     Checkbutton(frame, text="noise measurable", height = 1, width=20),
     Checkbutton(frame, text="Blue", height = 1, width=20),
@@ -304,7 +304,7 @@ def plotNoise(draw,master):
     #       for y in range(outputNumber):
     #            if(outputStore[y][1].nmb==x):
     #                selectOutput(outputStore[y][1])
-    #                Makeknown(master, draw)
+    #                makeunkown(master, draw)
     storeNR = NR
     storeNH = NH
     storeNG = NG
@@ -364,7 +364,7 @@ def plotMatrix(draw,master,init):
     #        for y in range(outputNumber):
     #            if(outputStore[y][1].nmb==x):
     #                selectOutput(outputStore[y][1])
-    #                Makeknown(master, draw)
+    #                makeunkown(master, draw)
 
     #this is a priority to put the circle and text aboven the lines
 
@@ -822,7 +822,7 @@ def selectOutput(f,draw):
                 if (id==lineStore[a][1] or id==lineStore[a][2]):
                     draw.itemconfig(lineStore[a][0], fill="black")
 
-def Makeknown(master, draw):
+def makeunkown(master, draw):
     global currentAmountOutputSelected
     global outputStore
     global outputNumber
