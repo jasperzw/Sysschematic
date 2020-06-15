@@ -863,6 +863,7 @@ def PMS(master, draw):
     global lineStore
     global lineNumber
     NG_pms, NR_pms, NH_pms, Unknownnodes_pms = toAdjacencyMatrix(draw,master)
+    #look for the button
     for x in range(number_of_nodes):
         if(btnStore[x]!=0):
             if(btnStore[x][1].known==1):
@@ -913,18 +914,20 @@ def PMS(master, draw):
         #looking for new outputs
         print("SecondNG:")
         print(NG_pms)
-        for x in range(len(B)):
-            if(B[j][x]):
-                for y in range(len(B)):
-                    if(B[y][x]):
-                        if(Y[y]==0):        #Checking if it is a new output
-                            change = 1
-                            Y[y]=1
-                            print(NG_pms[y])
-                            for a in range(len(NG_pms)):
-                                if(NG_pms[y][a]):
-                                    D[a]=1;
-                                    print(a)
+        for u in range(len(Y)):
+            if(Y[u]):
+                for x in range(len(B)):
+                    if(B[u][x]):
+                        for y in range(len(B)):
+                            if(B[y][x]):
+                                if(Y[y]==0):        #Checking if it is a new output
+                                    change = 1
+                                    Y[y]=1
+                                    print(NG_pms[y])
+                                    for a in range(len(NG_pms)):
+                                        if(NG_pms[y][a]):
+                                            D[a]=1;
+                                            print(a)
     Unknownnodes = []
     for x in range(len(D)):
         if(D[x] or Y[x]):
