@@ -73,7 +73,8 @@ def initMainMenu(frame, canvas):
     Button(frame, text="load transfer view", command= lambda: plotMatrix(draw,master,0), height = 1, width=20).grid(row=1, column=2, padx=2, pady=2)
     Button(frame, text="change line view", command= lambda: Dashed_line(draw,master), height = 1, width=20).grid(row=2, column=2, padx=2, pady=2)
     #column 3
-    Button(frame, text="PMS", command= lambda: PMS(master, draw), height = 1, width=20).grid(row=1, column=3, padx=2, pady=2)
+    Button(frame, text="PMS", command= lambda: PMS_pop(master, draw), height = 1, width=20).grid(row=1, column=3, padx=2, pady=2)
+
 
     #column 3
     OptionMenu(frame, layoutMethod, *layout).grid(row=0, column=3)
@@ -86,6 +87,7 @@ def initSubMenu(frame):
     Button(frame, text="Remove transfer", command= lambda: removeNode(draw, master),  height = 1, width=20).pack(padx=2, pady=2)
     Button(frame, text="add output", command= lambda: addWidget(2), height = 1, width=20).pack(padx=2, pady=2)
     Button(frame, text="toggle transfer known", command= lambda: toggleTransfer(master, draw), height = 1, width=20).pack(padx=2, pady=2)
+    Button(frame, text="toggle transfer pms", command= lambda: PMSTransfer(master, draw), height = 1, width=20).pack(padx=2, pady=2)
     Button(frame, text="Perform test identifiability", command= lambda: testIdentifiability(master, draw), height = 1, width=20).pack(padx=2, pady=2)
     Button(frame, text="Find shortest path", command= lambda: find_path(draw,master), height = 1, width=20).pack(padx=2, pady=2)
     Button(frame, text="Immersion", command= lambda: Immersion_call(master, draw), height = 1, width=20).pack(padx=2, pady=2)
@@ -114,6 +116,28 @@ below are all the functions for
 
 used to plot adjency matrix and return everything to Adjacency matrix
 """
+
+def toggleTransfer(master,draw):
+    for x in range(number_of_nodes):
+        if(btnStore[x]!=0):
+            if(btnStore[x][1].stat==2):
+                if(btnStore[x][1].known==0):
+                    btnStore[x][1].known = 1
+                else:
+                    btnStore[x][1].known = 0
+                x, y = trueCoordinates(draw,btnStore[x])
+                circleScan(draw,master,x,y)
+
+def PMSTransfer(master,draw):
+    for x in range(number_of_nodes):
+        if(btnStore[x]!=0):
+            if(btnStore[x][1].stat==2):
+                if(btnStore[x][1].pms==0):
+                    btnStore[x][1].pms = 1
+                else:
+                    btnStore[x][1].pms = 0
+                x, y = trueCoordinates(draw,btnStore[x])
+                circleScan(draw,master,x,y)
 
 def testIdentifiability(master,draw):
     NG = []
@@ -495,6 +519,7 @@ def addNode(w,x,y,master,node1,node2):
             btn = nodeHolder()
             btn.stat = 1
             btn.known = 0
+            btn.pms = 0
             btn.id = w.create_rectangle(x-width,y-height,x+width,y+height,fill="cyan",tags="rect")
             btn.text = w.create_text(x,y,text=str(node_name)+str(number_2)+","+str(number_1),width=0, font=("Courier", textSize),tags="wNotation")
             save = [btn.id,btn,x,y,number_1,number_2]
@@ -510,6 +535,7 @@ def addNode(w,x,y,master,node1,node2):
                     btn = nodeHolder()
                     btn.stat = 1
                     btn.known = 0
+                    btn.pms = 0
                     btn.id = w.create_rectangle(x-width,y-height,x+width,y+height,fill="cyan",tags="rect")
                     btn.text = w.create_text(x,y,text=str(node_name)+str(number_2)+","+str(number_1),width=0, font=("Courier", textSize),tags="wNotation")
                     save = [btn.id,btn,x,y,number_1,number_2]
@@ -521,6 +547,7 @@ def addNode(w,x,y,master,node1,node2):
                 btn = nodeHolder()
                 btn.stat = 1
                 btn.known = 0
+                btn.pms = 0
                 btn.id = w.create_rectangle(x-width,y-height,x+width,y+height,fill="cyan",tags="rect")
                 btn.text = w.create_text(x,y,text=str(node_name)+str(number_2)+","+str(number_1),width=0, font=("Courier", textSize),tags="wNotation")
                 save = [btn.id,btn,x,y,number_1,number_2]
@@ -893,6 +920,105 @@ below are the remaining
 
 -------------------------------------------------------- Remaining --------------------------------------------------------
 """
+def PMS_pop(draw,master):
+    popup = Tk()
+    popup.wm_title("PMS choice menu")
+    label = Label(popup, text="Choose which PMS function to be executed")
+    label.pack(side="top", fill="x", pady=10)
+    B1 = Button(popup, text="Okay", command = popup.destroy)
+    B1.pack()
+    B2 = Button(master, text="Okay", command = FIC(master,draw))
+    B2.pack()
+    popup.mainloop()
+
+
+def FIC(master,draw):
+    global outputStore
+    global outputNumber
+    global unknownNodenumber
+    global NG_pms
+    global NR_pms
+    global NH_pms
+    global storeNG
+    global storeNH
+    global storeNR
+    global number_of_nodes
+    global btnStore
+    global lineStore
+    global lineNumber
+    NG_pms, NR_pms, NH_pms, Unknownnodes_pms = toAdjacencyMatrix(draw,master)
+    #look for the button
+    for x in range(number_of_nodes):
+        if(btnStore[x]!=0):
+            if(btnStore[x][1].pms==1):
+                for y in range(lineNumber):
+                    if(lineStore[y][3]==btnStore[x][1]):
+                        for a in range(outputNumber):
+                            if(lineStore[y][2]==outputStore[a][1]):
+                                j = a
+                            if(lineStore[y][1]==outputStore[a][1]):
+                                i = a
+    D = (np.zeros(len(NG_pms))).tolist()
+    Y = (np.zeros(len(NG_pms))).tolist()
+    #fill the A and B sets with the initial nodes
+    D[i] = 1
+    Y[j] = 1
+    for x in range(len(NG_pms)):
+        if(NG_pms[j][x]):
+            D[x]=1;
+    change = 1
+    while(change):
+        print("D:")
+        print(D)
+        print("Y:")
+        print(Y)
+        change = 0
+        #looking for new outputs
+        for u in range(len(Y)):
+            if(Y[u]):
+                for x in range(len(Y)):
+                    if(NH_pms[u][x]):
+                        for y in range(len(Y)):
+                            if(NH_pms[y][x]):
+                                if(Y[y]==0 and D[y]):        #Checking if it is a new output
+                                    change = 1
+                                    Y[y]=1
+                                    print(NG_pms[y])
+                                    for a in range(len(NG_pms)):
+                                        if(NG_pms[y][a]):
+                                            D[a]=1;
+                                            print(a)
+    D_indirect, Y_indirect = PMS(draw,master)
+    A = (np.zeros(len(NG_pms))).tolist()
+    for x in range(len(A)):
+        if(D[x] and Y[x]==0):
+            A[x]=1
+    Blocking_possible = (np.zeros(len(D))).tolist()
+    for x in range(len(D)):
+        if(D_indirect[x] and D[x]==0):
+            Blocking_possible[x]=1
+    #condition 1: connection from Y
+    for x in range(len(Blocking_possible)):
+        if(Blocking_possible[x]):
+            for y in range(len(Y)):
+                if(Y[y] and NG_pms[x][y]):
+                    Blocking_possible[x]=0
+    #condition 2: connection through e with A
+    for x in range(len(Blocking_possible)):
+        if(Blocking_possible[x]):
+            for y in range(len(A)):
+                if(NH_pms[x][y]):
+                    for a in range(len(A)):
+                        if(NH_pms[a][y] and A[a]):
+                            Blocking_possible[x]=0
+    Blocking = Blocking_possible
+    msg = "D:"+str(D)+"\nY:"+str(Y)+"\nA:"+str(A)+"\nBlocking"+str(Blocking)
+    popupmsg(msg)
+
+def PMS_call(master,draw):
+    D,Y = PMS(master,draw)
+    msg = "D:"+str(D)+"\nY:"+str(Y)
+    popupmsg(msg)
 
 def PMS(master, draw):
     global outputStore
@@ -912,7 +1038,7 @@ def PMS(master, draw):
     #look for the button
     for x in range(number_of_nodes):
         if(btnStore[x]!=0):
-            if(btnStore[x][1].known==1):
+            if(btnStore[x][1].pms==1):
                 for y in range(lineNumber):
                     if(lineStore[y][3]==btnStore[x][1]):
                         for a in range(outputNumber):
@@ -944,53 +1070,59 @@ def PMS(master, draw):
             else:
                 Unknownnodes.append(1)
                 unknownNodenumber +=1
-        print("Unknownnodes:")
-        print(Unknownnodes)
-        print("FirstNG:")
-        print(NG_pms)
         NG = copy.deepcopy(NG_pms)
         NH = copy.deepcopy(NH_pms)
         NR = copy.deepcopy(NR_pms)
         if(unknownNodenumber>0):
-            G, B, R = Immersion(NG,NR_pms,NH_pms,Unknownnodes,draw,master)
+            G = []
+            B = []
+            R = []
+            G, B, R = Immersion(NG,NR,NH,Unknownnodes,draw,master)
         else:
             G = NG
             B = NH
             R = NR
         #looking for new outputs
-        print("SecondNG:")
-        print(NG_pms)
         for u in range(len(Y)):
             if(Y[u]):
                 for x in range(len(B)):
                     if(B[u][x]):
                         for y in range(len(B)):
                             if(B[y][x]):
-                                if(Y[y]==0):        #Checking if it is a new output
+                                print(y)
+                                if(Y[y]==0 and D[y]):        #Checking if it is a new output
                                     change = 1
                                     Y[y]=1
-                                    print(NG_pms[y])
                                     for a in range(len(NG_pms)):
                                         if(NG_pms[y][a]):
                                             D[a]=1;
-                                            print(a)
-    Unknownnodes = []
-    for x in range(len(D)):
-        if(D[x] or Y[x]):
-            Unknownnodes.append(0)
-        else:
-            Unknownnodes.append(1)
-            unknownNodenumber +=1
-    print("Unknownnodes:")
-    print(Unknownnodes)
-    if(unknownNodenumber>0):
-        G, B, R = Immersion(NG_pms,NR_pms,NH_pms,Unknownnodes,draw,master)
-        clearWindow(draw,0)
-        storeNG = G
-        storeNH = B
-        storeNR = R
-        plotMatrix(draw,master,1)
+    return D,Y
 
+#    Unknownnodes = []
+#    for x in range(len(D)):
+#        if(D[x] or Y[x]):
+#            Unknownnodes.append(0)
+#        else:
+#            Unknownnodes.append(1)
+#            unknownNodenumber +=1
+#    print("Unknownnodes:")
+#    print(Unknownnodes)
+#    if(unknownNodenumber>0):
+#        G, B, R = Immersion(NG_pms,NR_pms,NH_pms,Unknownnodes,draw,master)
+#        clearWindow(draw,0)
+#        storeNG = G
+#        storeNH = B
+#        storeNR = R
+#        plotMatrix(draw,master,1)
+
+def popupmsg(msg):
+    popup = Tk()
+    popup.wm_title("!")
+    label = Label(popup, text=msg)
+    label.pack(side="top", fill="x", pady=10)
+    B1 = Button(popup, text="Okay", command = popup.destroy)
+    B1.pack()
+    popup.mainloop()
 
 def Unknownnodesbottom(NG, NR, NH, Unknownnodes):
     global unknownNodenumber
@@ -1150,7 +1282,7 @@ def Immersion(NG,NR,NH,Unknownnodes,draw,master):
         G.append(new)
     #switching to the right position
 
-    B = copy.deepcopy(NH)
+    B = NH
     #Find the nodes to which the unknown nodes used to point (before Immersion)
     itteration = 0
     while(itteration<unknownNodenumber):
@@ -1160,7 +1292,7 @@ def Immersion(NG,NR,NH,Unknownnodes,draw,master):
                     if(NG[y][x]):       #nodes to which the unknown node point
                         for a in range(len(B[0])):
                             if(NH[x][a]):
-                                B[y][a] = 1
+                                NH[y][a] = 1
         itteration += 1
 
     R = copy.deepcopy(NR)
@@ -1589,10 +1721,12 @@ def circleScan(draw,master,x,y):
                                         draw.itemconfig(lineStore[a][0], fill="red")
 
                         else:
-                            if(btnStore[f][1].known == 0):
-                                draw.itemconfig(btnStore[f][0], fill="cyan")
-                            else:
+                            if(btnStore[f][1].known == 1):
                                 draw.itemconfig(btnStore[f][0], fill="green")
+                            elif(btnStore[f][1].pms == 1):
+                                draw.itemconfig(btnStore[f][0], fill="blue")
+                            else:
+                                draw.itemconfig(btnStore[f][0], fill="cyan")
                             btnStore[f][1].stat=1
                             for a in range(lineNumber):
                                 if(lineStore[a]!=0):
