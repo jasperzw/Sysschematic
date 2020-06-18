@@ -4,6 +4,14 @@ def test_identifiability_caller(NG,NR,NH,fixG,fixR,fixH):
     eng = matlab.engine.start_matlab()
     adj = {"G":0,"R":0,"H":0}
     fix = {"G":0,"R":0,"H":0}
+    
+    print("NG: ",NG)
+    print("--------------------------------------------------------------------------------------")
+    print("NR: ",NR)
+    print("--------------------------------------------------------------------------------------")
+    print("NH: ",NH)
+
+    
 
     adj["G"] = matlab.double(NG)
     adj["R"] = matlab.double(NR)
