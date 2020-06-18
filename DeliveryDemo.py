@@ -70,8 +70,7 @@ def initMainMenu(frame, canvas):
     Button(frame, text="load transfer view", command= lambda: plotMatrix(draw,master,0), height = 1, width=20).grid(row=1, column=2, padx=2, pady=2)
     Button(frame, text="change line view", command= lambda: Dashed_line(draw,master), height = 1, width=20).grid(row=2, column=2, padx=2, pady=2)
     #column 3
-    Button(frame, text="PMS", command= lambda: PMS(master, draw), height = 1, width=20).grid(row=1, column=3, padx=2, pady=2)
-    Button(frame, text="FIC", command= lambda: FIC(master, draw), height = 1, width=20).grid(row=2, column=3, padx=2, pady=2)
+    Button(frame, text="PMS", command= lambda: PMS_pop(master, draw), height = 1, width=20).grid(row=1, column=3, padx=2, pady=2)
 
 
     #column 3
@@ -864,6 +863,18 @@ below are the remaining functions
 
 -------------------------------------------------------- Remaining --------------------------------------------------------
 """
+def PMS_pop(draw,master):
+    popup = Tk()
+    popup.wm_title("PMS choice menu")
+    label = Label(popup, text="Choose which PMS function to be executed")
+    label.pack(side="top", fill="x", pady=10)
+    B1 = Button(popup, text="Okay", command = popup.destroy)
+    B1.pack()
+    B2 = Button(master, text="Okay", command = FIC(master,draw))
+    B2.pack()
+    popup.mainloop()
+
+
 def FIC(master,draw):
     global outputStore
     global outputNumber
@@ -920,11 +931,36 @@ def FIC(master,draw):
                                         if(NG_pms[y][a]):
                                             D[a]=1;
                                             print(a)
+    D_indirect, Y_indirect = PMS(draw,master)
     A = (np.zeros(len(NG_pms))).tolist()
     for x in range(len(A)):
         if(D[x] and Y[x]==0):
             A[x]=1
-    msg = "D:"+str(D)+"\nY:"+str(Y)+"\nA:"+str(A)
+    Blocking_possible = (np.zeros(len(D))).tolist()
+    for x in range(len(D)):
+        if(D_indirect[x] and D[x]==0):
+            Blocking_possible[x]=1
+    #condition 1: connection from Y
+    for x in range(len(Blocking_possible)):
+        if(Blocking_possible[x]):
+            for y in range(len(Y)):
+                if(Y[y] and NG_pms[x][y]):
+                    Blocking_possible[x]=0
+    #condition 2: connection through e with A
+    for x in range(len(Blocking_possible)):
+        if(Blocking_possible[x]):
+            for y in range(len(A)):
+                if(NH_pms[x][y]):
+                    for a in range(len(A)):
+                        if(NH_pms[a][y] and A[a]):
+                            Blocking_possible[x]=0
+    Blocking = Blocking_possible
+    msg = "D:"+str(D)+"\nY:"+str(Y)+"\nA:"+str(A)+"\nBlocking"+str(Blocking)
+    popupmsg(msg)
+
+def PMS_call(master,draw):
+    D,Y = PMS(master,draw)
+    msg = "D:"+str(D)+"\nY:"+str(Y)
     popupmsg(msg)
 
 def PMS(master, draw):
@@ -977,10 +1013,6 @@ def PMS(master, draw):
             else:
                 Unknownnodes.append(1)
                 unknownNodenumber +=1
-        print("Unknownnodes:")
-        print(Unknownnodes)
-        print("FirstNG:")
-        print(NG_pms)
         NG = copy.deepcopy(NG_pms)
         NH = copy.deepcopy(NH_pms)
         NR = copy.deepcopy(NR_pms)
@@ -994,24 +1026,21 @@ def PMS(master, draw):
             B = NH
             R = NR
         #looking for new outputs
-        print("SecondNG:")
-        print(NG_pms)
         for u in range(len(Y)):
             if(Y[u]):
                 for x in range(len(B)):
                     if(B[u][x]):
                         for y in range(len(B)):
                             if(B[y][x]):
+                                print(y)
                                 if(Y[y]==0 and D[y]):        #Checking if it is a new output
                                     change = 1
                                     Y[y]=1
-                                    print(NG_pms[y])
                                     for a in range(len(NG_pms)):
                                         if(NG_pms[y][a]):
                                             D[a]=1;
-                                            print(a)
-    msg = "D:"+str(D)+"\nY:"+str(Y)
-    popupmsg(msg)
+    return D,Y
+
 #    Unknownnodes = []
 #    for x in range(len(D)):
 #        if(D[x] or Y[x]):
