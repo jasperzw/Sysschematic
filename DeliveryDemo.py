@@ -1,15 +1,16 @@
 # Importing tkinter module
 from tkinter import *
-from matImport import readFile, toAdjacencyMatrixCall, generateGraph
+from matImport import readFile, toAdjacencyMatrixCall, generateGraph, graphShortestPath
 from tkinter.filedialog import askopenfilename
 import math
 from Scrollwindow import *
 from node import removeNodeCall
 from noise import addNoiseNodeCall, selectNoiseNodeCall, removeNoiseNodeCall
-#from matlabCaller import test_identifiability_caller
+from matlabCaller import test_identifiability_caller
 import numpy as np
 import networkx as nx
 import copy
+import random
 
 
 """
@@ -35,6 +36,7 @@ excitationStore = []
 excitationNumber = 0
 noiseNodeNumber = 0
 noiseNodeStore = []
+nodeSize = 5
 storeNG = storeNR = storeNH = []
 NG_pms = NR_pms = NH_pms = []
 Unknownnodes = []
@@ -48,6 +50,7 @@ currentView = 0
 butTestStore = []
 butTestNumber = 0
 unknownNodenumber = 0
+newPathColor = 0
 
 class nodeHolder():
      nmb = 0
@@ -84,6 +87,7 @@ def initSubMenu(frame):
     Button(frame, text="add output", command= lambda: addWidget(2), height = 1, width=20).pack(padx=2, pady=2)
     Button(frame, text="toggle transfer known", command= lambda: toggleTransfer(master, draw), height = 1, width=20).pack(padx=2, pady=2)
     Button(frame, text="Perform test identifiability", command= lambda: testIdentifiability(master, draw), height = 1, width=20).pack(padx=2, pady=2)
+    Button(frame, text="Find shortest path", command= lambda: find_path(draw,master), height = 1, width=20).pack(padx=2, pady=2)
     Button(frame, text="Immersion", command= lambda: Immersion_call(master, draw), height = 1, width=20).pack(padx=2, pady=2)
     #in reload every button or Checkbox is stored which is reloaded on calling reloadCall when currentAmountOutputSelected > 1
     reload = [
@@ -111,17 +115,6 @@ below are all the functions for
 used to plot adjency matrix and return everything to Adjacency matrix
 """
 
-def toggleTransfer(master,draw):
-    for x in range(number_of_nodes):
-        if(btnStore[x]!=0):
-            if(btnStore[x][1].stat==2):
-                if(btnStore[x][1].known==0):
-                    btnStore[x][1].known = 1
-                else:
-                    btnStore[x][1].known = 1
-                x, y = trueCoordinates(draw,btnStore[x])
-                circleScan(draw,master,x,y)
-
 def testIdentifiability(master,draw):
     NG = []
     NR = []
@@ -138,16 +131,10 @@ def testIdentifiability(master,draw):
         if(noiseNumber!=0):
             for y in range(noiseNumber):
                 new.append(0)
-        else:
-            for y in range(outputNumber):
-                new.append(0)
         NH.append(new)
         new = []
         if(excitationNumber!=0):
             for y in range(excitationNumber):
-                new.append(0)
-        else:
-            for y in range(outputNumber):
                 new.append(0)
         NR.append(new)
         KnownNodes.append(0)
@@ -165,9 +152,10 @@ def testIdentifiability(master,draw):
         if(outputStore[x]!=0):
             print("nodeMode: ", outputStore[x][1].nodeMode[0].get() ," found at: ", outputStore[x][0])
             if(outputStore[x][1].nodeMode[0].get()==1):
-                for y in range(excitationNumber):
-                    if(excitationStore[y][4]==outputStore[x][1]):
-                        NR[x][excitationStore[y][1].nmb-1]=1
+                #for y in range(excitationNumber):
+                    #if(excitationStore[y][4]==outputStore[x][1]):
+                        #NR[x][excitationStore[y][1].nmb-1]=1
+                        NR[x][x] = 1
                         print("set excitation to high")
             if(outputStore[x][1].nodeMode[1].get()==1):
                 for y in range(noiseNumber):
@@ -185,11 +173,13 @@ def testIdentifiability(master,draw):
         for y in range(len(adjH[0])):
             new.append(adjH[x][y])
         replaceH.append(new)
+    
+
     #this function is simpely their because the NH matrix is not changed from when it was imported and needs to go in a different format which matlab can interpret
     adjH = replaceH
 
     #call the test_identifiability_caller to transfer everything to matlab
-    identifiability, identifiability_nodes, identifiability_modules = test_identifiability_caller(NG,NR,NH,adjG,adjR,adjH)
+   
 
     print("NG matrix: ",NG)
     print("--------------------------------------------------------------------------------------")
@@ -197,6 +187,9 @@ def testIdentifiability(master,draw):
     print("--------------------------------------------------------------------------------------")
     print("NH matrix: ",NH)
     print("//////////////////////////////////////////////////////////////////////////////////////")
+
+    identifiability, identifiability_nodes, identifiability_modules = test_identifiability_caller(adjG,adjR,adjH,NG,NR,NH)
+   
     print("found the following")
     print("NG matrix: ",identifiability)
     print("--------------------------------------------------------------------------------------")
@@ -229,10 +222,14 @@ def loadMat(draw,master):
     global storeNG
     global storeNR
     global storeNH
+    global nodeSize
     filename = askopenfilename()
     storeNG, storeNR, storeNH = readFile(filename)
     #plotMatrix(draw,master,1)
     abstractPlot(draw,master,storeNG,storeNR,storeNH)
+    nodeSize = -(10/110)*(len(storeNG)**1.8)+26
+    if(nodeSize<5):
+        nodeSize=5
 
 def plotNoise(draw,master):
     global overlay
@@ -451,6 +448,18 @@ Below we have the subsection of:
 Each function uses the global variables to store the nodes and to make changes
 """
 # adding a node
+
+def toggleTransfer(master,draw):
+    for x in range(number_of_nodes):
+        if(btnStore[x]!=0):
+            if(btnStore[x][1].stat==2):
+                if(btnStore[x][1].known==0):
+                    btnStore[x][1].known = 1
+                else:
+                    btnStore[x][1].known = 1
+                x, y = trueCoordinates(draw,btnStore[x])
+                circleScan(draw,master,x,y)
+
 def addNode(w,x,y,master,node1,node2):
         global number_of_nodes
         global btnStore
@@ -458,12 +467,12 @@ def addNode(w,x,y,master,node1,node2):
         global outputNumber
         global overlay
         node = 0
-        textSize = round(2*unit.currentZoom)
+        textSize = round(nodeSize/2*unit.currentZoom)
         if(textSize<1):
             textSize = 1
 
-        height = 3*unit.currentZoom
-        width = 5*unit.currentZoom
+        height = nodeSize*unit.currentZoom*0.8
+        width = nodeSize*unit.currentZoom
 
         node_name = "G"
         if(overlay):
@@ -573,14 +582,14 @@ def addNH(node,master,draw,NorH,nmb):
     global excitationStore
     global excitationNumber
     switch = 0
-    width = 8*unit.currentZoom
-    heigth = 8*unit.currentZoom
+    width = nodeSize*unit.currentZoom*1.6
+    heigth = nodeSize*unit.currentZoom*1.6
     #print("NorH: ",NorH)
     #move the x y to left above the center of the output
     x,y = trueCoordinates(draw,node)
     marker = nodeHolder()
     marker.nmb = nmb
-    textSize = round(2*unit.currentZoom)
+    textSize = round(nodeSize/2*unit.currentZoom)
     if(textSize<1):
         textSize = 1
 
@@ -701,19 +710,55 @@ Below are the functions for
 
 tada
 """
+def find_path(draw,master):
+    global newPathColor
+    fancyColor = ["green","yellow","pink","orange"]
+    #putting all selected nodes in a list
+    nodeSearchList = []
+    for x in range(outputNumber):
+        if(outputStore[x!=0]):
+            if(outputStore[x][1].stat==2):
+                nodeSearchList.append(outputStore[x])
+
+    if(nodeSearchList[0][1].order>nodeSearchList[1][1].order):
+        temp = nodeSearchList[0]
+        nodeSearchList[0] = nodeSearchList[1]
+        nodeSearchList[1] = temp
+
+    #adding them to a networkx to scan for the shortest route because networkx is lit
+    path = graphShortestPath(storeNG,nodeSearchList)
+    print("calculated path:",path)
+    dis = len(path)-1
+    print(dis)
+    i = 0
+    while(i<dis):
+        for x in range(lineNumber):
+            if(lineStore[x]!=0):
+                print("current i loop: ",i)
+                if(lineStore[x][1].nmb == path[i]+1 and lineStore[x][2].nmb == path[i+1]+1):
+                    draw.itemconfig(lineStore[x][0],fill=fancyColor[newPathColor])
+                    lineStore[x][4] = fancyColor[newPathColor]
+                    print("painted the path to goal")
+        i += 1
+    newPathColor += 1
+    selectOutput(nodeSearchList[0][1].nmb-1,draw)
+    selectOutput(nodeSearchList[1][1].nmb-1,draw)
+
 def addOutput(draw, x, y, master):
         global outputStore
         global outputNumber
         #create output
         switch = 0
         node = 0
+        size = nodeSize
+        print("current size: ",size)
         #set img1btn as object so that we can add .widget containing the circle id.
         img1Btn = nodeHolder()
-        img1Btn.widget = draw.create_circle(x,y,5*unit.currentZoom, fill="red", tags="nodes")
-        img1Btn.nmb =0
+        img1Btn.widget = draw.create_circle(x,y,size*unit.currentZoom, fill="red", tags="nodes")
+        img1Btn.nmb = 0
         img1Btn.stat = 1
-        img1Btn.zoom = 5*unit.currentZoom
-        textSize = round(2*unit.currentZoom)
+        img1Btn.zoom = size*unit.currentZoom
+        textSize = round((size/2)*unit.currentZoom)
         img1Btn.nodeMode = []
         if(textSize<1):
             textSize = 1
@@ -796,17 +841,18 @@ def selectOutput(f,draw):
         currentAmountOutputSelected = currentAmountOutputSelected - 1
         outputStore[f][1].stat = 1
         draw.itemconfig(outputStore[f][0],fill="red")
-        print("buttond found!")
+        #print("buttond found!")
         for a in range(lineNumber):
             if(lineStore[a]!=0):
                 if (id==lineStore[a][1] or id==lineStore[a][2]):
-                    draw.itemconfig(lineStore[a][0], fill="black")
+                    draw.itemconfig(lineStore[a][0], fill=lineStore[a][4])
+                    
     elif(outputStore[f][1].stat==3):
         id.order = currentAmountOutputSelected
         currentAmountOutputSelected = currentAmountOutputSelected + 1
         outputStore[f][1].stat = 4
         draw.itemconfig(outputStore[f][0],fill="pink")
-        print("buttond found!")
+        #print("buttond found!")
         for a in range(lineNumber):
             if(lineStore[a]!=0):
                 if (id==lineStore[a][1] or id==lineStore[a][2]):
@@ -816,11 +862,11 @@ def selectOutput(f,draw):
         currentAmountOutputSelected = currentAmountOutputSelected - 1
         outputStore[f][1].stat = 3
         draw.itemconfig(outputStore[f][0],fill="blue")
-        print("buttond found!")
+        #print("buttond found!")
         for a in range(lineNumber):
             if(lineStore[a]!=0):
                 if (id==lineStore[a][1] or id==lineStore[a][2]):
-                    draw.itemconfig(lineStore[a][0], fill="black")
+                    draw.itemconfig(lineStore[a][0], fill=lineStore[a][4])
 
 def makeunkown(master, draw):
     global currentAmountOutputSelected
@@ -843,7 +889,7 @@ def makeunkown(master, draw):
 
 
 """
-below are the remaining functions
+below are the remaining
 
 -------------------------------------------------------- Remaining --------------------------------------------------------
 """
@@ -1360,7 +1406,7 @@ def connectOutputs(node1,node2,draw,master, placeBtn):
             lineWidget = draw.create_line(node1[2], node1[3], x_transfer, y_transfer, node2[2], node2[3], smooth="true")
         else:
             lineWidget = draw.create_line(node1[2], node1[3], x_transfer, y_transfer, node2[2], node2[3], smooth="true", width=0.01, dash=(5, 10))
-        tempStore = [lineWidget, node1[1], node2[1], node3[1]]
+        tempStore = [lineWidget, node1[1], node2[1], node3[1],"black"]
         lineStore.insert(lineNumber,tempStore)
         lineNumber = lineNumber+1
 
@@ -1438,7 +1484,7 @@ def connectOutputs(node1,node2,draw,master, placeBtn):
         alpha_hypotenusa = sign_2*math.sin(math.radians(gamma))*length_arrow*2
         x_arrow2 = x_arrow1 - math.cos(math.radians(alpha))*alpha_hypotenusa
         y_arrow2 = y_arrow1 + math.sin(math.radians(alpha))*alpha_hypotenusa
-        tempStore2 = [draw.create_line(x_arrow1, y_arrow1, x_arrow0,y_arrow0, x_arrow2, y_arrow2),node1[1],node2[1],node3[1]]
+        tempStore2 = [draw.create_line(x_arrow1, y_arrow1, x_arrow0,y_arrow0, x_arrow2, y_arrow2),node1[1],node2[1],node3[1],"black"]
         lineStore.insert(lineNumber,tempStore2)
         lineNumber = lineNumber+1
 
@@ -1508,7 +1554,7 @@ def circleScan(draw,master,x,y):
 
             dis = math.sqrt(xN + yN)
             #if within radius (unit.currentZoom is correct for the zoom in)
-            if (dis < 5*unit.currentZoom):
+            if (dis < nodeSize*unit.currentZoom):
                 selectOutput(f,draw)
 
     for f in range(noiseNodeNumber):
@@ -1519,7 +1565,7 @@ def circleScan(draw,master,x,y):
 
             dis = math.sqrt(xN + yN)
             #if within radius (unit.currentZoom is correct for the zoom in)
-            if (dis < 5*unit.currentZoom):
+            if (dis < nodeSize*unit.currentZoom):
                 id = noiseNodeStore[f]
                 selectNoiseNode(id)
 
@@ -1527,9 +1573,9 @@ def circleScan(draw,master,x,y):
         if(btnStore[f]!=0):
             if(btnStore[f]!=0):
                 xObj, yObj = trueCoordinates(draw,btnStore[f])
-                yObj -= 2*unit.currentZoom
-                height = 3*unit.currentZoom
-                width = 5*unit.currentZoom
+                yObj -= nodeSize*unit.currentZoom*0.4
+                height = nodeSize*unit.currentZoom*0.7
+                width = nodeSize*unit.currentZoom
                 #print("searching for x: ",xObj," y: ",yObj)
                 #print(x,",",y)
                 if(xObj-width<x and x<xObj+width):
@@ -1567,8 +1613,8 @@ def circleScan(draw,master,x,y):
 
 def trueCoordinates(draw,node):
     #draw.coords obtains the current coordinates based on the widget id. + the radius multiply by zoom to shift the left corner of the widget to the center.
-    xObj = draw.coords(node[0])[0]+5*unit.currentZoom
-    yObj = draw.coords(node[0])[1]+5*unit.currentZoom
+    xObj = draw.coords(node[0])[0]+nodeSize*unit.currentZoom
+    yObj = draw.coords(node[0])[1]+nodeSize*unit.currentZoom
     #xObj = draw.canvasx(node[2])
     #yObj = draw.canvasy(node[3])
     return xObj, yObj

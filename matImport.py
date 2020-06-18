@@ -161,4 +161,24 @@ def generateGraph(NG,NH,NR, typeGraph, setScale, layoutMethod):
         pos = nx.spiral_layout(plot, scale=setScale, center=(500,500))
         print("spiral layout")
 
+    test = nx.shortest_path(plot,source=0)
+    print("shortest find path: ",test)
     return pos
+
+def graphShortestPath(NG,nodeSearchList):
+
+    nmbOutputs = len(NG)
+    nmbOutputs2 = len(NG[0])
+    #below function will read through the mat file and try to find how many modules their are
+
+    #using the network functions create a direction graph (nodes with a connection with a direction so connection 1 to 2 has a direction and is not the same as 2 to 1)
+    plot = nx.DiGraph()
+    plot.add_nodes_from(range(nmbOutputs))
+
+    for x in range(nmbOutputs):
+        for y in range(nmbOutputs2):
+            if(NG[x][y]==1):
+                plot.add_edge(y,x)
+    path = nx.shortest_path(plot,source=nodeSearchList[0][1].nmb-1,target=nodeSearchList[1][1].nmb-1)
+
+    return path
