@@ -931,15 +931,50 @@ def PMS_pop(draw,master):
     B2.pack()
     popup.mainloop()
 
-def MIC(master,draw):
+def USC(master,draw):
     global outputStore
-    global unknownNodenumber
+    global number_of_nodes
+    global lineNumber
+    global lineStore
+    global btnStore
+    global outputNumber
     global NG_pms
     global NR_pms
     global NH_pms
-    global storeNG
-    global storeNH
-    global storeNR
+    NG_pms, NR_pms, NH_pms, Unknownnodes_pms = toAdjacencyMatrix(draw,master)
+    #look for the button
+    for x in range(number_of_nodes):
+        if(btnStore[x]!=0):
+            if(btnStore[x][1].pms==1):
+                for y in range(lineNumber):
+                    if(lineStore[y][3]==btnStore[x][1]):
+                        for a in range(outputNumber):
+                            if(lineStore[y][2]==outputStore[a][1]):
+                                j = a
+                            if(lineStore[y][1]==outputStore[a][1]):
+                                i = a
+    #look for accessible nodes
+    accessible = (np.zeros(len(NG_pms))).tolist()
+    for x in range(outputNumber):
+        if(outputStore[x]!=0):
+            if(outputStore[x][1].stat==2 or outputStore[x][1].stat==4):
+                accesible[x] = 1
+    D = (np.zeros(len(NG_pms))).tolist()
+    Y = (np.zeros(len(NG_pms))).tolist()
+    #fill the A and B sets with the initial nodes
+    D[i] = 1
+    Y[j] = 1
+
+def MIC(master,draw):
+    global outputStore
+    global number_of_nodes
+    global lineNumber
+    global lineStore
+    global btnStore
+    global outputNumber
+    global NG_pms
+    global NR_pms
+    global NH_pms
     NG_pms, NR_pms, NH_pms, Unknownnodes_pms = toAdjacencyMatrix(draw,master)
     #look for the button
     for x in range(number_of_nodes):
@@ -962,11 +997,31 @@ def MIC(master,draw):
     NH = copy.deepcopy(NH_pms)
     NR = copy.deepcopy(NR_pms)
     NG[j][i] = 0
-    print(NG)
     nodeSearchList = [outputStore[i],outputStore[j]]
     list = graphShortestPath(NG,nodeSearchList)
-    print(list)
-    print("Klaar met MIC")
+    for x in range(len(list)-2):
+        print(x+1)
+        temp = list[x+1]
+        D[temp] = 1
+    #loop condition
+    NG = copy.deepcopy(NG_pms)
+    for x in range(len(NG)):
+        if(NG[x][j]):
+            nodeSearchList = [outputStore[x],outputStore[j]]
+            list = graphShortestPath(NG,nodeSearchList)
+            for x in range(len(list)-1):
+                temp = list[x]
+                D[temp] = 1
+
+    Q = (np.zeros(len(NG_pms))).tolist()
+
+
+    A = (np.zeros(len(NG_pms))).tolist()
+    for x in range(len(Q)):
+        if(D[x] and Q[x]==0):
+            A[x] = 1
+    msg = "D:"+str(D)+"\nA:"+str(A)+"\nQ:"+str(Q)+"\nY"+str(Y)
+    popupmsg(msg)
 
 def FIC(master,draw):
     global outputStore
