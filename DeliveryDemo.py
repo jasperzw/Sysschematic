@@ -964,6 +964,36 @@ def USC(master,draw):
     #fill the A and B sets with the initial nodes
     D[i] = 1
     Y[j] = 1
+    #parallel condition
+    NG = copy.deepcopy(NG_pms)
+    NH = copy.deepcopy(NH_pms)
+    NR = copy.deepcopy(NR_pms)
+    NG[j][i] = 0
+    nodeSearchList = [outputStore[i],outputStore[j]]
+    list = graphShortestPath(NG,nodeSearchList)
+    for x in range(len(list)-2):
+        print(x+1)
+        temp = list[x+1]
+        D[temp] = 1
+    #loop condition
+    NG = copy.deepcopy(NG_pms)
+    for x in range(len(NG)):
+        if(NG[x][j]):
+            nodeSearchList = [outputStore[x],outputStore[j]]
+            list = graphShortestPath(NG,nodeSearchList)
+            for x in range(len(list)-1):
+                temp = list[x]
+                D[temp] = 1
+    #all accesible inneighbours of Y
+    for x in range(len(NG_pms)):
+        if(NG_pms[j][x] and accessible[x]):
+            D[x] = 1
+    #all accesible through inaccesible path
+    for x in range(len(NG_pms)):
+        if(NG_pms[j][x] and accessible[x]==0):
+            found = 1
+            while(found):
+                found = 0
 
 def MIC(master,draw):
     global outputStore
@@ -1012,9 +1042,22 @@ def MIC(master,draw):
             for x in range(len(list)-1):
                 temp = list[x]
                 D[temp] = 1
-
+    #step node signal
     Q = (np.zeros(len(NG_pms))).tolist()
-
+    change = 1
+    while(change):
+        change = 0
+        for y in range(len(Y)):
+            if(Y[y]):
+                for x in range(len(NG_pms)):
+                    if(NH_pms[y][x]):
+                        for a in range(len(NG_pms)):
+                            if(D[a] and NH_pms[a][x] and Y[a]==0):
+                                print(NH_pms[y])
+                                print(NH_pms[a])
+                                Y[a] = 1
+                                Q[a] = 1
+                                change = 1
 
     A = (np.zeros(len(NG_pms))).tolist()
     for x in range(len(Q)):
