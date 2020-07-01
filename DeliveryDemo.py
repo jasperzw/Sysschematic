@@ -73,7 +73,9 @@ def initMainMenu(frame, canvas):
     Button(frame, text="load transfer view", command= lambda: plotMatrix(draw,master,0), height = 1, width=20).grid(row=1, column=2, padx=2, pady=2)
     Button(frame, text="change line view", command= lambda: Dashed_line(draw,master), height = 1, width=20).grid(row=2, column=2, padx=2, pady=2)
     #column 3
-    Button(frame, text="MIC", command= lambda: MIC(master, draw), height = 1, width=20).grid(row=1, column=3, padx=2, pady=2)
+    Button(frame, text="FIC", command= lambda: FIC(master, draw), height = 1, width=20).grid(row=1, column=3, padx=2, pady=2)
+    Button(frame, text="MIC", command= lambda: MIC(master, draw), height = 1, width=20).grid(row=2, column=3, padx=2, pady=2)
+
 
 
     #column 3
@@ -1327,6 +1329,9 @@ def Immersion(NG,NR,NH,Unknownnodes,draw,master):
     Unknownnodes_start = copy.deepcopy(Unknownnodes)
     Unknownnodes_start_1 = copy.deepcopy(Unknownnodes)
     NG, NR, NH, Unknownnodes= Unknownnodesbottom(NG, NR, NH, Unknownnodes)
+    test = np.array(NG)
+    print("NG with unkownnodes at the bottom:")
+    print(test)
     #Change NG into a Laplacian form L
     #creating Diagonal A1
     for x in range(len(NG)):
@@ -1375,6 +1380,10 @@ def Immersion(NG,NR,NH,Unknownnodes,draw,master):
     Lhat = np.subtract(L11,L12_22_21)
     #Change the laplacian into an Adjacency matrix
     A = np.subtract(Lhat,np.diag(np.diag(Lhat)))
+    print("L22:")
+    print(L22)
+    print("New Adjecency:")
+    print(A)
     A = A.tolist()
     #unweigh the matrix A
     for x in range(len(A)):
