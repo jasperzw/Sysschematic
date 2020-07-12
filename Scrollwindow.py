@@ -91,7 +91,7 @@ class Zoom_Advanced(Frame):
         roundedTextSize = round(self.textSize*self.currentZoom)
         if(roundedTextSize < 1):
             roundedTextSize = 1
-        print("current text size: ", roundedTextSize)
+        #print("current text size: ", roundedTextSize)
         self.canvas.scale('all', x, y, scale, scale)  # rescale all canvas objects
         wNotList = self.canvas.find_withtag("wNotation")
         for x in wNotList:
@@ -99,7 +99,7 @@ class Zoom_Advanced(Frame):
 
 
         #self.canvas.configure(scrollregion=self.canvas.bbox('all'))
-        print('the current used scale: ', self.currentZoom, " with delta adjusment: ",scale)
+        #print('the current used scale: ', self.currentZoom, " with delta adjusment: ",scale)
 
 class popupWindow(object):
     def __init__(self,master):

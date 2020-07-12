@@ -1,6 +1,6 @@
 # Importing tkinter module
 from tkinter import *
-from matImport import readFile, toAdjacencyMatrixCall, generateGraph, graphShortestPath
+from matImport import readFile, toAdjacencyMatrixCall, generateGraph, graphShortestPath, graphDisjointPath
 from tkinter.filedialog import askopenfilename
 import math
 from Scrollwindow import *
@@ -51,9 +51,12 @@ butTestStore = []
 butTestNumber = 0
 unknownNodenumber = 0
 newPathColor = 0
+currentGroup = 1
+fancyColor = ["green","yellow","orange","blue","cyan","dark sea green","khaki","lightSteelBlue1"]
 
 class nodeHolder():
      nmb = 0
+     group = 0
 
 #initializes the main menu. you have to pass the mainmenu frame and the canvas so that it could pass the canvas id when clearing it
 def initMainMenu(frame, canvas):
@@ -88,8 +91,11 @@ def initSubMenu(frame):
     Button(frame, text="add output", command= lambda: addWidget(2), height = 1, width=20).pack(padx=2, pady=2)
     Button(frame, text="toggle transfer known", command= lambda: toggleTransfer(master, draw), height = 1, width=20).pack(padx=2, pady=2)
     Button(frame, text="toggle transfer pms", command= lambda: PMSTransfer(master, draw), height = 1, width=20).pack(padx=2, pady=2)
+    Button(frame, text="Make group", command= lambda: makeGroup(draw,master), height = 1, width=20).pack(padx=2, pady=2)
+    Button(frame, text="Remove group", command= lambda: removeGroup(draw,master), height = 1, width=20).pack(padx=2, pady=2)
     Button(frame, text="Perform test identifiability", command= lambda: testIdentifiability(master, draw), height = 1, width=20).pack(padx=2, pady=2)
     Button(frame, text="Find shortest path", command= lambda: find_path(draw,master), height = 1, width=20).pack(padx=2, pady=2)
+    Button(frame, text="Find disjoint path", command= lambda: paint_disjoint_path(draw,master), height = 1, width=20).pack(padx=2, pady=2)
     Button(frame, text="Immersion", command= lambda: Immersion_call(master, draw), height = 1, width=20).pack(padx=2, pady=2)
     #in reload every button or Checkbox is stored which is reloaded on calling reloadCall when currentAmountOutputSelected > 1
     reload = [
@@ -254,6 +260,12 @@ def loadMat(draw,master):
     nodeSize = -(10/110)*(len(storeNG)**1.8)+26
     if(nodeSize<5):
         nodeSize=5
+    
+    textSize = round(nodeSize/2*unit.currentZoom)
+    if(textSize<1):
+        textSize = 1
+    unit.textSize = textSize
+
 
 def plotNoise(draw,master):
     global overlay
@@ -392,11 +404,11 @@ def plotMatrix(draw,master,init):
     for x in range(len(NH)):
         for y in range(len(NH[x])):
             if(NH[x][y]==1):
-                addNH(outputStore[x],master,draw,0,y)
+                addNH(outputStore[x],master,draw,1,y)
     for x in range(len(NR)):
         for y in range(len(NR[x])):
             if(NR[x][y]==1):
-                addNH(outputStore[x],master,draw,1,y)
+                addNH(outputStore[x],master,draw,0,y)
 
     draw.tag_raise("nodes")
     draw.tag_raise("rect")
@@ -414,7 +426,7 @@ def toAdjacencyMatrix(draw,master):
     global outputStore
     global Unknownnodes
     print(storeNR)
-    storeNG, storeNR, storeNH, outputNumber, outputStore, Unknownnodes= toAdjacencyMatrixCall(draw,master,overlay,storeNG,storeNH,storeNR,lineStore,lineNumber,outputStore,outputNumber,excitationStore,excitationNumber,noiseNodeStore,noiseNodeNumber, Unknownnodes)
+    storeNG, storeNR, storeNH, outputNumber, outputStore, Unknownnodes= toAdjacencyMatrixCall(draw,master,overlay,storeNG,storeNH,storeNR,lineStore,lineNumber,outputStore,outputNumber,excitationStore,excitationNumber,noiseNodeStore,noiseNodeNumber, Unknownnodes, noiseNumber)
 
     return storeNG, storeNR, storeNH, Unknownnodes
 
@@ -737,15 +749,42 @@ Below are the functions for
 
 tada
 """
+
+#Below are some functions to make tedious task a bit easier
+def returnSelectedNodes():
+    nodeList = []
+    for x in range(outputNumber):
+        if(outputStore[x]!=0):
+            if(outputStore[x][1].stat==2):
+                nodeList.append(outputStore[x])
+    return nodeList
+
+def returnGroupList(groupNumber):
+    nodeList = []
+    for x in outputStore:
+        if(x[1].group == groupNumber):
+            nodeList.append(x)
+
+    return nodeList
+
+def saveSelectedNodes(nodeList):
+    global outputStore
+
+    for x in nodeList:
+        outputStore[x[1].nmb-1] = x
+
+def deselectActiveNodes():
+    nodeList = returnSelectedNodes()
+    for x in nodeList:
+        selectOutput(x[1].nmb-1,draw)
+
+#ends here
+
 def find_path(draw,master):
     global newPathColor
-    fancyColor = ["green","yellow","pink","orange"]
+    
     #putting all selected nodes in a list
-    nodeSearchList = []
-    for x in range(outputNumber):
-        if(outputStore[x!=0]):
-            if(outputStore[x][1].stat==2):
-                nodeSearchList.append(outputStore[x])
+    nodeSearchList = returnSelectedNodes()
 
     if(nodeSearchList[0][1].order>nodeSearchList[1][1].order):
         temp = nodeSearchList[0]
@@ -761,15 +800,68 @@ def find_path(draw,master):
     while(i<dis):
         for x in range(lineNumber):
             if(lineStore[x]!=0):
-                print("current i loop: ",i)
+                #print("current i loop: ",i)
                 if(lineStore[x][1].nmb == path[i]+1 and lineStore[x][2].nmb == path[i+1]+1):
                     draw.itemconfig(lineStore[x][0],fill=fancyColor[newPathColor])
+                    draw.itemconfig(lineStore[x][0],width=5)
                     lineStore[x][4] = fancyColor[newPathColor]
-                    print("painted the path to goal")
+                    #print("painted the path to goal")
         i += 1
     newPathColor += 1
-    selectOutput(nodeSearchList[0][1].nmb-1,draw)
-    selectOutput(nodeSearchList[1][1].nmb-1,draw)
+    deselectActiveNodes()
+
+
+def paint_disjoint_path(draw,master):
+    global newPathColor
+    #putting all selected nodes in a list
+    group1 = returnGroupList(1)
+    group2 = returnGroupList(2)
+
+
+    #adding them to a networkx to scan for the shortest route because networkx is lit
+    path = graphDisjointPath(storeNG, group1, group2)
+
+    print("found disjoint path:", path)
+    cyclePath = len(path)
+    for f in range(cyclePath):
+        dis = len(path[f])-1
+        i = 0
+        while(i<dis):
+            for x in range(lineNumber):
+                if(lineStore[x]!=0):
+                    #print("current i loop: ",i)
+                    if(lineStore[x][1].nmb == path[f][i]+1 and lineStore[x][2].nmb == path[f][i+1]+1):
+                        draw.itemconfig(lineStore[x][0],fill=fancyColor[newPathColor])
+                        draw.itemconfig(lineStore[x][0],width=5)
+                        lineStore[x][4] = fancyColor[newPathColor]
+                        #print("painted the path to goal")
+            i += 1
+        newPathColor += 1
+    
+    deselectActiveNodes()
+
+def makeGroup(draw,master):
+    global currentGroup
+    print("setting the currentGroup: ", currentGroup)
+    groupList = returnSelectedNodes()
+    for x in groupList:
+        x[1].group = currentGroup
+        x[4] = fancyColor[currentGroup]
+    
+    saveSelectedNodes(groupList)
+    currentGroup += 1
+    deselectActiveNodes()
+
+def removeGroup(draw,master):
+    global outputStore
+    global currentGroup
+    for x in range(outputNumber):
+        if(outputStore[x]!=0):
+            if(outputStore[x][1].group != 0):
+                outputStore[x][1].group = 0
+                outputStore[x][4] = "red"
+                draw.itemconfig(outputStore[x][0],fill="red")
+
 
 def addOutput(draw, x, y, master):
         global outputStore
@@ -794,7 +886,7 @@ def addOutput(draw, x, y, master):
             img1Btn.nodeMode.append(IntVar())
 
         #use same save technique so that all the functions remain functional
-        save = [img1Btn.widget,img1Btn,x,y]
+        save = [img1Btn.widget,img1Btn,x,y,"red"]
 
         #earch if their is a empty entry.
         for m in range(outputNumber):
@@ -867,7 +959,7 @@ def selectOutput(f,draw):
         id.order = 0
         currentAmountOutputSelected = currentAmountOutputSelected - 1
         outputStore[f][1].stat = 1
-        draw.itemconfig(outputStore[f][0],fill="red")
+        draw.itemconfig(outputStore[f][0],fill=outputStore[f][4])
         #print("buttond found!")
         for a in range(lineNumber):
             if(lineStore[a]!=0):
@@ -1409,6 +1501,7 @@ def clearWindow(canvas,canReset):
     global overlay
     global unit
     global currentView
+    global newPathColor
     canvas.delete("all")
     number_of_nodes = 0
     outputNumber = 0
@@ -1419,15 +1512,13 @@ def clearWindow(canvas,canReset):
     excitationStore = []
     excitationNumber = 0
     currentAmountOutputSelected = 1
-    """
-    ^^moet het niet 1 zijn???^^
-    """
     linestore = 0
     lineNumber = 0
     noiseNodeNumber = 0
     noiseNodeStore = []
     storeNG = storeNR = storeNH = []
     overlay = 0
+    newPathColor = 0
     currentview = 0
     if(canReset==1):
         excitationNumber = 0
@@ -1674,7 +1765,7 @@ def circleScan(draw,master,x,y):
     global currentAmountOutputSelected
     global outputStore
     #this function scans the mouse click and tries to find if it is within a circle
-    print("scanning for button at: ",x,",",y)
+    #print("scanning for button at: ",x,",",y)
     #draw.create_circle(x,y,10,fill="green")
     #circle through all unknown nodes to check within their radius
     for f in range(outputNumber):
@@ -1779,7 +1870,7 @@ master = Tk()
 master.configure(background="gray")
 master.title("Delivery Demo")
 #set initial size
-master.geometry("1500x1500")
+master.geometry("1000x1000")
 
 #create a grid which can reize with the resizing of the box
 Grid.rowconfigure(master, 0, weight=1)
