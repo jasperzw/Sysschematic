@@ -15,7 +15,7 @@ def  readFile(fileLocation):
 
     return NG, NR, NH
 
-def toAdjacencyMatrixCall(draw,master,overlay,storeNG,storeNH,storeNR,lineStore,lineNumber,outputStore,outputNumber,excitationStore,excitationNumber,noiseNodeStore,noiseNodeNumber,KnownNodes):
+def toAdjacencyMatrixCall(draw,master,overlay,storeNG,storeNH,storeNR,lineStore,lineNumber,outputStore,outputNumber,excitationStore,excitationNumber,noiseNodeStore,noiseNodeNumber,KnownNodes,noiseNumber):
     NG = []
     NR = []
     NH = []
@@ -27,7 +27,7 @@ def toAdjacencyMatrixCall(draw,master,overlay,storeNG,storeNH,storeNR,lineStore,
             new.append(0)
         NG.append(new)
         new = []
-        for y in range(noiseNodeNumber):
+        for y in range(noiseNumber):
             new.append(0)
         NH.append(new)
         new = []
@@ -182,3 +182,50 @@ def graphShortestPath(NG,nodeSearchList):
     path = nx.shortest_path(plot,source=nodeSearchList[0][1].nmb-1,target=nodeSearchList[1][1].nmb-1)
 
     return path
+
+def graphDisjointPath(NG,group1, group2):
+
+    nmbOutputs = len(NG)
+    nmbOutputs2 = len(NG[0])
+    #below function will read through the mat file and try to find how many modules their are
+
+    #using the network functions create a direction graph (nodes with a connection with a direction so connection 1 to 2 has a direction and is not the same as 2 to 1)
+    plot = nx.DiGraph()
+    plot.add_nodes_from(range(nmbOutputs))
+
+    for x in range(nmbOutputs):
+        for y in range(nmbOutputs2):
+            if(NG[x][y]==1):
+                plot.add_edge(y,x)
+
+    visitedList = []
+    indexList = []
+    starterList = []
+    endList = []
+    for f in group1:
+        temp = f[1].nmb-1
+        starterList.append(temp)
+    
+    for f in group2:
+        temp = f[1].nmb-1
+        endList.append(temp)
+    for x in group1:
+        for y in group2:
+            index = set(indexList)
+            group1index = set(starterList)
+            group2index = set(endList)
+            possible_path = list(nx.node_disjoint_paths(plot,x[1].nmb-1,y[1].nmb-1))
+            for i in possible_path:
+                fail = 0
+                for j in i:
+                    if j in index:
+                        fail = 1
+                    if j in group1index and j!=(x[1].nmb-1):
+                        fail = 1
+                    if j in group2index and j!=(y[1].nmb-1):
+                        fail = 1
+                if fail == 0:
+                    visitedList.append(i)
+                    indexList.extend(i)
+
+    return visitedList
