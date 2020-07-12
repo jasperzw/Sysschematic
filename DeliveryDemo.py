@@ -6,7 +6,7 @@ import math
 from Scrollwindow import *
 from node import removeNodeCall
 from noise import addNoiseNodeCall, selectNoiseNodeCall, removeNoiseNodeCall
-from matlabCaller import test_identifiability_caller
+#from matlabCaller import test_identifiability_caller
 import numpy as np
 import networkx as nx
 import copy
@@ -76,7 +76,9 @@ def initMainMenu(frame, canvas):
     Button(frame, text="load transfer view", command= lambda: plotMatrix(draw,master,0), height = 1, width=20).grid(row=1, column=2, padx=2, pady=2)
     Button(frame, text="change line view", command= lambda: Dashed_line(draw,master), height = 1, width=20).grid(row=2, column=2, padx=2, pady=2)
     #column 3
-    Button(frame, text="PMS", command= lambda: PMS_pop(master, draw), height = 1, width=20).grid(row=1, column=3, padx=2, pady=2)
+    Button(frame, text="FIC", command= lambda: FIC(master, draw), height = 1, width=20).grid(row=1, column=3, padx=2, pady=2)
+    Button(frame, text="MIC", command= lambda: MIC(master, draw), height = 1, width=20).grid(row=2, column=3, padx=2, pady=2)
+
 
 
     #column 3
@@ -203,13 +205,13 @@ def testIdentifiability(master,draw):
         for y in range(len(adjH[0])):
             new.append(adjH[x][y])
         replaceH.append(new)
-    
+
 
     #this function is simpely their because the NH matrix is not changed from when it was imported and needs to go in a different format which matlab can interpret
     adjH = replaceH
 
     #call the test_identifiability_caller to transfer everything to matlab
-   
+
 
     print("NG matrix: ",NG)
     print("--------------------------------------------------------------------------------------")
@@ -219,7 +221,7 @@ def testIdentifiability(master,draw):
     print("//////////////////////////////////////////////////////////////////////////////////////")
 
     identifiability, identifiability_nodes, identifiability_modules = test_identifiability_caller(adjG,adjR,adjH,NG,NR,NH)
-   
+
     print("found the following")
     print("NG matrix: ",identifiability)
     print("--------------------------------------------------------------------------------------")
@@ -965,7 +967,7 @@ def selectOutput(f,draw):
             if(lineStore[a]!=0):
                 if (id==lineStore[a][1] or id==lineStore[a][2]):
                     draw.itemconfig(lineStore[a][0], fill=lineStore[a][4])
-                    
+
     elif(outputStore[f][1].stat==3):
         id.order = currentAmountOutputSelected
         currentAmountOutputSelected = currentAmountOutputSelected + 1
@@ -1006,12 +1008,12 @@ def makeunkown(master, draw):
                 unknownNodenumber -=1
     reloadCall(subMenu,reload,currentAmountOutputSelected,0)
 
-
 """
-below are the remaining
+below are the Predictor Model Selection and Immersion
 
--------------------------------------------------------- Remaining --------------------------------------------------------
+-------------------------------------------------------- PMS & Immersion --------------------------------------------------------
 """
+
 def PMS_pop(draw,master):
     popup = Tk()
     popup.wm_title("PMS choice menu")
@@ -1023,6 +1025,140 @@ def PMS_pop(draw,master):
     B2.pack()
     popup.mainloop()
 
+def USC(master,draw):
+    global outputStore
+    global number_of_nodes
+    global lineNumber
+    global lineStore
+    global btnStore
+    global outputNumber
+    global NG_pms
+    global NR_pms
+    global NH_pms
+    NG_pms, NR_pms, NH_pms, Unknownnodes_pms = toAdjacencyMatrix(draw,master)
+    #look for the button
+    for x in range(number_of_nodes):
+        if(btnStore[x]!=0):
+            if(btnStore[x][1].pms==1):
+                for y in range(lineNumber):
+                    if(lineStore[y][3]==btnStore[x][1]):
+                        for a in range(outputNumber):
+                            if(lineStore[y][2]==outputStore[a][1]):
+                                j = a
+                            if(lineStore[y][1]==outputStore[a][1]):
+                                i = a
+    #look for accessible nodes
+    accessible = (np.zeros(len(NG_pms))).tolist()
+    for x in range(outputNumber):
+        if(outputStore[x]!=0):
+            if(outputStore[x][1].stat==2 or outputStore[x][1].stat==4):
+                accesible[x] = 1
+    D = (np.zeros(len(NG_pms))).tolist()
+    Y = (np.zeros(len(NG_pms))).tolist()
+    #fill the A and B sets with the initial nodes
+    D[i] = 1
+    Y[j] = 1
+    #parallel condition
+    NG = copy.deepcopy(NG_pms)
+    NH = copy.deepcopy(NH_pms)
+    NR = copy.deepcopy(NR_pms)
+    NG[j][i] = 0
+    nodeSearchList = [outputStore[i],outputStore[j]]
+    list = graphShortestPath(NG,nodeSearchList)
+    for x in range(len(list)-2):
+        print(x+1)
+        temp = list[x+1]
+        D[temp] = 1
+    #loop condition
+    NG = copy.deepcopy(NG_pms)
+    for x in range(len(NG)):
+        if(NG[x][j]):
+            nodeSearchList = [outputStore[x],outputStore[j]]
+            list = graphShortestPath(NG,nodeSearchList)
+            for x in range(len(list)-1):
+                temp = list[x]
+                D[temp] = 1
+    #all accesible inneighbours of Y
+    for x in range(len(NG_pms)):
+        if(NG_pms[j][x] and accessible[x]):
+            D[x] = 1
+    #all accesible through inaccesible path
+    for x in range(len(NG_pms)):
+        if(NG_pms[j][x] and accessible[x]==0):
+            found = 1
+            while(found):
+                found = 0
+
+def MIC(master,draw):
+    global outputStore
+    global number_of_nodes
+    global lineNumber
+    global lineStore
+    global btnStore
+    global outputNumber
+    global NG_pms
+    global NR_pms
+    global NH_pms
+    NG_pms, NR_pms, NH_pms, Unknownnodes_pms = toAdjacencyMatrix(draw,master)
+    #look for the button
+    for x in range(number_of_nodes):
+        if(btnStore[x]!=0):
+            if(btnStore[x][1].pms==1):
+                for y in range(lineNumber):
+                    if(lineStore[y][3]==btnStore[x][1]):
+                        for a in range(outputNumber):
+                            if(lineStore[y][2]==outputStore[a][1]):
+                                j = a
+                            if(lineStore[y][1]==outputStore[a][1]):
+                                i = a
+    D = (np.zeros(len(NG_pms))).tolist()
+    Y = (np.zeros(len(NG_pms))).tolist()
+    #fill the A and B sets with the initial nodes
+    D[i] = 1
+    Y[j] = 1
+    #parallel condition
+    NG = copy.deepcopy(NG_pms)
+    NH = copy.deepcopy(NH_pms)
+    NR = copy.deepcopy(NR_pms)
+    NG[j][i] = 0
+    nodeSearchList = [outputStore[i],outputStore[j]]
+    list = graphShortestPath(NG,nodeSearchList)
+    for x in range(len(list)-2):
+        print(x+1)
+        temp = list[x+1]
+        D[temp] = 1
+    #loop condition
+    NG = copy.deepcopy(NG_pms)
+    for x in range(len(NG)):
+        if(NG[x][j]):
+            nodeSearchList = [outputStore[x],outputStore[j]]
+            list = graphShortestPath(NG,nodeSearchList)
+            for x in range(len(list)-1):
+                temp = list[x]
+                D[temp] = 1
+    #step node signal
+    Q = (np.zeros(len(NG_pms))).tolist()
+    change = 1
+    while(change):
+        change = 0
+        for y in range(len(Y)):
+            if(Y[y]):
+                for x in range(len(NG_pms)):
+                    if(NH_pms[y][x]):
+                        for a in range(len(NG_pms)):
+                            if(D[a] and NH_pms[a][x] and Y[a]==0):
+                                print(NH_pms[y])
+                                print(NH_pms[a])
+                                Y[a] = 1
+                                Q[a] = 1
+                                change = 1
+
+    A = (np.zeros(len(NG_pms))).tolist()
+    for x in range(len(Q)):
+        if(D[x] and Q[x]==0):
+            A[x] = 1
+    msg = "D:"+str(D)+"\nA:"+str(A)+"\nQ:"+str(Q)+"\nY"+str(Y)
+    popupmsg(msg)
 
 def FIC(master,draw):
     global outputStore
@@ -1190,23 +1326,6 @@ def PMS(master, draw):
                                             D[a]=1;
     return D,Y
 
-#    Unknownnodes = []
-#    for x in range(len(D)):
-#        if(D[x] or Y[x]):
-#            Unknownnodes.append(0)
-#        else:
-#            Unknownnodes.append(1)
-#            unknownNodenumber +=1
-#    print("Unknownnodes:")
-#    print(Unknownnodes)
-#    if(unknownNodenumber>0):
-#        G, B, R = Immersion(NG_pms,NR_pms,NH_pms,Unknownnodes,draw,master)
-#        clearWindow(draw,0)
-#        storeNG = G
-#        storeNH = B
-#        storeNR = R
-#        plotMatrix(draw,master,1)
-
 def popupmsg(msg):
     popup = Tk()
     popup.wm_title("!")
@@ -1302,6 +1421,9 @@ def Immersion(NG,NR,NH,Unknownnodes,draw,master):
     Unknownnodes_start = copy.deepcopy(Unknownnodes)
     Unknownnodes_start_1 = copy.deepcopy(Unknownnodes)
     NG, NR, NH, Unknownnodes= Unknownnodesbottom(NG, NR, NH, Unknownnodes)
+    test = np.array(NG)
+    print("NG with unkownnodes at the bottom:")
+    print(test)
     #Change NG into a Laplacian form L
     #creating Diagonal A1
     for x in range(len(NG)):
@@ -1350,6 +1472,10 @@ def Immersion(NG,NR,NH,Unknownnodes,draw,master):
     Lhat = np.subtract(L11,L12_22_21)
     #Change the laplacian into an Adjacency matrix
     A = np.subtract(Lhat,np.diag(np.diag(Lhat)))
+    print("L22:")
+    print(L22)
+    print("New Adjecency:")
+    print(A)
     A = A.tolist()
     #unweigh the matrix A
     for x in range(len(A)):
@@ -1460,6 +1586,11 @@ def Immersion(NG,NR,NH,Unknownnodes,draw,master):
     print("End of Immersion")
     return G, B, R
 
+"""
+below are the remaining
+
+-------------------------------------------------------- Remaining --------------------------------------------------------
+"""
 
 def Dashed_line(draw,master):
     global lineshow
