@@ -262,7 +262,7 @@ def loadMat(draw,master):
     nodeSize = -(10/110)*(len(storeNG)**1.8)+26
     if(nodeSize<5):
         nodeSize=5
-    
+
     textSize = round(nodeSize/2*unit.currentZoom)
     if(textSize<1):
         textSize = 1
@@ -784,7 +784,7 @@ def deselectActiveNodes():
 
 def find_path(draw,master):
     global newPathColor
-    
+
     #putting all selected nodes in a list
     nodeSearchList = returnSelectedNodes()
 
@@ -839,7 +839,7 @@ def paint_disjoint_path(draw,master):
                         #print("painted the path to goal")
             i += 1
         newPathColor += 1
-    
+
     deselectActiveNodes()
 
 def makeGroup(draw,master):
@@ -849,7 +849,7 @@ def makeGroup(draw,master):
     for x in groupList:
         x[1].group = currentGroup
         x[4] = fancyColor[currentGroup]
-    
+
     saveSelectedNodes(groupList)
     currentGroup += 1
     deselectActiveNodes()
@@ -1055,6 +1055,7 @@ def USC(master,draw):
                 accesible[x] = 1
     D = (np.zeros(len(NG_pms))).tolist()
     Y = (np.zeros(len(NG_pms))).tolist()
+    Q = (np.zeros(len(NG_pms))).tolist()
     #fill the A and B sets with the initial nodes
     D[i] = 1
     Y[j] = 1
@@ -1083,11 +1084,59 @@ def USC(master,draw):
         if(NG_pms[j][x] and accessible[x]):
             D[x] = 1
     #all accesible through inaccesible path
-    for x in range(len(NG_pms)):
-        if(NG_pms[j][x] and accessible[x]==0):
-            found = 1
-            while(found):
-                found = 0
+    Unknownnodes_usc = []
+    for x in range(len(accesible)):
+        if(accesible[x]):
+            Unknownnodes_usc.append(0)
+        else:
+            Unknownnodes_usc.append(1)
+    G, B, R = Immersion(NG,NR,NH,Unknownnodes_usc,draw,master)
+    for x in range(len(G)):
+        if(G[j][x] and accessible[x]==0):
+            D[x] = 1
+    #direct confounding or indirect confounding through inaccesible
+        #direct
+    for y in range(len(Y)):
+        if(Y[y]):
+            for x in range(len(NH_pms)):
+                if(NH_pms[y][x]):
+                    for r in range(len(NH_pms)):
+                        if(NH_pms[r][x] and NG_pms[y][r] and accesible[r]):
+                            Y[r] = 1
+                            Q[r] = 1
+        #indirect
+    Unknownnodes_usc = []
+    for x in range(len(accesible)):
+        if(accesible[x]):
+            Unknownnodes_usc.append(0)
+        else:
+            Unknownnodes_usc.append(1)
+    NG = copy.deepcopy(NG_pms)
+    NH = copy.deepcopy(NH_pms)
+    NR = copy.deepcopy(NR_pms)
+    G, B, R = Immersion(NG,NR,NH,Unknownnodes_usc,draw,master)
+    for y in range(len(Y)):
+        if(Y[y]):
+            for x in range(len(B)):
+                if(NH_pms[y][x]):
+                    for r in range(len(B)):
+                        if(B[r][x] and G[y][r] and accesible[r]):
+                            Y[r] = 1
+                            Q[r] = 1
+    #include signals from D into A
+    #no confounding variables case
+    A = copy.deepcopy(D)
+    for y in range(len(Y)):
+        if(Y[y]):
+            for x in range(len(B)):
+                if(B[y][x]):
+                    for r in range(len(B)):
+                        if(B[r][x] and G[y][r] and accesible[r]):
+                            A[r] = 0
+    #
+
+
+
 
 def MIC(master,draw):
     global outputStore
@@ -1424,6 +1473,23 @@ def Immersion(NG,NR,NH,Unknownnodes,draw,master):
     test = np.array(NG)
     print("NG with unkownnodes at the bottom:")
     print(test)
+    iteration = 0
+    G = copy.deepcopy(NG)
+    while(iteration<unknownNodenumber):
+        for x in range(len(G)):
+            for y in range(len(G)):
+                if(Unknownnodes[y] and NG[x][y]):
+                    for r in range(len(G)):
+                        if(NG[y][r]):
+                            G[x][r] = 1
+        iteration += 1
+    len_G = len(G)
+    for x in range(unknownNodenumber):
+        for y in range(len(G)):
+            G[y][len_G-x-1] = 0
+            G[len_G-x-1][y] = 0
+    print(G)
+    """
     #Change NG into a Laplacian form L
     #creating Diagonal A1
     for x in range(len(NG)):
@@ -1485,6 +1551,7 @@ def Immersion(NG,NR,NH,Unknownnodes,draw,master):
             else:
                 A[x][y]=0;
     #adding the old nodes with no connection at the bottom
+
     G = []
     for x in range(len(NG)):
         new = []
@@ -1498,6 +1565,7 @@ def Immersion(NG,NR,NH,Unknownnodes,draw,master):
                 else:
                     new.append(A[x][y])
         G.append(new)
+    """
     #switching to the right position
 
     B = NH
