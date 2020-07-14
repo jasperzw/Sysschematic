@@ -1125,15 +1125,29 @@ def USC(master,draw):
                             Q[r] = 1
     #include signals from D into A
     #no confounding variables case
-    A = copy.deepcopy(D)
+    A_confounding = copy.deepcopy(D)
     for y in range(len(Y)):
         if(Y[y]):
             for x in range(len(B)):
                 if(B[y][x]):
                     for r in range(len(B)):
                         if(B[r][x] and G[y][r] and accesible[r]):
-                            A[r] = 0
-    #
+                            A_confounding[r] = 0
+    #indirect confounding through accesible
+    A_indirect = []
+    for x in range(len(D))
+        if(D[x] and ~Y[x] and ~A_confounding[x]):
+            A_indirect.append(1)
+        else:
+            A_indirect.append(0)
+    for x in range(len(A_indirect)):
+        if(A_indirect[x]):
+            NG = copy.deepcopy(NG_pms)
+            for x in range(len(NG)):
+                if(NG[x][j]):
+                    nodeSearchList = [outputStore[x],outputStore[j]]
+                    list = graphShortestPath(NG,nodeSearchList)
+
 
 
 
