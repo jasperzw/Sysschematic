@@ -76,7 +76,7 @@ def initMainMenu(frame, canvas):
     Button(frame, text="load transfer view", command= lambda: plotMatrix(draw,master,0), height = 1, width=20).grid(row=1, column=2, padx=2, pady=2)
     Button(frame, text="change line view", command= lambda: Dashed_line(draw,master), height = 1, width=20).grid(row=2, column=2, padx=2, pady=2)
     #column 3
-    Button(frame, text="FIC", command= lambda: FIC(master, draw), height = 1, width=20).grid(row=1, column=3, padx=2, pady=2)
+    Button(frame, text="USC", command= lambda: USC(master, draw), height = 1, width=20).grid(row=1, column=3, padx=2, pady=2)
     Button(frame, text="MIC", command= lambda: MIC(master, draw), height = 1, width=20).grid(row=2, column=3, padx=2, pady=2)
 
 
@@ -1031,6 +1031,7 @@ def USC(master,draw):
     global lineNumber
     global lineStore
     global btnStore
+    global unknownNodenumber
     global outputNumber
     global NG_pms
     global NR_pms
@@ -1052,13 +1053,16 @@ def USC(master,draw):
     for x in range(outputNumber):
         if(outputStore[x]!=0):
             if(outputStore[x][1].stat==2 or outputStore[x][1].stat==4):
-                accesible[x] = 1
+                accessible[x] = 1
     D = (np.zeros(len(NG_pms))).tolist()
     Y = (np.zeros(len(NG_pms))).tolist()
     Q = (np.zeros(len(NG_pms))).tolist()
     #fill the A and B sets with the initial nodes
     D[i] = 1
     Y[j] = 1
+    print("D:"+str(D))
+    print("Y:"+str(Y))
+    print("accessible:"+str(accessible))
     #parallel condition
     NG = copy.deepcopy(NG_pms)
     NH = copy.deepcopy(NH_pms)
@@ -1079,38 +1083,45 @@ def USC(master,draw):
             for x in range(len(list)-1):
                 temp = list[x]
                 D[temp] = 1
-    #all accesible inneighbours of Y
+    #all accessible inneighbours of Y
     for x in range(len(NG_pms)):
         if(NG_pms[j][x] and accessible[x]):
             D[x] = 1
-    #all accesible through inaccesible path
+    print("D step 3:"+str(D))
+    #all accessible through inaccessible path
     Unknownnodes_usc = []
-    for x in range(len(accesible)):
-        if(accesible[x]):
+    unknownNodenumber = 0
+    for x in range(len(accessible)):
+        if(accessible[x]):
             Unknownnodes_usc.append(0)
         else:
             Unknownnodes_usc.append(1)
+            unknownNodenumber +=1
+    print(str(Unknownnodes_usc))
     G, B, R = Immersion(NG,NR,NH,Unknownnodes_usc,draw,master)
     for x in range(len(G)):
-        if(G[j][x] and accessible[x]==0):
+        if(G[j][x]):
             D[x] = 1
-    #direct confounding or indirect confounding through inaccesible
+    print("D step 4:"+str(D))
+    #direct confounding or indirect confounding through inaccessible
         #direct
     for y in range(len(Y)):
         if(Y[y]):
             for x in range(len(NH_pms)):
                 if(NH_pms[y][x]):
                     for r in range(len(NH_pms)):
-                        if(NH_pms[r][x] and NG_pms[y][r] and accesible[r]):
+                        if(NH_pms[r][x] and NG_pms[y][r] and accessible[r]):
                             Y[r] = 1
                             Q[r] = 1
         #indirect
+    unknownNodenumber = 0
     Unknownnodes_usc = []
-    for x in range(len(accesible)):
-        if(accesible[x]):
+    for x in range(len(accessible)):
+        if(accessible[x]):
             Unknownnodes_usc.append(0)
         else:
             Unknownnodes_usc.append(1)
+            unknownNodenumber =+1
     NG = copy.deepcopy(NG_pms)
     NH = copy.deepcopy(NH_pms)
     NR = copy.deepcopy(NR_pms)
@@ -1120,9 +1131,10 @@ def USC(master,draw):
             for x in range(len(B)):
                 if(NH_pms[y][x]):
                     for r in range(len(B)):
-                        if(B[r][x] and G[y][r] and accesible[r]):
+                        if(B[r][x] and G[y][r] and accessible[r]):
                             Y[r] = 1
                             Q[r] = 1
+    print("Y step 5:"+str(Y))
     #include signals from D into A
     #no confounding variables case
     A_confounding = copy.deepcopy(D)
@@ -1131,22 +1143,57 @@ def USC(master,draw):
             for x in range(len(B)):
                 if(B[y][x]):
                     for r in range(len(B)):
-                        if(B[r][x] and G[y][r] and accesible[r]):
+                        if(B[r][x] and G[y][r] and accessible[r]):
                             A_confounding[r] = 0
-    #indirect confounding through accesible
+    #indirect confounding through accessible
     A_indirect = []
-    for x in range(len(D))
-        if(D[x] and ~Y[x] and ~A_confounding[x]):
+    for x in range(len(D)):
+        if(D[x] and Y[x]==0 and A_confounding[x]==0):
             A_indirect.append(1)
         else:
             A_indirect.append(0)
+
     for x in range(len(A_indirect)):
         if(A_indirect[x]):
+            A_indirect[x] = 0
+            Unknownnodes_usc = (np.ones(len(D))).tolist()
+            unknownNodenumber = len(D)
+            Unknownnodes_usc[x] = 0
+            unknownNodenumber -= 1
+            for j in range(len(Y)):
+                if(Y[j]):
+                    Unknownnodes_usc[j] = 0
+                    unknownNodenumber -= 1
             NG = copy.deepcopy(NG_pms)
-            for x in range(len(NG)):
-                if(NG[x][j]):
-                    nodeSearchList = [outputStore[x],outputStore[j]]
-                    list = graphShortestPath(NG,nodeSearchList)
+            NH = copy.deepcopy(NH_pms)
+            NR = copy.deepcopy(NR_pms)
+            G, B, R = Immersion(NG,NR,NH,Unknownnodes_usc,draw,master)
+            for y in range(len(B)):
+                if(Y[y]):
+                    for r in range(len(B)):
+                        if(B[y][r] and B[x][r] and G[y][x]):
+                            NG = copy.deepcopy(NG_pms)
+                            nodeSearchList = [outputStore[x],outputStore[y]]
+                            list = graphShortestPath(NG,nodeSearchList)
+                            #checking if it goes through an inaccessible node
+                            A_indirect[x] = 1
+                            for alpha in range(len(list)):
+                                if(accessible[int(list[alpha])]==0):
+                                    A_indirect[x] = 0
+    #combining the two cases
+    A = []
+    for x in range(len(A_confounding)):
+        if(A_confounding[x] or A_indirect[x]):
+            A.append(1)
+        else:
+            A.append(0)
+    #step 7
+
+
+
+
+    msg = "\nA:"+str(A)+"\nY"+str(Y)
+    popupmsg(msg)
 
 
 
