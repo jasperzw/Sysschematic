@@ -1057,12 +1057,10 @@ def USC(master,draw):
     D = (np.zeros(len(NG_pms))).tolist()
     Y = (np.zeros(len(NG_pms))).tolist()
     Q = (np.zeros(len(NG_pms))).tolist()
+    Beta = (np.zeros(len(NG_pms))).tolist()
     #fill the A and B sets with the initial nodes
     D[i] = 1
     Y[j] = 1
-    print("D:"+str(D))
-    print("Y:"+str(Y))
-    print("accessible:"+str(accessible))
     #parallel condition
     NG = copy.deepcopy(NG_pms)
     NH = copy.deepcopy(NH_pms)
@@ -1083,116 +1081,193 @@ def USC(master,draw):
             for x in range(len(list)-1):
                 temp = list[x]
                 D[temp] = 1
-    #all accessible inneighbours of Y
-    for x in range(len(NG_pms)):
-        if(NG_pms[j][x] and accessible[x]):
-            D[x] = 1
-    print("D step 3:"+str(D))
-    #all accessible through inaccessible path
-    Unknownnodes_usc = []
-    unknownNodenumber = 0
-    for x in range(len(accessible)):
-        if(accessible[x]):
-            Unknownnodes_usc.append(0)
-        else:
-            Unknownnodes_usc.append(1)
-            unknownNodenumber +=1
-    print(str(Unknownnodes_usc))
-    G, B, R = Immersion(NG,NR,NH,Unknownnodes_usc,draw,master)
-    for x in range(len(G)):
-        if(G[j][x]):
-            D[x] = 1
-    print("D step 4:"+str(D))
-    #direct confounding or indirect confounding through inaccessible
-        #direct
-    for y in range(len(Y)):
-        if(Y[y]):
-            for x in range(len(NH_pms)):
-                if(NH_pms[y][x]):
-                    for r in range(len(NH_pms)):
-                        if(NH_pms[r][x] and NG_pms[y][r] and accessible[r]):
-                            Y[r] = 1
-                            Q[r] = 1
-        #indirect
-    unknownNodenumber = 0
-    Unknownnodes_usc = []
-    for x in range(len(accessible)):
-        if(accessible[x]):
-            Unknownnodes_usc.append(0)
-        else:
-            Unknownnodes_usc.append(1)
-            unknownNodenumber =+1
-    NG = copy.deepcopy(NG_pms)
-    NH = copy.deepcopy(NH_pms)
-    NR = copy.deepcopy(NR_pms)
-    G, B, R = Immersion(NG,NR,NH,Unknownnodes_usc,draw,master)
-    for y in range(len(Y)):
-        if(Y[y]):
-            for x in range(len(B)):
-                if(NH_pms[y][x]):
-                    for r in range(len(B)):
-                        if(B[r][x] and G[y][r] and accessible[r]):
-                            Y[r] = 1
-                            Q[r] = 1
-    print("Y step 5:"+str(Y))
-    #include signals from D into A
-    #no confounding variables case
-    A_confounding = copy.deepcopy(D)
-    for y in range(len(Y)):
-        if(Y[y]):
-            for x in range(len(B)):
-                if(B[y][x]):
-                    for r in range(len(B)):
-                        if(B[r][x] and G[y][r] and accessible[r]):
-                            A_confounding[r] = 0
-    #indirect confounding through accessible
-    A_indirect = []
-    for x in range(len(D)):
-        if(D[x] and Y[x]==0 and A_confounding[x]==0):
-            A_indirect.append(1)
-        else:
-            A_indirect.append(0)
+    change = 1
+    while(change):
+        #all accessible inneighbours of Y
+        for x in range(len(NG_pms)):
+            if(NG_pms[j][x] and accessible[x]):
+                D[x] = 1
+        #all accessible through inaccessible path
+        Unknownnodes_usc = []
+        unknownNodenumber = 0
+        for x in range(len(accessible)):
+            if(accessible[x]):
+                Unknownnodes_usc.append(0)
+            else:
+                Unknownnodes_usc.append(1)
+                unknownNodenumber +=1
+        print(str(Unknownnodes_usc))
+        G, B, R = Immersion(NG,NR,NH,Unknownnodes_usc,draw,master)
+        for x in range(len(G)):
+            if(G[j][x]):
+                D[x] = 1
+        #direct confounding or indirect confounding through inaccessible
+            #direct
+        for y in range(len(Y)):
+            if(Y[y]):
+                for x in range(len(NH_pms)):
+                    if(NH_pms[y][x]):
+                        for r in range(len(NH_pms)):
+                            if(NH_pms[r][x] and NG_pms[y][r] and accessible[r]):
+                                Y[r] = 1
+                                Q[r] = 1
+            #indirect
+        unknownNodenumber = 0
+        Unknownnodes_usc = []
+        for x in range(len(accessible)):
+            if(accessible[x]):
+                Unknownnodes_usc.append(0)
+            else:
+                Unknownnodes_usc.append(1)
+                unknownNodenumber =+1
+        NG = copy.deepcopy(NG_pms)
+        NH = copy.deepcopy(NH_pms)
+        NR = copy.deepcopy(NR_pms)
+        G, B, R = Immersion(NG,NR,NH,Unknownnodes_usc,draw,master)
+        for y in range(len(Y)):
+            if(Y[y]):
+                for x in range(len(B)):
+                    if(NH_pms[y][x]):
+                        for r in range(len(B)):
+                            if(B[r][x] and G[y][r] and accessible[r]):
+                                Y[r] = 1
+                                Q[r] = 1
+        #include signals from D into A
+        #no confounding variables case
+        A_confounding = copy.deepcopy(D)
+        for y in range(len(Y)):
+            if(Y[y]):
+                for x in range(len(B)):
+                    if(B[y][x]):
+                        for r in range(len(B)):
+                            if(B[r][x] and G[y][r] and accessible[r]):
+                                A_confounding[r] = 0
+        #indirect confounding through accessible
+        A_indirect = []
+        for x in range(len(D)):
+            if(D[x] and Y[x]==0 and A_confounding[x]==0):
+                A_indirect.append(1)
+            else:
+                A_indirect.append(0)
 
-    for x in range(len(A_indirect)):
-        if(A_indirect[x]):
-            A_indirect[x] = 0
-            Unknownnodes_usc = (np.ones(len(D))).tolist()
-            unknownNodenumber = len(D)
-            Unknownnodes_usc[x] = 0
-            unknownNodenumber -= 1
-            for j in range(len(Y)):
-                if(Y[j]):
-                    Unknownnodes_usc[j] = 0
-                    unknownNodenumber -= 1
-            NG = copy.deepcopy(NG_pms)
-            NH = copy.deepcopy(NH_pms)
-            NR = copy.deepcopy(NR_pms)
-            G, B, R = Immersion(NG,NR,NH,Unknownnodes_usc,draw,master)
+        for x in range(len(A_indirect)):
+            if(A_indirect[x]):
+                A_indirect[x] = 0
+                Unknownnodes_usc = (np.ones(len(D))).tolist()
+                unknownNodenumber = len(D)
+                Unknownnodes_usc[x] = 0
+                unknownNodenumber -= 1
+                for j in range(len(Y)):
+                    if(Y[j]):
+                        Unknownnodes_usc[j] = 0
+                        unknownNodenumber -= 1
+                NG = copy.deepcopy(NG_pms)
+                NH = copy.deepcopy(NH_pms)
+                NR = copy.deepcopy(NR_pms)
+                G, B, R = Immersion(NG,NR,NH,Unknownnodes_usc,draw,master)
+                for y in range(len(B)):
+                    if(Y[y]):
+                        for r in range(len(B)):
+                            if(B[y][r] and B[x][r] and G[y][x]):
+                                NG = copy.deepcopy(NG_pms)
+                                nodeSearchList = [outputStore[x],outputStore[y]]
+                                list = graphShortestPath(NG,nodeSearchList)
+                                #checking if it goes through an inaccessible node
+                                A_indirect[x] = 1
+                                for alpha in range(len(list)):
+                                    if(accessible[int(list[alpha])]==0):
+                                        A_indirect[x] = 0
+        #combining the two cases
+        A = []
+        for x in range(len(A_confounding)):
+            if(A_confounding[x] or A_indirect[x]):
+                A.append(1)
+            else:
+                A.append(0)
+        #step 7
+        change = 0
+        unknownNodenumber = 0
+        Unknownnodes_usc = []
+        for x in range(len(accessible)):
+            if(accessible[x]):
+                Unknownnodes_usc.append(0)
+            else:
+                Unknownnodes_usc.append(1)
+                unknownNodenumber =+1
+        NG = copy.deepcopy(NG_pms)
+        NH = copy.deepcopy(NH_pms)
+        NR = copy.deepcopy(NR_pms)
+        G, B, R = Immersion(NG,NR,NH,Unknownnodes_usc,draw,master)
+        for x in range(len(B)):
             for y in range(len(B)):
-                if(Y[y]):
+                if(Y[x] and D[y] and Y[y]==0):
                     for r in range(len(B)):
-                        if(B[y][r] and B[x][r] and G[y][x]):
+                        if(B[x][r] and B[y][r] and G[x][y]):
+                            condition2a = 1
+                            condition2c = 1
+                            Beta[y] = 1
+                            #condition 2a
+                                #A and Y
+                            Unknownnodes_usc = (np.ones(len(D))).tolist()
+                            unknownNodenumber = len(D)
                             NG = copy.deepcopy(NG_pms)
-                            nodeSearchList = [outputStore[x],outputStore[y]]
-                            list = graphShortestPath(NG,nodeSearchList)
-                            #checking if it goes through an inaccessible node
-                            A_indirect[x] = 1
-                            for alpha in range(len(list)):
-                                if(accessible[int(list[alpha])]==0):
-                                    A_indirect[x] = 0
-    #combining the two cases
-    A = []
-    for x in range(len(A_confounding)):
-        if(A_confounding[x] or A_indirect[x]):
-            A.append(1)
-        else:
-            A.append(0)
-    #step 7
+                            NH = copy.deepcopy(NH_pms)
+                            NR = copy.deepcopy(NR_pms)
+                            for a in range(len(NG)):
+                                if(Y[a] or A[a]):
+                                    unknownNodenumber -=1
+                                    Unknownnodes_usc[a] = 0
+                            Im_G, Im_B, Im_R = Immersion(NG,NR,NH,Unknownnodes_usc,draw,master)
+                            for a in range(len(NG)):
+                                for b in range(len(NG)):
+                                    if(Y[a] and A[b]):
+                                        for c in range(len(NG)):
+                                            if(Im_B[a][c] and Im_B[b][c]):
+                                                condition2a = 0
+                                #A and B
+                            Unknownnodes_usc = (np.ones(len(D))).tolist()
+                            unknownNodenumber = len(D)
+                            NG = copy.deepcopy(NG_pms)
+                            NH = copy.deepcopy(NH_pms)
+                            NR = copy.deepcopy(NR_pms)
+                            for a in range(len(NG)):
+                                if(Beta[a] or A[a]):
+                                    unknownNodenumber -=1
+                                    Unknownnodes_usc[a] = 0
+                            Im_G, Im_B, Im_R = Immersion(NG,NR,NH,Unknownnodes_usc,draw,master)
+                            for a in range(len(NG)):
+                                for b in range(len(NG)):
+                                    if(Beta[a] and A[b]):
+                                        for c in range(len(NG)):
+                                            if(Im_B[a][c] and Im_B[b][c]):
+                                                condition2a = 0
+                            #condition 2c
+                            Unknownnodes_usc = (np.ones(len(D))).tolist()
+                            unknownNodenumber = len(D)
+                            NG = copy.deepcopy(NG_pms)
+                            NH = copy.deepcopy(NH_pms)
+                            NR = copy.deepcopy(NR_pms)
+                            for a in range(len(NG)):
+                                if(Y[a] or D[a]):
+                                    unknownNodenumber -=1
+                                    Unknownnodes_usc[a] = 0
+                                    NG[y][a] = 0
+                            Im_G, Im_B, Im_R = Immersion(NG,NR,NH,Unknownnodes_usc,draw,master)
+                            for a in range(len(NG)):
+                                if((Y[a] or D[a]) and Im_G[y][a]):
+                                    condition2c = 0
+
+                            if(condition2a==0 or 0==condition2c):
+                                Beta[y] = 0
+                                Y[y] = 1
+                                Q[y] = 1
+                                change = 1
+    #step 8
 
 
 
 
-    msg = "\nA:"+str(A)+"\nY"+str(Y)
+    msg = "\nD:"+str(D)+"\nY"+str(Y)+"\nB"+str(Beta)
     popupmsg(msg)
 
 
