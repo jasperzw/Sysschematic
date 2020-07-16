@@ -1,6 +1,6 @@
 # Importing tkinter module
 from tkinter import *
-from matImport import readFile, toAdjacencyMatrixCall, generateGraph, graphShortestPath, graphDisjointPath, disconnectingsets
+from matImport import readFile, toAdjacencyMatrixCall, generateGraph, graphShortestPath, graphDisjointPath, disconnectingnode
 from tkinter.filedialog import askopenfilename
 import math
 from Scrollwindow import *
