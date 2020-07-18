@@ -1,6 +1,6 @@
 # Importing tkinter module
 from tkinter import *
-from matImport import readFile, toAdjacencyMatrixCall, generateGraph, graphShortestPath, graphDisjointPath
+from matImport import readFile, toAdjacencyMatrixCall, generateGraph, graphShortestPath, graphDisjointPath, disconnectingnode
 from tkinter.filedialog import askopenfilename
 import math
 from Scrollwindow import *
@@ -75,14 +75,13 @@ def initMainMenu(frame, canvas):
     Button(frame, text="load noise view", command= lambda: plotNoise(draw,master), height = 1, width=20).grid(row=0, column=2, padx=2, pady=2)
     Button(frame, text="load transfer view", command= lambda: plotMatrix(draw,master,0), height = 1, width=20).grid(row=1, column=2, padx=2, pady=2)
     Button(frame, text="change line view", command= lambda: Dashed_line(draw,master), height = 1, width=20).grid(row=2, column=2, padx=2, pady=2)
-    #column 3
-    Button(frame, text="FIC", command= lambda: FIC(master, draw), height = 1, width=20).grid(row=1, column=3, padx=2, pady=2)
-    Button(frame, text="MIC", command= lambda: MIC(master, draw), height = 1, width=20).grid(row=2, column=3, padx=2, pady=2)
 
 
 
     #column 3
     OptionMenu(frame, layoutMethod, *layout).grid(row=0, column=3)
+    Button(frame, text="PMS", command= lambda: PMS_option(draw,master), height = 1, width=20).grid(row=1, column=3, padx=2, pady=2)
+    OptionMenu(frame, layoutMethod1, *layout1).grid(row=2, column=3)
 #same as main menu initializes the submenu
 def initSubMenu(frame):
 
@@ -99,6 +98,7 @@ def initSubMenu(frame):
     Button(frame, text="Find shortest path", command= lambda: find_path(draw,master), height = 1, width=20).pack(padx=2, pady=2)
     Button(frame, text="Find disjoint path", command= lambda: paint_disjoint_path(draw,master), height = 1, width=20).pack(padx=2, pady=2)
     Button(frame, text="Immersion", command= lambda: Immersion_call(master, draw), height = 1, width=20).pack(padx=2, pady=2)
+    Button(frame, text="Test", command= lambda: TEST(master, draw), height = 1, width=20).pack(padx=2, pady=2)
     #in reload every button or Checkbox is stored which is reloaded on calling reloadCall when currentAmountOutputSelected > 1
     reload = [
     Button(frame, text="remove node", command= lambda: removeOutput(draw, master), height = 1, width=20),
@@ -262,7 +262,7 @@ def loadMat(draw,master):
     nodeSize = -(10/110)*(len(storeNG)**1.8)+26
     if(nodeSize<5):
         nodeSize=5
-    
+
     textSize = round(nodeSize/2*unit.currentZoom)
     if(textSize<1):
         textSize = 1
@@ -784,7 +784,7 @@ def deselectActiveNodes():
 
 def find_path(draw,master):
     global newPathColor
-    
+
     #putting all selected nodes in a list
     nodeSearchList = returnSelectedNodes()
 
@@ -841,7 +841,7 @@ def paint_disjoint_path(draw,master):
                         #print("painted the path to goal")
             i += 1
         newPathColor += 1
-    
+
     deselectActiveNodes()
 
 def makeGroup(draw,master):
@@ -851,7 +851,7 @@ def makeGroup(draw,master):
     for x in groupList:
         x[1].group = currentGroup
         x[4] = fancyColor[currentGroup]
-    
+
     saveSelectedNodes(groupList)
     currentGroup += 1
     deselectActiveNodes()
@@ -1011,28 +1011,35 @@ def makeunkown(master, draw):
     reloadCall(subMenu,reload,currentAmountOutputSelected,0)
 
 """
-below are the Predictor Model Selection and Immersion
+below are the functions for
 
--------------------------------------------------------- PMS & Immersion --------------------------------------------------------
+-------------------------------------------------------- PMS --------------------------------------------------------
 """
 
-def PMS_pop(draw,master):
-    popup = Tk()
-    popup.wm_title("PMS choice menu")
-    label = Label(popup, text="Choose which PMS function to be executed")
-    label.pack(side="top", fill="x", pady=10)
-    B1 = Button(popup, text="Okay", command = popup.destroy)
-    B1.pack()
-    B2 = Button(master, text="Okay", command = FIC(master,draw))
-    B2.pack()
-    popup.mainloop()
+def TEST(draw,master):
+    global outputStore
+    global outputNumber
+    start = 0
+    end = 0
+    NG, NR_pms, NH_pms, Unknownnodes_pms = toAdjacencyMatrix(draw,master)
+    for x in range(outputNumber):
+        if(outputStore[x]!=0):
+            if(outputStore[x][1].stat==2):
+                start = x
+            elif(outputStore[x][1].stat==3):
+                end = x
+    nodeSearchList = [outputStore[start],outputStore[end]]
+    list = disconnectingnode(NG,nodeSearchList)
+    print(str(list))
 
 def USC(master,draw):
     global outputStore
+    global currentAmountOutputSelected
     global number_of_nodes
     global lineNumber
     global lineStore
     global btnStore
+    global unknownNodenumber
     global outputNumber
     global NG_pms
     global NR_pms
@@ -1054,9 +1061,11 @@ def USC(master,draw):
     for x in range(outputNumber):
         if(outputStore[x]!=0):
             if(outputStore[x][1].stat==2 or outputStore[x][1].stat==4):
-                accesible[x] = 1
+                accessible[x] = 1
     D = (np.zeros(len(NG_pms))).tolist()
     Y = (np.zeros(len(NG_pms))).tolist()
+    Q = (np.zeros(len(NG_pms))).tolist()
+    Beta = (np.zeros(len(NG_pms))).tolist()
     #fill the A and B sets with the initial nodes
     D[i] = 1
     Y[j] = 1
@@ -1072,24 +1081,301 @@ def USC(master,draw):
         temp = list[x+1]
         D[temp] = 1
     #loop condition
+    list = []
+    temp = [0]
     NG = copy.deepcopy(NG_pms)
     for x in range(len(NG)):
         if(NG[x][j]):
             nodeSearchList = [outputStore[x],outputStore[j]]
-            list = graphShortestPath(NG,nodeSearchList)
-            for x in range(len(list)-1):
-                temp = list[x]
-                D[temp] = 1
-    #all accesible inneighbours of Y
-    for x in range(len(NG_pms)):
-        if(NG_pms[j][x] and accessible[x]):
-            D[x] = 1
-    #all accesible through inaccesible path
-    for x in range(len(NG_pms)):
-        if(NG_pms[j][x] and accessible[x]==0):
-            found = 1
-            while(found):
-                found = 0
+            list.append(graphShortestPath(NG,nodeSearchList))
+            temp = list[0]
+    for x in range(len(list)):
+        if(len(temp)>len(list[x])):
+            temp = list[x]
+    for x in range(len(temp)-1):
+        temp2 = temp[x]
+        D[temp2] = 1
+
+    change = 1
+    while(change):
+        #all accessible inneighbours of Y
+        for x in range(len(NG_pms)):
+            if(NG_pms[j][x] and accessible[x]):
+                D[x] = 1
+        #all accessible through inaccessible path
+        Unknownnodes_usc = []
+        unknownNodenumber = 0
+        for x in range(len(accessible)):
+            if(accessible[x]):
+                Unknownnodes_usc.append(0)
+            else:
+                Unknownnodes_usc.append(1)
+                unknownNodenumber +=1
+        print(str(Unknownnodes_usc))
+        G, B, R = Immersion(NG,NR,NH,Unknownnodes_usc,draw,master)
+        for x in range(len(G)):
+            if(G[j][x]):
+                D[x] = 1
+        #direct confounding or indirect confounding through inaccessible
+            #direct
+        for y in range(len(Y)):
+            if(Y[y]):
+                for x in range(len(NH_pms)):
+                    if(NH_pms[y][x]):
+                        for r in range(len(NH_pms)):
+                            if(NH_pms[r][x] and NG_pms[y][r] and accessible[r]):
+                                Y[r] = 1
+                                Q[r] = 1
+            #indirect
+        unknownNodenumber = 0
+        Unknownnodes_usc = []
+        for x in range(len(accessible)):
+            if(accessible[x]):
+                Unknownnodes_usc.append(0)
+            else:
+                Unknownnodes_usc.append(1)
+                unknownNodenumber =+1
+        NG = copy.deepcopy(NG_pms)
+        NH = copy.deepcopy(NH_pms)
+        NR = copy.deepcopy(NR_pms)
+        G, B, R = Immersion(NG,NR,NH,Unknownnodes_usc,draw,master)
+        for y in range(len(Y)):
+            if(Y[y]):
+                for x in range(len(B)):
+                    if(NH_pms[y][x]):
+                        for r in range(len(B)):
+                            if(B[r][x] and G[y][r] and accessible[r]):
+                                Y[r] = 1
+                                Q[r] = 1
+        #include signals from D into A
+        #no confounding variables case
+        A_direct = copy.deepcopy(D)
+        for y in range(len(Y)):
+            if(Y[y]):
+                for x in range(len(B)):
+                    if(B[y][x]):
+                        for r in range(len(B)):
+                            if(B[r][x] and G[y][r] and accessible[r]):
+                                A_direct[r] = 0
+        #indirect confounding through accessible
+        A_indirect = []
+        for x in range(len(D)):
+            if(D[x] and Y[x]==0 and A_direct[x]==0):
+                A_indirect.append(1)
+            else:
+                A_indirect.append(0)
+
+        for x in range(len(A_indirect)):
+            if(A_indirect[x]):
+                A_indirect[x] = 0
+                Unknownnodes_usc = (np.ones(len(D))).tolist()
+                unknownNodenumber = len(D)
+                Unknownnodes_usc[x] = 0
+                unknownNodenumber -= 1
+                for j in range(len(Y)):
+                    if(Y[j]):
+                        Unknownnodes_usc[j] = 0
+                        unknownNodenumber -= 1
+                NG = copy.deepcopy(NG_pms)
+                NH = copy.deepcopy(NH_pms)
+                NR = copy.deepcopy(NR_pms)
+                G, B, R = Immersion(NG,NR,NH,Unknownnodes_usc,draw,master)
+                for y in range(len(B)):
+                    if(Y[y]):
+                        for r in range(len(B)):
+                            if(B[y][r] and B[x][r] and G[y][x]):
+                                NG = copy.deepcopy(NG_pms)
+                                nodeSearchList = [outputStore[x],outputStore[y]]
+                                list = graphShortestPath(NG,nodeSearchList)
+                                #checking if it goes through an inaccessible node
+                                A_indirect[x] = 1
+                                for alpha in range(len(list)):
+                                    if(accessible[int(list[alpha])]==0):
+                                        A_indirect[x] = 0
+        #combining the two cases
+        A = []
+        for x in range(len(A_direct)):
+            if(A_direct[x] or A_indirect[x]):
+                A.append(1)
+            else:
+                A.append(0)
+        #step 7
+        change = 0
+        unknownNodenumber = 0
+        Unknownnodes_usc = []
+        for x in range(len(accessible)):
+            if(accessible[x]):
+                Unknownnodes_usc.append(0)
+            else:
+                Unknownnodes_usc.append(1)
+                unknownNodenumber =+1
+        NG = copy.deepcopy(NG_pms)
+        NH = copy.deepcopy(NH_pms)
+        NR = copy.deepcopy(NR_pms)
+        G, B, R = Immersion(NG,NR,NH,Unknownnodes_usc,draw,master)
+        for x in range(len(B)):
+            for y in range(len(B)):
+                if(Y[x] and D[y] and Y[y]==0):
+                    for r in range(len(B)):
+                        if(B[x][r] and B[y][r] and G[x][y]):
+                            if(Theorem1(master,draw,NG_pms,NH_pms,NR_pms,Beta,A,Y,D)):
+                                Beta[y] = 1
+                            else:
+                                Beta[y] = 0
+                                Y[y] = 1
+                                Q[y] = 1
+                                change = 1
+    #step 8
+    for x in range(len(A)):
+        if(A_indirect[x]):
+            #first option
+            A[x] = 0
+            if(Theorem1(master,draw,NG_pms,NH_pms,NR_pms,Beta,A,Y,D)):
+                Beta[x] = 1
+            #second option
+            else:
+                A[x] = 1
+                Beta[x] = 0
+                Unknownnodes_usc = (np.ones(len(D))).tolist()
+                unknownNodenumber = len(D)
+                Unknownnodes_usc[x] = 0
+                unknownNodenumber -= 1
+                for j in range(len(Y)):
+                    if(Y[j]):
+                        Unknownnodes_usc[j] = 0
+                        unknownNodenumber -= 1
+                NG = copy.deepcopy(NG_pms)
+                NH = copy.deepcopy(NH_pms)
+                NR = copy.deepcopy(NR_pms)
+                G, B, R = Immersion(NG,NR,NH,Unknownnodes_usc,draw,master)
+                for y in range(len(B)):
+                    if(Y[y]):
+                        for r in range(len(B)):
+                            if(B[y][r] and B[x][r] and G[y][x]):
+                                NG = copy.deepcopy(NG_pms)
+                                nodeSearchList = [outputStore[x],outputStore[y]]
+                                list = graphShortestPath(NG,nodeSearchList)
+
+            #third option
+                else:
+                    A[x] = 0
+                    Y[x] = 1
+                    Q[x] = 1
+
+    #change the transfer back to unselected
+    for x in range(number_of_nodes):
+        if(btnStore[x]!=0):
+                if(btnStore[x][1].pms==1):
+                    btnStore[x][1].stat = 2
+                    btnStore[x][1].pms = 0
+                    x, y = trueCoordinates(draw,btnStore[x])
+                    circleScan(draw,master,x,y)
+    #select the nodes in D and Y
+    for f in range(len(D)):
+        id = outputStore[f][1]
+        if(D[f] or Y[f]):
+            draw.itemconfig(outputStore[f][0],fill="yellow")
+        if(outputStore[f][1].stat==2):
+            id.order = 0
+            currentAmountOutputSelected = currentAmountOutputSelected - 1
+            outputStore[f][1].stat = 1
+            for a in range(lineNumber):
+                if(lineStore[a]!=0):
+                    if (id==lineStore[a][1] or id==lineStore[a][2]):
+                        draw.itemconfig(lineStore[a][0], fill=lineStore[a][4])
+        elif(outputStore[f][1].stat==4):
+            id.order = 0
+            currentAmountOutputSelected = currentAmountOutputSelected - 1
+            outputStore[f][1].stat = 3
+            for a in range(lineNumber):
+                if(lineStore[a]!=0):
+                    if (id==lineStore[a][1] or id==lineStore[a][2]):
+                        draw.itemconfig(lineStore[a][0], fill=lineStore[a][4])
+    #create the output message
+    msg = "Inputs:"
+    for x in range(len(D)):
+        if(D[x]):
+            msg = msg+" w"+str(x+1)+","
+    msg = msg[:-1]
+    msg = msg+"\nOutputs:"
+    for x in range(len(Y)):
+        if(Y[x]):
+            msg = msg+" w"+str(x+1)+","
+    msg = msg[:-1]
+    msg = msg+"\nA:"
+    for x in range(len(A)):
+        if(A[x]):
+            msg = msg+" w"+str(x+1)+","
+    msg = msg[:-1]
+    msg = msg+"\nB:"
+    for x in range(len(Beta)):
+        if(Beta[x]):
+            msg = msg+" w"+str(x+1)+","
+    msg = msg[:-1]
+    popupmsg(msg)
+
+
+
+def Theorem1(master,draw,NG_pms,NH_pms,NR_pms,Beta,A,Y,D):
+    global unknownNodenumber
+    condition2a = 1
+    condition2c = 1
+    Beta[x] = 1
+    #condition 2a
+        #A and Y
+    Unknownnodes_usc = (np.ones(len(Y))).tolist()
+    unknownNodenumber = len(Y)
+    NG = copy.deepcopy(NG_pms)
+    NH = copy.deepcopy(NH_pms)
+    NR = copy.deepcopy(NR_pms)
+    for a in range(len(NG)):
+        if(Y[a] or A[a]):
+            unknownNodenumber -=1
+            Unknownnodes_usc[a] = 0
+    Im_G, Im_B, Im_R = Immersion(NG,NR,NH,Unknownnodes_usc,draw,master)
+    for a in range(len(NG)):
+        for b in range(len(NG)):
+            if(Y[a] and A[b]):
+                for c in range(len(NG)):
+                    if(Im_B[a][c] and Im_B[b][c]):
+                        condition2a = 0
+        #A and B
+    Unknownnodes_usc = (np.ones(len(Y))).tolist()
+    unknownNodenumber = len(Y)
+    NG = copy.deepcopy(NG_pms)
+    NH = copy.deepcopy(NH_pms)
+    NR = copy.deepcopy(NR_pms)
+    for a in range(len(NG)):
+        if(Beta[a] or A[a]):
+            unknownNodenumber -=1
+            Unknownnodes_usc[a] = 0
+    Im_G, Im_B, Im_R = Immersion(NG,NR,NH,Unknownnodes_usc,draw,master)
+    for a in range(len(NG)):
+        for b in range(len(NG)):
+            if(Beta[a] and A[b]):
+                for c in range(len(NG)):
+                    if(Im_B[a][c] and Im_B[b][c]):
+                        condition2a = 0
+    #condition 2c
+    Unknownnodes_usc = (np.ones(len(Y))).tolist()
+    unknownNodenumber = len(Y)
+    NG = copy.deepcopy(NG_pms)
+    NH = copy.deepcopy(NH_pms)
+    NR = copy.deepcopy(NR_pms)
+    for a in range(len(NG)):
+        if(Y[a] or D[a]):
+            unknownNodenumber -=1
+            Unknownnodes_usc[a] = 0
+            NG[y][a] = 0
+    Im_G, Im_B, Im_R = Immersion(NG,NR,NH,Unknownnodes_usc,draw,master)
+    for a in range(len(NG)):
+        if((Y[a] or D[a]) and Im_G[x][a]):
+            condition2c = 0
+
+    if(condition2a==0 or 0==condition2c):
+        return False
+    else:
+        return True
 
 def MIC(master,draw):
     global outputStore
@@ -1101,6 +1387,7 @@ def MIC(master,draw):
     global NG_pms
     global NR_pms
     global NH_pms
+    global currentAmountOutputSelected
     NG_pms, NR_pms, NH_pms, Unknownnodes_pms = toAdjacencyMatrix(draw,master)
     #look for the button
     for x in range(number_of_nodes):
@@ -1130,14 +1417,20 @@ def MIC(master,draw):
         temp = list[x+1]
         D[temp] = 1
     #loop condition
+    list = []
+    temp = [0]
     NG = copy.deepcopy(NG_pms)
     for x in range(len(NG)):
         if(NG[x][j]):
             nodeSearchList = [outputStore[x],outputStore[j]]
-            list = graphShortestPath(NG,nodeSearchList)
-            for x in range(len(list)-1):
-                temp = list[x]
-                D[temp] = 1
+            list.append(graphShortestPath(NG,nodeSearchList))
+            temp = list[0]
+    for x in range(len(list)):
+        if(len(temp)>len(list[x])):
+            temp = list[x]
+    for x in range(len(temp)-1):
+        temp2 = temp[x]
+        D[temp2] = 1
     #step node signal
     Q = (np.zeros(len(NG_pms))).tolist()
     change = 1
@@ -1159,8 +1452,44 @@ def MIC(master,draw):
     for x in range(len(Q)):
         if(D[x] and Q[x]==0):
             A[x] = 1
-    msg = "D:"+str(D)+"\nA:"+str(A)+"\nQ:"+str(Q)+"\nY"+str(Y)
+
+    #change the transfer back to unselected
+    for x in range(number_of_nodes):
+        if(btnStore[x]!=0):
+                if(btnStore[x][1].pms==1):
+                    btnStore[x][1].stat = 2
+                    btnStore[x][1].pms = 0
+                    x, y = trueCoordinates(draw,btnStore[x])
+                    circleScan(draw,master,x,y)
+    #select the nodes in D and Y
+    for f in range(len(D)):
+        if(D[f] or Y[f]):
+            id = outputStore[f][1]
+            draw.itemconfig(outputStore[f][0],fill="yellow")
+    #create the output message
+    msg = "Inputs:"
+    for x in range(len(D)):
+        if(D[x]):
+            msg = msg+" w"+str(x+1)+","
+    msg = msg[:-1]
+    msg = msg+"\nOutputs:"
+    for x in range(len(Y)):
+        if(Y[x]):
+            msg = msg+" w"+str(x+1)+","
+    msg = msg[:-1]
+    msg = msg+"\nA:"
+    for x in range(len(A)):
+        if(A[x]):
+            msg = msg+" w"+str(x+1)+","
+    msg = msg[:-1]
+    msg = msg+"\nQ:"
+    for x in range(len(Q)):
+        if(Q[x]):
+            msg = msg+" w"+str(x+1)+","
+    msg = msg[:-1]
     popupmsg(msg)
+
+
 
 def FIC(master,draw):
     global outputStore
@@ -1198,10 +1527,6 @@ def FIC(master,draw):
             D[x]=1;
     change = 1
     while(change):
-        print("D:")
-        print(D)
-        print("Y:")
-        print(Y)
         change = 0
         #looking for new outputs
         for u in range(len(Y)):
@@ -1242,12 +1567,59 @@ def FIC(master,draw):
                         if(NH_pms[a][y] and A[a]):
                             Blocking_possible[x]=0
     Blocking = Blocking_possible
-    msg = "D:"+str(D)+"\nY:"+str(Y)+"\nA:"+str(A)+"\nBlocking"+str(Blocking)
+
+    #change the transfer back to unselected
+    for x in range(number_of_nodes):
+        if(btnStore[x]!=0):
+                if(btnStore[x][1].pms==1):
+                    btnStore[x][1].stat = 2
+                    btnStore[x][1].pms = 0
+                    x, y = trueCoordinates(draw,btnStore[x])
+                    circleScan(draw,master,x,y)
+    #select the nodes in D and Y
+    for f in range(len(D)):
+        if(D[f] or Y[f]):
+            id = outputStore[f][1]
+            draw.itemconfig(outputStore[f][0],fill="yellow")
+        if(Blocking[f]):
+            id = outputStore[f][1]
+            draw.itemconfig(outputStore[f][0],fill="orange")
+    #create the output message
+    msg = "Inputs:"
+    for x in range(len(D)):
+        if(D[x]):
+            msg = msg+" w"+str(x+1)+","
+    msg = msg[:-1]
+    msg = msg+"\nOutputs:"
+    for x in range(len(Y)):
+        if(Y[x]):
+            msg = msg+" w"+str(x+1)+","
+    msg = msg[:-1]
+    msg = msg+"\nA:"
+    for x in range(len(A)):
+        if(A[x]):
+            msg = msg+" w"+str(x+1)+","
+    msg = msg[:-1]
+    msg = msg+"\nBlocking:"
+    for x in range(len(Blocking)):
+        if(Blocking[x]):
+            msg = msg+" w"+str(x+1)+","
+    msg = msg[:-1]
     popupmsg(msg)
 
 def PMS_call(master,draw):
     D,Y = PMS(master,draw)
-    msg = "D:"+str(D)+"\nY:"+str(Y)
+    #create the output message
+    msg = "Inputs:"
+    for x in range(len(D)):
+        if(D[x]):
+            msg = msg+" w"+str(x+1)+","
+    msg = msg[:-1]
+    msg = msg+"\nOutputs:"
+    for x in range(len(Y)):
+        if(Y[x]):
+            msg = msg+" w"+str(x+1)+","
+    msg = msg[:-1]
     popupmsg(msg)
 
 def PMS(master, draw):
@@ -1336,6 +1708,23 @@ def popupmsg(msg):
     B1 = Button(popup, text="Okay", command = popup.destroy)
     B1.pack()
     popup.mainloop()
+
+def PMS_option(draw,master):
+    type_pms = layoutMethod1.get()
+    if(type_pms == "USC"):
+        USC(master,draw)
+    if(type_pms == "MIC"):
+        MIC(master,draw)
+    if(type_pms == "PMS"):
+        PMS_call(master,draw)
+    if(type_pms == "FIC"):
+        FIC(master,draw)
+
+"""
+below are the functions for
+
+-------------------------------------------------------- Immersion --------------------------------------------------------
+"""
 
 def Unknownnodesbottom(NG, NR, NH, Unknownnodes):
     global unknownNodenumber
@@ -1426,6 +1815,23 @@ def Immersion(NG,NR,NH,Unknownnodes,draw,master):
     test = np.array(NG)
     print("NG with unkownnodes at the bottom:")
     print(test)
+    iteration = 0
+    G = copy.deepcopy(NG)
+    while(iteration<unknownNodenumber):
+        for x in range(len(G)):
+            for y in range(len(G)):
+                if(Unknownnodes[y] and NG[x][y]):
+                    for r in range(len(G)):
+                        if(NG[y][r]):
+                            G[x][r] = 1
+        iteration += 1
+    len_G = len(G)
+    for x in range(unknownNodenumber):
+        for y in range(len(G)):
+            G[y][len_G-x-1] = 0
+            G[len_G-x-1][y] = 0
+    print(G)
+    """
     #Change NG into a Laplacian form L
     #creating Diagonal A1
     for x in range(len(NG)):
@@ -1487,6 +1893,7 @@ def Immersion(NG,NR,NH,Unknownnodes,draw,master):
             else:
                 A[x][y]=0;
     #adding the old nodes with no connection at the bottom
+
     G = []
     for x in range(len(NG)):
         new = []
@@ -1500,6 +1907,7 @@ def Immersion(NG,NR,NH,Unknownnodes,draw,master):
                 else:
                     new.append(A[x][y])
         G.append(new)
+    """
     #switching to the right position
 
     B = NH
@@ -1988,9 +2396,17 @@ layout = [
 "spectral",
 "spiral"
 ]
+layout1 = [
+"standard",
+"MIC",
+"FIC",
+"USC"
+]
 
 layoutMethod = StringVar(master)
 layoutMethod.set(layout[1])
+layoutMethod1 = StringVar(master)
+layoutMethod1.set(layout1[0])
 
 #bind functions to events
 initMainMenu(mainMenu, draw)
