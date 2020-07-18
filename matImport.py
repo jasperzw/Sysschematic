@@ -183,6 +183,23 @@ def graphShortestPath(NG,nodeSearchList):
 
     return path
 
+def disconnectingnode(NG,nodeSearchList):
+    nmbOutputs = len(NG)
+    nmbOutputs2 = len(NG[0])
+    #below function will read through the mat file and try to find how many modules their are
+
+    #using the network functions create a direction graph (nodes with a connection with a direction so connection 1 to 2 has a direction and is not the same as 2 to 1)
+    plot = nx.DiGraph()
+    plot.add_nodes_from(range(nmbOutputs))
+
+    for x in range(nmbOutputs):
+        for y in range(nmbOutputs2):
+            if(NG[x][y]==1):
+                plot.add_edge(y,x)
+    path = minimum_st_node_cut(plot,s=nodeSearchList[0][1].nmb-1,t=nodeSearchList[1][1].nmb-1)
+
+    return path
+
 def graphDisjointPath(NG,group1, group2):
 
     nmbOutputs = len(NG)
@@ -202,9 +219,9 @@ def graphDisjointPath(NG,group1, group2):
     plot.add_node(nmbOutputs+1)
     for x in group1:
         plot.add_edge(nmbOutputs,x[1].nmb-1)
-    
+
     for x in group2:
         plot.add_edge(x[1].nmb-1,nmbOutputs+1)
-    
+
     possible_path = list(nx.node_disjoint_paths(plot,nmbOutputs,nmbOutputs+1))
     return possible_path
