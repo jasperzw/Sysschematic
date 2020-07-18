@@ -835,6 +835,8 @@ def paint_disjoint_path(draw,master):
                     if(lineStore[x][1].nmb == path[f][i]+1 and lineStore[x][2].nmb == path[f][i+1]+1):
                         draw.itemconfig(lineStore[x][0],fill=fancyColor[newPathColor])
                         draw.itemconfig(lineStore[x][0],width=5)
+                        if(lineStore[x][5]=="arrow"):
+                            draw.itemconfig(lineStore[x][0],width=10)
                         lineStore[x][4] = fancyColor[newPathColor]
                         #print("painted the path to goal")
             i += 1
@@ -1760,7 +1762,7 @@ def connectOutputs(node1,node2,draw,master, placeBtn):
             lineWidget = draw.create_line(node1[2], node1[3], x_transfer, y_transfer, node2[2], node2[3], smooth="true")
         else:
             lineWidget = draw.create_line(node1[2], node1[3], x_transfer, y_transfer, node2[2], node2[3], smooth="true", width=0.01, dash=(5, 10))
-        tempStore = [lineWidget, node1[1], node2[1], node3[1],"black"]
+        tempStore = [lineWidget, node1[1], node2[1], node3[1],"black","line"]
         lineStore.insert(lineNumber,tempStore)
         lineNumber = lineNumber+1
 
@@ -1769,55 +1771,6 @@ def connectOutputs(node1,node2,draw,master, placeBtn):
 
         gamma = 45/2 #adjust the angle of the arrow
         length_arrow = 5*unit.currentZoom #adjust the lenght of the arrow
-        """
-        sign_2 = 1
-        if(node1[2]>node2[2]):
-            sign_2 = -1
-
-        p1 = [0,0]
-        p2 = [0,0]
-        p3 = [0,0]
-        p1[0] = node1[2]
-        p1[1] = node1[3]
-        p2[0] = node2[2]
-        p2[1] = node2[3]
-        p3[0] = node3[2]
-        p3[1] = node3[3]
-        xa, ya, radius = define_circle(p1, p2, p3)
-        #function y = -ya + sqrt(-(x+xa)^2 radius^2)
-        x_arrow0 = (x_middle+node2[2])/2
-        y_arrow0 = ya + math.sqrt(math.pow(radius,2)-math.pow((x_arrow0-xa),2)) -1
-        #derivative y'
-        #slope = (x_arrow0-xa)/math.sqrt(math.pow(radius,2)-math.pow((x_arrow0-xa),2))
-        epsilon = math.degrees(math.atan(((node2[3]-y_arrow0)/(node2[2]-x_arrow0))))
-
-        test 2
-
-        sign_2 = 1
-        if(node1[2]<node2[2]):
-            length = node2[2]-node1[2]
-        else:
-            length = node1[2]-node2[2]
-            sign_2 = -1
-        x_axis_left = length/2
-        x_axis_middle = 0
-        y_axis_bottom = 0
-        y_axis_middle = height_curve
-        # make function y = ax^2 + b
-        b = y_axis_middle
-        a = -b/(math.pow(x_axis_left,2))
-        #use slope to calculate degree y' = 2ax
-        x_arrow = -length/4
-        y_arrow = a*math.pow(x_arrow,2) + b
-        slope = 2*a*x_arrow
-        slope_degrees = math.degrees(math.atan(slope))
-        print(slope_degrees)
-        print(theta)
-        #translate back to the actual position
-        epsilon = theta+sign_2*slope_degrees
-        x_arrow0 = node1[2]+ x_arrow*math.cos(math.radians(theta))-y_arrow*math.sin(math.radians(theta))
-        y_arrow0 = node1[3]+ y_arrow*math.cos(math.radians(theta))+x_arrow*math.sin(math.radians(theta))
-        """
 
         sign_2 = 1
         if(node1[2]>node2[2]):
@@ -1838,7 +1791,7 @@ def connectOutputs(node1,node2,draw,master, placeBtn):
         alpha_hypotenusa = sign_2*math.sin(math.radians(gamma))*length_arrow*2
         x_arrow2 = x_arrow1 - math.cos(math.radians(alpha))*alpha_hypotenusa
         y_arrow2 = y_arrow1 + math.sin(math.radians(alpha))*alpha_hypotenusa
-        tempStore2 = [draw.create_line(x_arrow1, y_arrow1, x_arrow0,y_arrow0, x_arrow2, y_arrow2),node1[1],node2[1],node3[1],"black"]
+        tempStore2 = [draw.create_line(x_arrow1, y_arrow1, x_arrow0,y_arrow0, x_arrow2, y_arrow2),node1[1],node2[1],node3[1],"black","arrow"]
         lineStore.insert(lineNumber,tempStore2)
         lineNumber = lineNumber+1
 
