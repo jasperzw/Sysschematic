@@ -198,34 +198,13 @@ def graphDisjointPath(NG,group1, group2):
             if(NG[x][y]==1):
                 plot.add_edge(y,x)
 
-    visitedList = []
-    indexList = []
-    starterList = []
-    endList = []
-    for f in group1:
-        temp = f[1].nmb-1
-        starterList.append(temp)
-    
-    for f in group2:
-        temp = f[1].nmb-1
-        endList.append(temp)
+    plot.add_node(nmbOutputs)
+    plot.add_node(nmbOutputs+1)
     for x in group1:
-        for y in group2:
-            index = set(indexList)
-            group1index = set(starterList)
-            group2index = set(endList)
-            possible_path = list(nx.node_disjoint_paths(plot,x[1].nmb-1,y[1].nmb-1))
-            for i in possible_path:
-                fail = 0
-                for j in i:
-                    if j in index:
-                        fail = 1
-                    if j in group1index and j!=(x[1].nmb-1):
-                        fail = 1
-                    if j in group2index and j!=(y[1].nmb-1):
-                        fail = 1
-                if fail == 0:
-                    visitedList.append(i)
-                    indexList.extend(i)
-
-    return visitedList
+        plot.add_edge(nmbOutputs,x[1].nmb-1)
+    
+    for x in group2:
+        plot.add_edge(x[1].nmb-1,nmbOutputs+1)
+    
+    possible_path = list(nx.node_disjoint_paths(plot,nmbOutputs,nmbOutputs+1))
+    return possible_path
