@@ -1218,9 +1218,8 @@ def USC(master,draw):
                 if(Y[x] and D[y] and Y[y]==0):
                     for r in range(len(B)):
                         if(B[x][r] and B[y][r] and G[x][y]):
-                            if(Theorem1(master,draw,NG_pms,NH_pms,NR_pms,Beta,A,Y,D)):
-                                Beta[y] = 1
-                            else:
+                            Beta[y] = 1
+                            if(Theorem1(master,draw,NG_pms,NH_pms,NR_pms,Beta,A,Y,D)==False):
                                 Beta[y] = 0
                                 Y[y] = 1
                                 Q[y] = 1
@@ -1230,8 +1229,9 @@ def USC(master,draw):
         if(A_indirect[x]):
             #first option
             A[x] = 0
+            Beta[x] = 1
             if(Theorem1(master,draw,NG_pms,NH_pms,NR_pms,Beta,A,Y,D)):
-                Beta[x] = 1
+                p = 1
             #second option
             else:
                 A[x] = 1
@@ -1240,22 +1240,39 @@ def USC(master,draw):
                 unknownNodenumber = len(D)
                 Unknownnodes_usc[x] = 0
                 unknownNodenumber -= 1
-                for j in range(len(Y)):
-                    if(Y[j]):
+                for j in range(len(accessible)):
+                    if(accessible[j]):
                         Unknownnodes_usc[j] = 0
                         unknownNodenumber -= 1
                 NG = copy.deepcopy(NG_pms)
                 NH = copy.deepcopy(NH_pms)
                 NR = copy.deepcopy(NR_pms)
                 G, B, R = Immersion(NG,NR,NH,Unknownnodes_usc,draw,master)
-                for y in range(len(B)):
-                    if(Y[y]):
-                        for r in range(len(B)):
-                            if(B[y][r] and B[x][r] and G[y][x]):
-                                NG = copy.deepcopy(NG_pms)
-                                nodeSearchList = [outputStore[x],outputStore[y]]
-                                list = graphShortestPath(NG,nodeSearchList)
-
+                D_fic, Y_fic, A_fic, Blocking_fic = FIC(master,draw,G,R,B)
+                #create the output message
+                msg = "Inputs:"
+                for x in range(len(D)):
+                    if(D[x]):
+                        msg = msg+" w"+str(x+1)+","
+                msg = msg[:-1]
+                msg = msg+"\nOutputs:"
+                for x in range(len(Y)):
+                    if(Y[x]):
+                        msg = msg+" w"+str(x+1)+","
+                msg = msg[:-1]
+                msg = msg+"\nA:"
+                for x in range(len(A)):
+                    if(A[x]):
+                        msg = msg+" w"+str(x+1)+","
+                msg = msg[:-1]
+                msg = msg+"\nBlocking:"
+                for x in range(len(Blocking)):
+                    if(Blocking[x]):
+                        msg = msg+" w"+str(x+1)+","
+                msg = msg[:-1]
+                popupmsg(msg)
+                if(Blocking_fic[0]):
+                    p+=1
             #third option
                 else:
                     A[x] = 0
@@ -1320,7 +1337,6 @@ def Theorem1(master,draw,NG_pms,NH_pms,NR_pms,Beta,A,Y,D):
     global unknownNodenumber
     condition2a = 1
     condition2c = 1
-    Beta[x] = 1
     #condition 2a
         #A and Y
     Unknownnodes_usc = (np.ones(len(Y))).tolist()
@@ -1489,9 +1505,51 @@ def MIC(master,draw):
     msg = msg[:-1]
     popupmsg(msg)
 
+def FIC_call(master,draw):
+    #FIC
+    NG_fic, NR_fic, NH_fic, Unknownnodes_pms = toAdjacencyMatrix(draw,master)
+    D, Y, A, Blocking = FIC(master,draw,NG_fic, NR_fic, NH_fic)
+    #change the transfer back to unselected
+    for x in range(number_of_nodes):
+        if(btnStore[x]!=0):
+                if(btnStore[x][1].pms==1):
+                    btnStore[x][1].stat = 2
+                    btnStore[x][1].pms = 0
+                    x, y = trueCoordinates(draw,btnStore[x])
+                    circleScan(draw,master,x,y)
+    #select the nodes in D and Y
+    for f in range(len(D)):
+        if(D[f] or Y[f]):
+            id = outputStore[f][1]
+            draw.itemconfig(outputStore[f][0],fill="yellow")
+        if(Blocking[f]):
+            id = outputStore[f][1]
+            draw.itemconfig(outputStore[f][0],fill="orange")
+    #create the output message
+    msg = "Inputs:"
+    for x in range(len(D)):
+        if(D[x]):
+            msg = msg+" w"+str(x+1)+","
+    msg = msg[:-1]
+    msg = msg+"\nOutputs:"
+    for x in range(len(Y)):
+        if(Y[x]):
+            msg = msg+" w"+str(x+1)+","
+    msg = msg[:-1]
+    msg = msg+"\nA:"
+    for x in range(len(A)):
+        if(A[x]):
+            msg = msg+" w"+str(x+1)+","
+    msg = msg[:-1]
+    msg = msg+"\nBlocking:"
+    for x in range(len(Blocking)):
+        if(Blocking[x]):
+            msg = msg+" w"+str(x+1)+","
+    msg = msg[:-1]
+    popupmsg(msg)
 
 
-def FIC(master,draw):
+def FIC(master,draw,NG_fic, NR_fic, NH_fic):
     global outputStore
     global outputNumber
     global unknownNodenumber
@@ -1505,8 +1563,8 @@ def FIC(master,draw):
     global btnStore
     global lineStore
     global lineNumber
-    NG_pms, NR_pms, NH_pms, Unknownnodes_pms = toAdjacencyMatrix(draw,master)
     #look for the button
+    NG_pms, NR_pms, NH_pms = NG_fic, NR_fic, NH_fic
     for x in range(number_of_nodes):
         if(btnStore[x]!=0):
             if(btnStore[x][1].pms==1):
@@ -1567,45 +1625,7 @@ def FIC(master,draw):
                         if(NH_pms[a][y] and A[a]):
                             Blocking_possible[x]=0
     Blocking = Blocking_possible
-
-    #change the transfer back to unselected
-    for x in range(number_of_nodes):
-        if(btnStore[x]!=0):
-                if(btnStore[x][1].pms==1):
-                    btnStore[x][1].stat = 2
-                    btnStore[x][1].pms = 0
-                    x, y = trueCoordinates(draw,btnStore[x])
-                    circleScan(draw,master,x,y)
-    #select the nodes in D and Y
-    for f in range(len(D)):
-        if(D[f] or Y[f]):
-            id = outputStore[f][1]
-            draw.itemconfig(outputStore[f][0],fill="yellow")
-        if(Blocking[f]):
-            id = outputStore[f][1]
-            draw.itemconfig(outputStore[f][0],fill="orange")
-    #create the output message
-    msg = "Inputs:"
-    for x in range(len(D)):
-        if(D[x]):
-            msg = msg+" w"+str(x+1)+","
-    msg = msg[:-1]
-    msg = msg+"\nOutputs:"
-    for x in range(len(Y)):
-        if(Y[x]):
-            msg = msg+" w"+str(x+1)+","
-    msg = msg[:-1]
-    msg = msg+"\nA:"
-    for x in range(len(A)):
-        if(A[x]):
-            msg = msg+" w"+str(x+1)+","
-    msg = msg[:-1]
-    msg = msg+"\nBlocking:"
-    for x in range(len(Blocking)):
-        if(Blocking[x]):
-            msg = msg+" w"+str(x+1)+","
-    msg = msg[:-1]
-    popupmsg(msg)
+    return D, Y, A, Blocking
 
 def PMS_call(master,draw):
     D,Y = PMS(master,draw)
@@ -1718,7 +1738,7 @@ def PMS_option(draw,master):
     if(type_pms == "PMS"):
         PMS_call(master,draw)
     if(type_pms == "FIC"):
-        FIC(master,draw)
+        FIC_call(master,draw)
 
 """
 below are the functions for
