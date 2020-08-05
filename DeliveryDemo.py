@@ -1,6 +1,6 @@
 # Importing tkinter module
 from tkinter import *
-from matImport import readFile, toAdjacencyMatrixCall, generateGraph, graphShortestPath, graphDisjointPath, disconnectingnode
+from matImport import readFile, toAdjacencyMatrixCall, generateGraph, graphShortestPath, graphDisjointPath
 from tkinter.filedialog import askopenfilename
 import math
 from Scrollwindow import *
@@ -821,8 +821,9 @@ def paint_disjoint_path(draw,master):
 
 
     #adding them to a networkx to scan for the shortest route because networkx is lit
-    path = graphDisjointPath(storeNG, group1, group2)
-
+    path = graphDisjointPath(storeNG, group1, group2,1)
+    disconnected_set = graphDisjointPath(storeNG, group1, group2,0)
+    print("found disconnected set", disconnected_set)
     print("found disjoint path:", path)
     cyclePath = len(path)
     for f in range(cyclePath):
@@ -841,6 +842,10 @@ def paint_disjoint_path(draw,master):
                         #print("painted the path to goal")
             i += 1
         newPathColor += 1
+
+    for x in disconnected_set:
+        if(outputStore[x]!=0):
+            draw.itemconfig(outputStore[x][0],fill="purple")
 
     deselectActiveNodes()
 
@@ -1029,8 +1034,8 @@ def TEST(draw,master):
             elif(outputStore[x][1].stat==3):
                 end = x
     nodeSearchList = [outputStore[start],outputStore[end]]
-    list = disconnectingnode(NG,nodeSearchList)
-    print(str(list))
+    list = graphDisjointPath(NG,group1,group2,0)
+    print(list)
 
 def USC(master,draw):
     global outputStore
