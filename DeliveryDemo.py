@@ -1,6 +1,6 @@
 # Importing tkinter module
 from tkinter import *
-from matImport import readFile, toAdjacencyMatrixCall, generateGraph, graphShortestPath, graphDisjointPath
+from matImport import readFile, generateGraph, graphShortestPath, graphDisjointPath
 from tkinter.filedialog import askopenfilename
 import math
 from Scrollwindow import *
@@ -124,6 +124,7 @@ below are all the functions for
 
 used to plot adjency matrix and return everything to Adjacency matrix
 """
+
 
 def toggleTransfer(master,draw):
     for x in range(number_of_nodes):
@@ -431,6 +432,110 @@ def toAdjacencyMatrix(draw,master):
     storeNG, storeNR, storeNH, outputNumber, outputStore, Unknownnodes= toAdjacencyMatrixCall(draw,master,overlay,storeNG,storeNH,storeNR,lineStore,lineNumber,outputStore,outputNumber,excitationStore,excitationNumber,noiseNodeStore,noiseNodeNumber, Unknownnodes, noiseNumber)
 
     return storeNG, storeNR, storeNH, Unknownnodes
+
+
+def toAdjacencyMatrixCall(draw,master,overlay,storeNG,storeNH,storeNR,lineStore,lineNumber,outputStore,outputNumber,excitationStore,excitationNumber,noiseNodeStore,noiseNodeNumber,KnownNodes,noiseNumber):
+    NG = []
+    NR = []
+    NH = []
+    KnownNodes = []
+    #set everything first to zero
+    for x in range(outputNumber):
+        new = []
+        for y in range(outputNumber):
+            new.append(0)
+        NG.append(new)
+        new = []
+        for y in range(noiseNodeNumber):
+            new.append(0)
+        NH.append(new)
+        new = []
+        for y in range(excitationNumber):
+            new.append(0)
+        NR.append(new)
+        KnownNodes.append(0)
+    #create NG matrix
+    #print(noiseNodeStore)
+    for x in range(outputNumber):
+        if(outputStore[x]!=0):
+            currentOutput = outputStore[x][1]
+            #check for connections to create NG
+            for y in range(lineNumber):
+                #print("now scanning for node: ",x," at linestore: ",lineStore[y]," for button: ",currentOutput)
+                if(lineStore[y]!=0):
+                    if(lineStore[y][2]==currentOutput):
+                        #found a lineconnection to currentOutput
+                        nodeB = lineStore[y][1]
+                        for a in range(outputNumber):
+                            if(outputStore[a]!=0):
+                                nodeA = outputStore[a][1]
+                                if(nodeA==nodeB):
+                                    print(x)
+                                    print(nodeB.nmb)
+                                    NG[x][nodeB.nmb-1] = 1
+
+            if(currentOutput.stat==3):
+                KnownNodes[x]=1
+
+            if(overlay==1):
+                for y in range(lineNumber):
+                    if(lineStore[y]!=0):
+                        if(lineStore[y][2]==currentOutput):
+                            nodeB = lineStore[y][1]
+                            for a in range(noiseNodeNumber):
+                                if(noiseNodeStore[a]!=0):
+                                    if(nodeB == noiseNodeStore[a][1]):
+                                        NH[x][nodeB.nmb-1] = 1
+            else:
+                NH = storeNH
+            for y in range(excitationNumber):
+                if(excitationStore[y]!=0):
+                    if(excitationStore[y][4]==currentOutput):
+                        excitation = excitationStore[y][1]
+                        nmb = int(excitation.nmb)
+                        NR[x][nmb-1] = 1
+    if(overlay==0):
+        if(noiseNodeNumber==0):
+            NH = []
+            for x in range(outputNumber):
+                new = []
+                for y in range(outputNumber):
+                    if(y==x):
+                        new.append(1)
+                        addNH(outputStore[x],master,draw,0,y)
+                    else:
+                        new.append(0)
+                NH.append(new)
+        if(excitationNumber==0):
+            NR = []
+            for x in range(outputNumber):
+                new = []
+                for y in range(outputNumber):
+                    if(y==x):
+                        new.append(1)
+                        addNH(outputStore[x],master,draw,1,y)
+                    else:
+                        new.append(0)
+                NR.append(new)
+    else:
+
+    storeNG = NG
+    storeNR = NR
+    storeNH = NH
+
+    print("NG is generated as following:")
+    for value in storeNG:
+        print(value)
+    print("NR is generated as following:")
+    for value in storeNR:
+        print(value)
+    print("NH is generated as following:")
+    for value in storeNH:
+        print(value)
+    print("KnownNodes is generated as following:")
+    print(KnownNodes)
+
+    return NG, NR, NH, outputNumber, outputStore, KnownNodes
 
 def abstractPlot(draw,master,NG,NR,NH):
     global butTestStore
@@ -1617,6 +1722,9 @@ def FIC(master,draw,NG_fic, NR_fic, NH_fic):
                         if(NH_pms[a][y] and A[a]):
                             Blocking_possible[x]=0
     Blocking = Blocking_possible
+    for x in range(len(Blocking_possible)):
+        if(Blocking[x]):
+            D[x]= 1
     return D, Y, A, Blocking
 
 def PMS_call(master,draw):
@@ -1727,8 +1835,8 @@ def PMS_option(draw,master):
         USC(master,draw)
     if(type_pms == "MIC"):
         MIC(master,draw)
-    if(type_pms == "PMS"):
-        PMS_call(master,draw)
+    #if(type_pms == "PMS"):
+    #    PMS_call(master,draw)
     if(type_pms == "FIC"):
         FIC_call(master,draw)
 
@@ -2409,7 +2517,7 @@ layout = [
 "spiral"
 ]
 layout1 = [
-"standard",
+#"standard",
 "MIC",
 "FIC",
 "USC"
