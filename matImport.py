@@ -75,7 +75,7 @@ def toAdjacencyMatrixCall(draw,master,overlay,storeNG,storeNH,storeNR,lineStore,
                         if(excitationStore[y][4]==currentOutput):
                             excitation = excitationStore[y][1]
                             nmb = int(excitation.nmb)
-                            NR[x][nmb] = 1
+                            NR[x][nmb-1] = 1
 
     """
     x = 0

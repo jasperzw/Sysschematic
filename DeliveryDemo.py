@@ -1219,7 +1219,7 @@ def USC(master,draw):
                     for r in range(len(B)):
                         if(B[x][r] and B[y][r] and G[x][y]):
                             Beta[y] = 1
-                            if(Theorem1(master,draw,NG_pms,NH_pms,NR_pms,Beta,A,Y,D)==False):
+                            if(Theorem1(master,draw,Beta,A,Y,D,accessible)==False):
                                 Beta[y] = 0
                                 Y[y] = 1
                                 Q[y] = 1
@@ -1230,7 +1230,7 @@ def USC(master,draw):
             #first option
             A[x] = 0
             Beta[x] = 1
-            if(Theorem1(master,draw,NG_pms,NH_pms,NR_pms,Beta,A,Y,D)):
+            if(Theorem1(master,draw,Beta,A,Y,D,accessible)):
                 p = 1
             #second option
             else:
@@ -1249,30 +1249,12 @@ def USC(master,draw):
                 NR = copy.deepcopy(NR_pms)
                 G, B, R = Immersion(NG,NR,NH,Unknownnodes_usc,draw,master)
                 D_fic, Y_fic, A_fic, Blocking_fic = FIC(master,draw,G,R,B)
-                #create the output message
-                msg = "Inputs:"
-                for x in range(len(D)):
-                    if(D[x]):
-                        msg = msg+" w"+str(x+1)+","
-                msg = msg[:-1]
-                msg = msg+"\nOutputs:"
-                for x in range(len(Y)):
-                    if(Y[x]):
-                        msg = msg+" w"+str(x+1)+","
-                msg = msg[:-1]
-                msg = msg+"\nA:"
-                for x in range(len(A)):
-                    if(A[x]):
-                        msg = msg+" w"+str(x+1)+","
-                msg = msg[:-1]
-                msg = msg+"\nBlocking:"
-                for x in range(len(Blocking)):
-                    if(Blocking[x]):
-                        msg = msg+" w"+str(x+1)+","
-                msg = msg[:-1]
-                popupmsg(msg)
-                if(Blocking_fic[0]):
-                    p+=1
+                Beta_option_2 = copy.deepcopy(Beta)
+                for y in range(Blocking_fic):
+                    if(Blocking_fic[y]):
+                        Beta_option_2[y] = 1
+                if(Theorem1(master,draw,Beta_option_2,A,Y,D,accessible)):
+                    Beta = Beta_option_2
             #third option
                 else:
                     A[x] = 0
@@ -1333,7 +1315,10 @@ def USC(master,draw):
 
 
 
-def Theorem1(master,draw,NG_pms,NH_pms,NR_pms,Beta,A,Y,D):
+def Theorem1(master,draw,Beta,A,Y,D,accessible):
+    global NG_pms
+    global NR_pms
+    global NH_pms
     global unknownNodenumber
     condition2a = 1
     condition2c = 1
@@ -1373,20 +1358,22 @@ def Theorem1(master,draw,NG_pms,NH_pms,NR_pms,Beta,A,Y,D):
                     if(Im_B[a][c] and Im_B[b][c]):
                         condition2a = 0
     #condition 2c
-    Unknownnodes_usc = (np.ones(len(Y))).tolist()
-    unknownNodenumber = len(Y)
-    NG = copy.deepcopy(NG_pms)
-    NH = copy.deepcopy(NH_pms)
-    NR = copy.deepcopy(NR_pms)
-    for a in range(len(NG)):
-        if(Y[a] or D[a]):
-            unknownNodenumber -=1
-            Unknownnodes_usc[a] = 0
-            NG[y][a] = 0
-    Im_G, Im_B, Im_R = Immersion(NG,NR,NH,Unknownnodes_usc,draw,master)
-    for a in range(len(NG)):
-        if((Y[a] or D[a]) and Im_G[x][a]):
-            condition2c = 0
+    for y in range(len(Beta)):
+        if(Beta[y]):
+            Unknownnodes_usc = (np.ones(len(Y))).tolist()
+            unknownNodenumber = len(Y)
+            NG = copy.deepcopy(NG_pms)
+            NH = copy.deepcopy(NH_pms)
+            NR = copy.deepcopy(NR_pms)
+            for a in range(len(NG)):
+                if(accessible[a]):
+                    unknownNodenumber -=1
+                    Unknownnodes_usc[a] = 0
+                    NG[y][a] = 0
+            Im_G, Im_B, Im_R = Immersion(NG,NR,NH,Unknownnodes_usc,draw,master)
+            for a in range(len(NG)):
+                if((Y[a] or D[a]) and Im_G[y][a]):
+                    condition2c = 0
 
     if(condition2a==0 or 0==condition2c):
         return False
