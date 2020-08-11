@@ -1,6 +1,10 @@
 # Importing tkinter module
 from tkinter import *
+<<<<<<< HEAD
 from matImport import readFile, toAdjacencyMatrixCall, generateGraph, graphShortestPath, graphDisjointPath, treeAllocation
+=======
+from matImport import readFile, generateGraph, graphShortestPath, graphDisjointPath
+>>>>>>> edf7b78c21175b5d3a195fc17d858e01daca5e2a
 from tkinter.filedialog import askopenfilename
 import math
 from Scrollwindow import *
@@ -125,6 +129,7 @@ below are all the functions for
 
 used to plot adjency matrix and return everything to Adjacency matrix
 """
+
 
 def toggleTransfer(master,draw):
     for x in range(number_of_nodes):
@@ -432,6 +437,110 @@ def toAdjacencyMatrix(draw,master):
     storeNG, storeNR, storeNH, outputNumber, outputStore, Unknownnodes= toAdjacencyMatrixCall(draw,master,overlay,storeNG,storeNH,storeNR,lineStore,lineNumber,outputStore,outputNumber,excitationStore,excitationNumber,noiseNodeStore,noiseNodeNumber, Unknownnodes, noiseNumber)
 
     return storeNG, storeNR, storeNH, Unknownnodes
+
+
+def toAdjacencyMatrixCall(draw,master,overlay,storeNG,storeNH,storeNR,lineStore,lineNumber,outputStore,outputNumber,excitationStore,excitationNumber,noiseNodeStore,noiseNodeNumber,KnownNodes,noiseNumber):
+    NG = []
+    NR = []
+    NH = []
+    KnownNodes = []
+    #set everything first to zero
+    for x in range(outputNumber):
+        new = []
+        for y in range(outputNumber):
+            new.append(0)
+        NG.append(new)
+        new = []
+        for y in range(noiseNodeNumber):
+            new.append(0)
+        NH.append(new)
+        new = []
+        for y in range(excitationNumber):
+            new.append(0)
+        NR.append(new)
+        KnownNodes.append(0)
+    #create NG matrix
+    #print(noiseNodeStore)
+    for x in range(outputNumber):
+        if(outputStore[x]!=0):
+            currentOutput = outputStore[x][1]
+            #check for connections to create NG
+            for y in range(lineNumber):
+                #print("now scanning for node: ",x," at linestore: ",lineStore[y]," for button: ",currentOutput)
+                if(lineStore[y]!=0):
+                    if(lineStore[y][2]==currentOutput):
+                        #found a lineconnection to currentOutput
+                        nodeB = lineStore[y][1]
+                        for a in range(outputNumber):
+                            if(outputStore[a]!=0):
+                                nodeA = outputStore[a][1]
+                                if(nodeA==nodeB):
+                                    print(x)
+                                    print(nodeB.nmb)
+                                    NG[x][nodeB.nmb-1] = 1
+
+            if(currentOutput.stat==3):
+                KnownNodes[x]=1
+
+            if(overlay==1):
+                for y in range(lineNumber):
+                    if(lineStore[y]!=0):
+                        if(lineStore[y][2]==currentOutput):
+                            nodeB = lineStore[y][1]
+                            for a in range(noiseNodeNumber):
+                                if(noiseNodeStore[a]!=0):
+                                    if(nodeB == noiseNodeStore[a][1]):
+                                        NH[x][nodeB.nmb-1] = 1
+            else:
+                NH = storeNH
+            for y in range(excitationNumber):
+                if(excitationStore[y]!=0):
+                    if(excitationStore[y][4]==currentOutput):
+                        excitation = excitationStore[y][1]
+                        nmb = int(excitation.nmb)
+                        NR[x][nmb-1] = 1
+    if(overlay==0):
+        if(noiseNodeNumber==0):
+            NH = []
+            for x in range(outputNumber):
+                new = []
+                for y in range(outputNumber):
+                    if(y==x):
+                        new.append(1)
+                        addNH(outputStore[x],master,draw,0,y)
+                    else:
+                        new.append(0)
+                NH.append(new)
+        if(excitationNumber==0):
+            NR = []
+            for x in range(outputNumber):
+                new = []
+                for y in range(outputNumber):
+                    if(y==x):
+                        new.append(1)
+                        addNH(outputStore[x],master,draw,1,y)
+                    else:
+                        new.append(0)
+                NR.append(new)
+    else:
+
+    storeNG = NG
+    storeNR = NR
+    storeNH = NH
+
+    print("NG is generated as following:")
+    for value in storeNG:
+        print(value)
+    print("NR is generated as following:")
+    for value in storeNR:
+        print(value)
+    print("NH is generated as following:")
+    for value in storeNH:
+        print(value)
+    print("KnownNodes is generated as following:")
+    print(KnownNodes)
+
+    return NG, NR, NH, outputNumber, outputStore, KnownNodes
 
 def abstractPlot(draw,master,NG,NR,NH):
     global butTestStore
@@ -1229,7 +1338,7 @@ def USC(master,draw):
                     for r in range(len(B)):
                         if(B[x][r] and B[y][r] and G[x][y]):
                             Beta[y] = 1
-                            if(Theorem1(master,draw,NG_pms,NH_pms,NR_pms,Beta,A,Y,D)==False):
+                            if(Theorem1(master,draw,Beta,A,Y,D,accessible)==False):
                                 Beta[y] = 0
                                 Y[y] = 1
                                 Q[y] = 1
@@ -1240,7 +1349,7 @@ def USC(master,draw):
             #first option
             A[x] = 0
             Beta[x] = 1
-            if(Theorem1(master,draw,NG_pms,NH_pms,NR_pms,Beta,A,Y,D)):
+            if(Theorem1(master,draw,Beta,A,Y,D,accessible)):
                 p = 1
             #second option
             else:
@@ -1259,30 +1368,12 @@ def USC(master,draw):
                 NR = copy.deepcopy(NR_pms)
                 G, B, R = Immersion(NG,NR,NH,Unknownnodes_usc,draw,master)
                 D_fic, Y_fic, A_fic, Blocking_fic = FIC(master,draw,G,R,B)
-                #create the output message
-                msg = "Inputs:"
-                for x in range(len(D)):
-                    if(D[x]):
-                        msg = msg+" w"+str(x+1)+","
-                msg = msg[:-1]
-                msg = msg+"\nOutputs:"
-                for x in range(len(Y)):
-                    if(Y[x]):
-                        msg = msg+" w"+str(x+1)+","
-                msg = msg[:-1]
-                msg = msg+"\nA:"
-                for x in range(len(A)):
-                    if(A[x]):
-                        msg = msg+" w"+str(x+1)+","
-                msg = msg[:-1]
-                msg = msg+"\nBlocking:"
-                for x in range(len(Blocking)):
-                    if(Blocking[x]):
-                        msg = msg+" w"+str(x+1)+","
-                msg = msg[:-1]
-                popupmsg(msg)
-                if(Blocking_fic[0]):
-                    p+=1
+                Beta_option_2 = copy.deepcopy(Beta)
+                for y in range(Blocking_fic):
+                    if(Blocking_fic[y]):
+                        Beta_option_2[y] = 1
+                if(Theorem1(master,draw,Beta_option_2,A,Y,D,accessible)):
+                    Beta = Beta_option_2
             #third option
                 else:
                     A[x] = 0
@@ -1343,7 +1434,10 @@ def USC(master,draw):
 
 
 
-def Theorem1(master,draw,NG_pms,NH_pms,NR_pms,Beta,A,Y,D):
+def Theorem1(master,draw,Beta,A,Y,D,accessible):
+    global NG_pms
+    global NR_pms
+    global NH_pms
     global unknownNodenumber
     condition2a = 1
     condition2c = 1
@@ -1383,20 +1477,22 @@ def Theorem1(master,draw,NG_pms,NH_pms,NR_pms,Beta,A,Y,D):
                     if(Im_B[a][c] and Im_B[b][c]):
                         condition2a = 0
     #condition 2c
-    Unknownnodes_usc = (np.ones(len(Y))).tolist()
-    unknownNodenumber = len(Y)
-    NG = copy.deepcopy(NG_pms)
-    NH = copy.deepcopy(NH_pms)
-    NR = copy.deepcopy(NR_pms)
-    for a in range(len(NG)):
-        if(Y[a] or D[a]):
-            unknownNodenumber -=1
-            Unknownnodes_usc[a] = 0
-            NG[y][a] = 0
-    Im_G, Im_B, Im_R = Immersion(NG,NR,NH,Unknownnodes_usc,draw,master)
-    for a in range(len(NG)):
-        if((Y[a] or D[a]) and Im_G[x][a]):
-            condition2c = 0
+    for y in range(len(Beta)):
+        if(Beta[y]):
+            Unknownnodes_usc = (np.ones(len(Y))).tolist()
+            unknownNodenumber = len(Y)
+            NG = copy.deepcopy(NG_pms)
+            NH = copy.deepcopy(NH_pms)
+            NR = copy.deepcopy(NR_pms)
+            for a in range(len(NG)):
+                if(accessible[a]):
+                    unknownNodenumber -=1
+                    Unknownnodes_usc[a] = 0
+                    NG[y][a] = 0
+            Im_G, Im_B, Im_R = Immersion(NG,NR,NH,Unknownnodes_usc,draw,master)
+            for a in range(len(NG)):
+                if((Y[a] or D[a]) and Im_G[y][a]):
+                    condition2c = 0
 
     if(condition2a==0 or 0==condition2c):
         return False
@@ -1635,6 +1731,9 @@ def FIC(master,draw,NG_fic, NR_fic, NH_fic):
                         if(NH_pms[a][y] and A[a]):
                             Blocking_possible[x]=0
     Blocking = Blocking_possible
+    for x in range(len(Blocking_possible)):
+        if(Blocking[x]):
+            D[x]= 1
     return D, Y, A, Blocking
 
 def PMS_call(master,draw):
@@ -1745,8 +1844,8 @@ def PMS_option(draw,master):
         USC(master,draw)
     if(type_pms == "MIC"):
         MIC(master,draw)
-    if(type_pms == "PMS"):
-        PMS_call(master,draw)
+    #if(type_pms == "PMS"):
+    #    PMS_call(master,draw)
     if(type_pms == "FIC"):
         FIC_call(master,draw)
 
@@ -2427,7 +2526,7 @@ layout = [
 "spiral"
 ]
 layout1 = [
-"standard",
+#"standard",
 "MIC",
 "FIC",
 "USC"
