@@ -1,6 +1,6 @@
 # Importing tkinter module
 from tkinter import *
-from matImport import readFile, toAdjacencyMatrixCall, generateGraph, graphShortestPath, graphDisjointPath
+from matImport import readFile, toAdjacencyMatrixCall, generateGraph, graphShortestPath, graphDisjointPath, treeAllocation
 from tkinter.filedialog import askopenfilename
 import math
 from Scrollwindow import *
@@ -97,6 +97,7 @@ def initSubMenu(frame):
     Button(frame, text="Perform test identifiability", command= lambda: testIdentifiability(master, draw), height = 1, width=20).pack(padx=2, pady=2)
     Button(frame, text="Find shortest path", command= lambda: find_path(draw,master), height = 1, width=20).pack(padx=2, pady=2)
     Button(frame, text="Find disjoint path", command= lambda: paint_disjoint_path(draw,master), height = 1, width=20).pack(padx=2, pady=2)
+    Button(frame, text="Find minimum psuedo tree", command= lambda: find_minimum_tree(draw,master), height = 1, width=20).pack(padx=2, pady=2)
     Button(frame, text="Immersion", command= lambda: Immersion_call(master, draw), height = 1, width=20).pack(padx=2, pady=2)
     Button(frame, text="Test", command= lambda: TEST(master, draw), height = 1, width=20).pack(padx=2, pady=2)
     #in reload every button or Checkbox is stored which is reloaded on calling reloadCall when currentAmountOutputSelected > 1
@@ -764,7 +765,7 @@ def returnSelectedNodes():
 def returnGroupList(groupNumber):
     nodeList = []
     for x in outputStore:
-        if(x[1].group == groupNumber):
+        if(x[1].group == groupNumber or x[1].group == 3):
             nodeList.append(x)
 
     return nodeList
@@ -849,12 +850,16 @@ def paint_disjoint_path(draw,master):
 
     deselectActiveNodes()
 
+def find_minimum_tree(draw,master):
+    treeAllocation(storeNG)
+
+
 def makeGroup(draw,master):
     global currentGroup
     print("setting the currentGroup: ", currentGroup)
     groupList = returnSelectedNodes()
     for x in groupList:
-        x[1].group = currentGroup
+        x[1].group += currentGroup
         x[4] = fancyColor[currentGroup]
 
     saveSelectedNodes(groupList)
@@ -870,7 +875,7 @@ def removeGroup(draw,master):
                 outputStore[x][1].group = 0
                 outputStore[x][4] = "red"
                 draw.itemconfig(outputStore[x][0],fill="red")
-
+    currentGroup = 1
 
 def addOutput(draw, x, y, master):
         global outputStore
@@ -879,7 +884,7 @@ def addOutput(draw, x, y, master):
         switch = 0
         node = 0
         size = nodeSize
-        print("current size: ",size)
+        #print("current size: ",size)
         #set img1btn as object so that we can add .widget containing the circle id.
         img1Btn = nodeHolder()
         img1Btn.widget = draw.create_circle(x,y,size*unit.currentZoom, fill="red", tags="nodes")

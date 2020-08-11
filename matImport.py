@@ -75,7 +75,7 @@ def toAdjacencyMatrixCall(draw,master,overlay,storeNG,storeNH,storeNR,lineStore,
                         if(excitationStore[y][4]==currentOutput):
                             excitation = excitationStore[y][1]
                             nmb = int(excitation.nmb)
-                            NR[x][nmb] = 1
+                            NR[x][nmb-1] = 1
 
     """
     x = 0
@@ -216,3 +216,24 @@ def graphDisjointPath(NG, group1, group2, operation):
         result = list(nx.minimum_node_cut(plot,nmbOutputs, nmbOutputs+1))
 
     return result
+
+def treeAllocation(NG):
+    nmbOutputs = len(NG)
+    nmbOutputs2 = len(NG[0])
+
+    #operation depicts if the minimum disconnected set should be located (operation==0) or the disjoint path (operation==1)
+
+    #below function will read through the mat file and try to find how many modules their are
+
+    #using the network functions create a direction graph (nodes with a connection with a direction so connection 1 to 2 has a direction and is not the same as 2 to 1)
+    plot = nx.DiGraph()
+    plot.add_nodes_from(range(nmbOutputs))
+
+    for x in range(nmbOutputs):
+        for y in range(nmbOutputs2):
+            if(NG[x][y]==1):
+                plot.add_edge(y,x)
+    
+    result = nx.maximum_spanning_arborescence(plot)
+    print("found the following tree",result)
+
