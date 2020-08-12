@@ -120,8 +120,8 @@ Canvas.create_circle = _create_circle
 
 def reloadCall(subMenu,reload,currentAmountOutputSelected,selectedNode):
     global reloadStatus
-    print(reloadStatus)
-    print(currentAmountOutputSelected)
+    #print(reloadStatus)
+    #print(currentAmountOutputSelected)
     if((currentAmountOutputSelected == 1 or currentAmountOutputSelected > 2) and reloadStatus == 1):
         print("removing the select window")
         for x in reload:
