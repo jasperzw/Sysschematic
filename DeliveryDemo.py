@@ -1,10 +1,6 @@
 # Importing tkinter module
 from tkinter import *
-<<<<<<< HEAD
 from matImport import readFile, toAdjacencyMatrixCall, generateGraph, graphShortestPath, graphDisjointPath, treeAllocation
-=======
-from matImport import readFile, generateGraph, graphShortestPath, graphDisjointPath
->>>>>>> edf7b78c21175b5d3a195fc17d858e01daca5e2a
 from tkinter.filedialog import askopenfilename
 import math
 from Scrollwindow import *
@@ -15,7 +11,7 @@ import numpy as np
 import networkx as nx
 import copy
 import random
-
+from colors import COLORS
 
 """
 initializing all global components
@@ -56,7 +52,9 @@ butTestNumber = 0
 unknownNodenumber = 0
 newPathColor = 0
 currentGroup = 1
+#fancyColor = COLORS
 fancyColor = ["green","yellow","orange","blue","cyan","dark sea green","khaki","lightSteelBlue1"]
+treeStore = []
 
 class nodeHolder():
      nmb = 0
@@ -101,7 +99,8 @@ def initSubMenu(frame):
     Button(frame, text="Perform test identifiability", command= lambda: testIdentifiability(master, draw), height = 1, width=20).pack(padx=2, pady=2)
     Button(frame, text="Find shortest path", command= lambda: find_path(draw,master), height = 1, width=20).pack(padx=2, pady=2)
     Button(frame, text="Find disjoint path", command= lambda: paint_disjoint_path(draw,master), height = 1, width=20).pack(padx=2, pady=2)
-    Button(frame, text="Find minimum psuedo tree", command= lambda: find_minimum_tree(draw,master), height = 1, width=20).pack(padx=2, pady=2)
+    Button(frame, text="Create maximum psuedo tree", command= lambda: draw_tree(draw,master), height = 1, width=20).pack(padx=2, pady=2)
+    Button(frame, text="perform merge psuedo tree", command= lambda: merge_tree(draw,master), height = 1, width=20).pack(padx=2, pady=2)
     Button(frame, text="Immersion", command= lambda: Immersion_call(master, draw), height = 1, width=20).pack(padx=2, pady=2)
     Button(frame, text="Test", command= lambda: TEST(master, draw), height = 1, width=20).pack(padx=2, pady=2)
     #in reload every button or Checkbox is stored which is reloaded on calling reloadCall when currentAmountOutputSelected > 1
@@ -437,110 +436,6 @@ def toAdjacencyMatrix(draw,master):
     storeNG, storeNR, storeNH, outputNumber, outputStore, Unknownnodes= toAdjacencyMatrixCall(draw,master,overlay,storeNG,storeNH,storeNR,lineStore,lineNumber,outputStore,outputNumber,excitationStore,excitationNumber,noiseNodeStore,noiseNodeNumber, Unknownnodes, noiseNumber)
 
     return storeNG, storeNR, storeNH, Unknownnodes
-
-
-def toAdjacencyMatrixCall(draw,master,overlay,storeNG,storeNH,storeNR,lineStore,lineNumber,outputStore,outputNumber,excitationStore,excitationNumber,noiseNodeStore,noiseNodeNumber,KnownNodes,noiseNumber):
-    NG = []
-    NR = []
-    NH = []
-    KnownNodes = []
-    #set everything first to zero
-    for x in range(outputNumber):
-        new = []
-        for y in range(outputNumber):
-            new.append(0)
-        NG.append(new)
-        new = []
-        for y in range(noiseNodeNumber):
-            new.append(0)
-        NH.append(new)
-        new = []
-        for y in range(excitationNumber):
-            new.append(0)
-        NR.append(new)
-        KnownNodes.append(0)
-    #create NG matrix
-    #print(noiseNodeStore)
-    for x in range(outputNumber):
-        if(outputStore[x]!=0):
-            currentOutput = outputStore[x][1]
-            #check for connections to create NG
-            for y in range(lineNumber):
-                #print("now scanning for node: ",x," at linestore: ",lineStore[y]," for button: ",currentOutput)
-                if(lineStore[y]!=0):
-                    if(lineStore[y][2]==currentOutput):
-                        #found a lineconnection to currentOutput
-                        nodeB = lineStore[y][1]
-                        for a in range(outputNumber):
-                            if(outputStore[a]!=0):
-                                nodeA = outputStore[a][1]
-                                if(nodeA==nodeB):
-                                    print(x)
-                                    print(nodeB.nmb)
-                                    NG[x][nodeB.nmb-1] = 1
-
-            if(currentOutput.stat==3):
-                KnownNodes[x]=1
-
-            if(overlay==1):
-                for y in range(lineNumber):
-                    if(lineStore[y]!=0):
-                        if(lineStore[y][2]==currentOutput):
-                            nodeB = lineStore[y][1]
-                            for a in range(noiseNodeNumber):
-                                if(noiseNodeStore[a]!=0):
-                                    if(nodeB == noiseNodeStore[a][1]):
-                                        NH[x][nodeB.nmb-1] = 1
-            else:
-                NH = storeNH
-            for y in range(excitationNumber):
-                if(excitationStore[y]!=0):
-                    if(excitationStore[y][4]==currentOutput):
-                        excitation = excitationStore[y][1]
-                        nmb = int(excitation.nmb)
-                        NR[x][nmb-1] = 1
-    if(overlay==0):
-        if(noiseNodeNumber==0):
-            NH = []
-            for x in range(outputNumber):
-                new = []
-                for y in range(outputNumber):
-                    if(y==x):
-                        new.append(1)
-                        addNH(outputStore[x],master,draw,0,y)
-                    else:
-                        new.append(0)
-                NH.append(new)
-        if(excitationNumber==0):
-            NR = []
-            for x in range(outputNumber):
-                new = []
-                for y in range(outputNumber):
-                    if(y==x):
-                        new.append(1)
-                        addNH(outputStore[x],master,draw,1,y)
-                    else:
-                        new.append(0)
-                NR.append(new)
-    else:
-
-    storeNG = NG
-    storeNR = NR
-    storeNH = NH
-
-    print("NG is generated as following:")
-    for value in storeNG:
-        print(value)
-    print("NR is generated as following:")
-    for value in storeNR:
-        print(value)
-    print("NH is generated as following:")
-    for value in storeNH:
-        print(value)
-    print("KnownNodes is generated as following:")
-    print(KnownNodes)
-
-    return NG, NR, NH, outputNumber, outputStore, KnownNodes
 
 def abstractPlot(draw,master,NG,NR,NH):
     global butTestStore
@@ -959,8 +854,32 @@ def paint_disjoint_path(draw,master):
 
     deselectActiveNodes()
 
-def find_minimum_tree(draw,master):
-    treeAllocation(storeNG)
+def draw_tree(draw,master):
+    global treeStore
+    treeStore = []
+    i=0
+    nmbTree = 1
+    for x in outputStore:
+        if x!=0:
+            draw.itemconfig(x[0],fill=fancyColor[i])
+            lineDrawer = []
+            for y in lineStore:
+                if y!=[] and y!=0:
+                    if y[1] == x[1] and y[5]=="line":
+                        #print("found line:",y[0],",",y[1].nmb,",",y[2].nmb,"for node",x[1].nmb)
+                        draw.itemconfig(y[0],fill=fancyColor[i])
+                        lineDrawer.append(y)
+
+            drawer = [nmbTree,x[1],[],lineDrawer]
+            #drawer looks like this drawer = [nmbTree,rootNode, passingNodes,linesInTree]
+            treeStore.append(drawer)
+            i += 1
+            nmbTree +=1
+    #print("current generated treeStore:",treeStore)
+
+def merge_tree(draw,master):
+    treeAllocation(storeNG,treeStore)
+
 
 
 def makeGroup(draw,master):
@@ -2245,7 +2164,7 @@ def connectCall(draw,master):
             selectNoiseNode(node2[1])
 
 #connect outputs is nu 2 functies zodat je via plotmatrix ook connectOutputs direct kan aangroepen
-def connectOutputs(node1,node2,draw,master, placeBtn):
+def connectOutputs(node1,node2,draw,master,placeBtn):
     global number_of_nodes
     global btnStore
     global lineStore

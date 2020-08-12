@@ -2,6 +2,7 @@ import scipy.io as sio
 import math
 import networkx as nx
 import numpy as np
+import copy
 
 def  readFile(fileLocation):
     mat = sio.loadmat(fileLocation)
@@ -217,23 +218,91 @@ def graphDisjointPath(NG, group1, group2, operation):
 
     return result
 
-def treeAllocation(NG):
-    nmbOutputs = len(NG)
-    nmbOutputs2 = len(NG[0])
+def treeAllocation(NG,treeStore):
+    amountTree = len(treeStore)
+    mergeMatrix = []
+    for x in range(amountTree):
+        new = []
+        for y in range(amountTree):
+            if y == x:
+                new.append(0)
+            else:
+                new.append(2)
+        mergeMatrix.append(new)
 
-    #operation depicts if the minimum disconnected set should be located (operation==0) or the disjoint path (operation==1)
+    #here the difficult shit happens
+    #take a pseudo tree
 
-    #below function will read through the mat file and try to find how many modules their are
+    for unit in treeStore:
+        print("create merge matrix for row pseudo tree:",unit[0])
+        for line in unit[3]:
+            print(line[0])
+        #take in line in that tree
+        for line in unit[3]:
+            print("checking at:",line[0])
+            #print("checking line:",line,"in:",unit[2])
+            #check if a node it connects to belongs in that tree
+            if line[2] not in unit[2] or line[2]!=unit[1]:
+                print(line[2].nmb,"not in unit[2] or unit[1]")
+                #if it does not check which tree it connects
+                for targetUnit in treeStore:
+                    if targetUnit!=unit:
+                        #loop through all tree
+                        #check if a node is in this tree and mark it
+                        #print("scanning in: ",targetUnit)
+                        print("check line from:",line[1].nmb,"to",line[2].nmb,"with",targetUnit[1].nmb,"while working tree",unit[0])
+                        if line[2] == targetUnit[1]:
+                            #now we will check if it is mergable
+                            what = checkMerge(unit,targetUnit)
+                            mergeMatrix[unit[0]-1][targetUnit[0]-1] = what
+                            #print("prank")
 
-    #using the network functions create a direction graph (nodes with a connection with a direction so connection 1 to 2 has a direction and is not the same as 2 to 1)
-    plot = nx.DiGraph()
-    plot.add_nodes_from(range(nmbOutputs))
+    print("found mergeMatrix:")
+    for x in mergeMatrix:
+        print(x)
 
-    for x in range(nmbOutputs):
-        for y in range(nmbOutputs2):
-            if(NG[x][y]==1):
-                plot.add_edge(y,x)
-    
-    result = nx.maximum_spanning_arborescence(plot)
-    print("found the following tree",result)
+def checkMerge(unit,targetUnit):
+    tempUnit = []
+    tempUnit.append(unit[0])
+    tempUnit.append(unit[1])
+    #create deepcopy
+    allNodes = targetUnit[2]
+    allNodes.append(targetUnit[1])
+    tempUnit[2].extend(allNodes)
+    tempUnit[3].extend(targetUnit[3])
+    #now check if correct tree
+    print("checking tree:",unit[0],"as head merge with",targetUnit[0])
+    out = checkIfTree(tempUnit)
+    return out
 
+def checkIfTree(tempUnit):
+    #check if no line go to the same node (this means a node has 2 inputs or more)
+    for firstLine in tempUnit[3]:
+        for secondLine in tempUnit[3]:
+            if firstLine[2] == secondLine[2] and firstLine != secondLine:
+                print("tree not mergable because of multiple input")
+                return 0
+    #check root node
+    totalNode = [tempUnit[1]]
+    totalNode.extend(tempUnit[2])
+    seenNodes = [tempUnit[1]]
+    currentNode = [tempUnit[1]]
+    nextNode = []
+    while(currentNode!=[]):
+        for node in currentNode:
+            for line in tempUnit[3]:
+                if line[1] == node:
+                    if line[2] not in seenNodes:
+                        nextNode.append(line[2])
+                        seenNodes.append(line[2])
+        currentNode = nextNode
+        nextNode = []
+
+
+    for checkNode in seenNodes:
+        if checkNode not in totalNode:
+            print("tree not mergable because of no direct line from root")
+            return 0
+        else:
+            print("tree is totally mergable")
+            return 1
