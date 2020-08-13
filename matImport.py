@@ -253,7 +253,7 @@ def treeAllocation(NG,treeStore):
                         print("check line from:",line[1].nmb,"to",line[2].nmb,"with",targetUnit[1].nmb,"while working tree",unit[0])
                         if line[2] == targetUnit[1]:
                             #now we will check if it is mergable
-                            what = checkMerge(unit,targetUnit)
+                            what = 1
                             mergeMatrix[unit[0]-1][targetUnit[0]-1] = what
                             #print("prank")
 
