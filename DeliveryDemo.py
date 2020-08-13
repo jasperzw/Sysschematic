@@ -1,6 +1,6 @@
 # Importing tkinter module
 from tkinter import *
-from matImport import readFile, toAdjacencyMatrixCall, generateGraph, graphShortestPath, graphDisjointPath, treeAllocation
+from matImport import readFile, toAdjacencyMatrixCall, generateGraph, graphShortestPath, graphDisjointPath, treeAllocation, mergeTree
 from tkinter.filedialog import askopenfilename
 import math
 from Scrollwindow import *
@@ -52,8 +52,8 @@ butTestNumber = 0
 unknownNodenumber = 0
 newPathColor = 0
 currentGroup = 1
-#fancyColor = COLORS
-fancyColor = ["green","yellow","orange","blue","cyan","dark sea green","khaki","lightSteelBlue1"]
+fancyColor = COLORS
+#fancyColor = ["green","yellow","orange","blue","cyan","dark sea green","khaki","lightSteelBlue1"]
 treeStore = []
 
 class nodeHolder():
@@ -99,8 +99,8 @@ def initSubMenu(frame):
     Button(frame, text="Perform test identifiability", command= lambda: testIdentifiability(master, draw), height = 1, width=20).pack(padx=2, pady=2)
     Button(frame, text="Find shortest path", command= lambda: find_path(draw,master), height = 1, width=20).pack(padx=2, pady=2)
     Button(frame, text="Find disjoint path", command= lambda: paint_disjoint_path(draw,master), height = 1, width=20).pack(padx=2, pady=2)
-    Button(frame, text="Create maximum psuedo tree", command= lambda: draw_tree(draw,master), height = 1, width=20).pack(padx=2, pady=2)
-    Button(frame, text="perform merge psuedo tree", command= lambda: merge_tree(draw,master), height = 1, width=20).pack(padx=2, pady=2)
+    Button(frame, text="Create minimum psuedo tree", command= lambda: draw_tree(draw,master), height = 1, width=20).pack(padx=2, pady=2)
+    Button(frame, text="merge maximum psuedo tree", command= lambda: find_maximum_tree(draw,master), height = 1, width=20).pack(padx=2, pady=2)
     Button(frame, text="Immersion", command= lambda: Immersion_call(master, draw), height = 1, width=20).pack(padx=2, pady=2)
     Button(frame, text="Test", command= lambda: TEST(master, draw), height = 1, width=20).pack(padx=2, pady=2)
     #in reload every button or Checkbox is stored which is reloaded on calling reloadCall when currentAmountOutputSelected > 1
@@ -858,7 +858,6 @@ def draw_tree(draw,master):
     global treeStore
     treeStore = []
     i=0
-    nmbTree = 1
     for x in outputStore:
         if x!=0:
             draw.itemconfig(x[0],fill=fancyColor[i])
@@ -866,19 +865,57 @@ def draw_tree(draw,master):
             for y in lineStore:
                 if y!=[] and y!=0:
                     if y[1] == x[1] and y[5]=="line":
-                        #print("found line:",y[0],",",y[1].nmb,",",y[2].nmb,"for node",x[1].nmb)
+                        print("found line:",y[0],",",y[1].nmb,",",y[2].nmb,"for node",x[1].nmb)
                         draw.itemconfig(y[0],fill=fancyColor[i])
+                        for f in btnStore:
+                            if f[1] == y[3]:
+                                draw.itemconfig(f[0],fill=fancyColor[i])
                         lineDrawer.append(y)
 
-            drawer = [nmbTree,x[1],[],lineDrawer]
-            #drawer looks like this drawer = [nmbTree,rootNode, passingNodes,linesInTree]
+            drawer = [i,x[1],[],lineDrawer]
+            #drawer looks like this drawer = [colorID,rootNode, passingNodes,linesInTree]
             treeStore.append(drawer)
             i += 1
-            nmbTree +=1
     #print("current generated treeStore:",treeStore)
 
-def merge_tree(draw,master):
-    treeAllocation(storeNG,treeStore)
+def find_maximum_tree(draw,master):
+    global treeStore
+    stat = 1
+    while stat == 1:
+        mergeMatrix = treeAllocation(treeStore)
+        masterTree = 0
+        found = 0
+        for x in mergeMatrix:
+            slaveTree = 0
+            for y in x:
+                if y == 1 and found == 0:
+                    #print("performed merge for:",masterTree,",",slaveTree)
+                    combindedTree = mergeTree(treeStore[masterTree],treeStore[slaveTree])
+                    #print(combindedTree)
+                    for x in outputStore:
+                        if x!=0:
+                            if x[1] == combindedTree[1]:
+                                #print("tried colloring the nodes:",x)
+                                draw.itemconfig(x[0],fill=fancyColor[combindedTree[0]])
+                            for y in combindedTree[2]:
+                                if x[1] == y:
+                                    #print("tried colloring the nodes:",x)
+                                    draw.itemconfig(x[0],fill=fancyColor[combindedTree[0]])
+
+                    for x in combindedTree[3]:
+                        draw.itemconfig(x[0],fill=fancyColor[combindedTree[0]])
+                        for f in btnStore:
+                            if f[1] == x[3]:
+                                draw.itemconfig(f[0],fill=fancyColor[combindedTree[0]])
+                    treeStore[masterTree] = combindedTree
+                    treeStore.pop(slaveTree)
+                    found = 1
+                slaveTree += 1
+            masterTree+=1
+        if found == 0:
+            stat = 0
+
+
 
 
 

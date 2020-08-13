@@ -218,7 +218,7 @@ def graphDisjointPath(NG, group1, group2, operation):
 
     return result
 
-def treeAllocation(NG,treeStore):
+def treeAllocation(treeStore):
     amountTree = len(treeStore)
     mergeMatrix = []
     for x in range(amountTree):
@@ -230,48 +230,62 @@ def treeAllocation(NG,treeStore):
                 new.append(2)
         mergeMatrix.append(new)
 
+
     #here the difficult shit happens
     #take a pseudo tree
-
+    masterTree = 0
     for unit in treeStore:
-        print("create merge matrix for row pseudo tree:",unit[0])
-        for line in unit[3]:
-            print(line[0])
+        #print("create merge matrix for row pseudo tree:",unit)
         #take in line in that tree
         for line in unit[3]:
-            print("checking at:",line[0])
+            #print("checking at:",line[0])
             #print("checking line:",line,"in:",unit[2])
             #check if a node it connects to belongs in that tree
             if line[2] not in unit[2] or line[2]!=unit[1]:
-                print(line[2].nmb,"not in unit[2] or unit[1]")
+                #print(line[2].nmb,"not in unit[2] or unit[1]")
                 #if it does not check which tree it connects
+                slaveTree = 0
                 for targetUnit in treeStore:
                     if targetUnit!=unit:
                         #loop through all tree
                         #check if a node is in this tree and mark it
                         #print("scanning in: ",targetUnit)
-                        print("check line from:",line[1].nmb,"to",line[2].nmb,"with",targetUnit[1].nmb,"while working tree",unit[0])
+                        #print("check line from:",line[1].nmb,"to",line[2].nmb,"with",targetUnit[1].nmb,"while working tree",unit[0],masterTree,slaveTree)
                         if line[2] == targetUnit[1]:
                             #now we will check if it is mergable
-                            what = checkMerge(unit,targetUnit)
-                            mergeMatrix[unit[0]-1][targetUnit[0]-1] = what
-                            #print("prank")
+                            mergeMatrix[masterTree][slaveTree] = checkMerge(unit,targetUnit)
+                    slaveTree += 1
+        masterTree += 1
 
     print("found mergeMatrix:")
     for x in mergeMatrix:
         print(x)
 
-def checkMerge(unit,targetUnit):
+    return mergeMatrix
+
+def mergeTree(masterTree, slaveTree):
     tempUnit = []
-    tempUnit.append(unit[0])
-    tempUnit.append(unit[1])
-    #create deepcopy
-    allNodes = targetUnit[2]
-    allNodes.append(targetUnit[1])
-    tempUnit[2].extend(allNodes)
-    tempUnit[3].extend(targetUnit[3])
+    tempUnit.append(masterTree[0])
+    tempUnit.append(masterTree[1])
+    tempUnit.append([])
+    tempUnit.append([])
+    for x in masterTree[2]:
+        tempUnit[2].append(x)
+
+    for x in masterTree[3]:
+        tempUnit[3].append(x)
+
+    tempUnit[2].append(slaveTree[1])
+    tempUnit[2].extend(slaveTree[2])
+    tempUnit[3].extend(slaveTree[3])
+
+    return tempUnit
+
+def checkMerge(unit,targetUnit):
+    tempUnit = mergeTree(unit, targetUnit)
+
     #now check if correct tree
-    print("checking tree:",unit[0],"as head merge with",targetUnit[0])
+    #print("checking tree:",unit[0],"as head merge with",targetUnit[0])
     out = checkIfTree(tempUnit)
     return out
 
@@ -280,7 +294,7 @@ def checkIfTree(tempUnit):
     for firstLine in tempUnit[3]:
         for secondLine in tempUnit[3]:
             if firstLine[2] == secondLine[2] and firstLine != secondLine:
-                print("tree not mergable because of multiple input")
+                #print("tree not mergable because of multiple input")
                 return 0
     #check root node
     totalNode = [tempUnit[1]]
@@ -301,8 +315,8 @@ def checkIfTree(tempUnit):
 
     for checkNode in seenNodes:
         if checkNode not in totalNode:
-            print("tree not mergable because of no direct line from root")
+            #print("tree not mergable because of no direct line from root")
             return 0
         else:
-            print("tree is totally mergable")
+            #print("tree is totally mergable")
             return 1
