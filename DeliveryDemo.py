@@ -99,8 +99,8 @@ def initSubMenu(frame):
     Button(frame, text="Perform test identifiability", command= lambda: testIdentifiability(master, draw), height = 1, width=20).pack(padx=2, pady=2)
     Button(frame, text="Find shortest path", command= lambda: find_path(draw,master), height = 1, width=20).pack(padx=2, pady=2)
     Button(frame, text="Find disjoint path", command= lambda: paint_disjoint_path(draw,master), height = 1, width=20).pack(padx=2, pady=2)
-    Button(frame, text="Create minimum psuedo tree", command= lambda: draw_tree(draw,master), height = 1, width=20).pack(padx=2, pady=2)
-    Button(frame, text="merge maximum psuedo tree", command= lambda: find_maximum_tree(draw,master), height = 1, width=20).pack(padx=2, pady=2)
+    Button(frame, text="Create minimum tree", command= lambda: draw_tree(draw,master), height = 1, width=20).pack(padx=2, pady=2)
+    Button(frame, text="merge maximum tree", command= lambda: find_maximum_tree(draw,master), height = 1, width=20).pack(padx=2, pady=2)
     Button(frame, text="Immersion", command= lambda: Immersion_call(master, draw), height = 1, width=20).pack(padx=2, pady=2)
     Button(frame, text="Test", command= lambda: TEST(master, draw), height = 1, width=20).pack(padx=2, pady=2)
     #in reload every button or Checkbox is stored which is reloaded on calling reloadCall when currentAmountOutputSelected > 1
@@ -857,7 +857,7 @@ def paint_disjoint_path(draw,master):
 def draw_tree(draw,master):
     global treeStore
     treeStore = []
-    i=0
+    i=10
     for x in outputStore:
         if x!=0:
             draw.itemconfig(x[0],fill=fancyColor[i])
@@ -875,7 +875,7 @@ def draw_tree(draw,master):
             drawer = [i,x[1],[],lineDrawer]
             #drawer looks like this drawer = [colorID,rootNode, passingNodes,linesInTree]
             treeStore.append(drawer)
-            i += 1
+            i += 5
     #print("current generated treeStore:",treeStore)
 
 def find_maximum_tree(draw,master):
@@ -2128,6 +2128,10 @@ def clearWindow(canvas,canReset):
     global unit
     global currentView
     global newPathColor
+    global currentGroup
+    global treeStore
+    global butTestStore
+    global butTestNumber
     canvas.delete("all")
     number_of_nodes = 0
     outputNumber = 0
@@ -2146,6 +2150,11 @@ def clearWindow(canvas,canReset):
     overlay = 0
     newPathColor = 0
     currentview = 0
+    butTestStore = []
+    butTestNumber = 0
+    unknownNodenumber = 0
+    currentGroup = 1
+    treeStore = []
     if(canReset==1):
         excitationNumber = 0
         if(unit.currentZoom > 1):
