@@ -824,7 +824,6 @@ def paint_disjoint_path(draw,master):
     group1 = returnGroupList(1)
     group2 = returnGroupList(2)
 
-
     #adding them to a networkx to scan for the shortest route because networkx is lit
     path = graphDisjointPath(storeNG, group1, group2,1)
     disconnected_set = graphDisjointPath(storeNG, group1, group2,0)
@@ -1133,20 +1132,26 @@ def USC(master,draw):
     inneighbours = []
     for x in range(len(NG_pms)):
         if(NG_pms[j][x]):
-            inneighbours.append(x)
+            for y in range(outputNumber):
+                if(outputStore[y][1].nmb==x):
+                    inneighbours.append(outputStore[y])
     #find out-neighbours of D
     outneighbours = []
     for x in range(len(NG_pms)):
         if(NG_pms[x][i]):
-            outneighbours.append(x)
+            for y in range(outputNumber):
+                if(outputStore[y][1].nmb==x):
+                    outneighbours.append(outputStore[y])
     #find disconnecting set
-    storeNG = copy.deepcopy(NG_pms)
-    print(inneighbours)
-    print(outneighbours)
     disconnected_set = graphDisjointPath(storeNG, inneighbours, outneighbours,0)
-    for x in range(len(disconnected_set)-1):
+    print("Disconnected")
+    print(disconnected_set)
+    for x in range(len(disconnected_set)):
         temp = disconnected_set[x]
-        D[temp] = 1
+        if(accessible[temp] and temp!=j):
+            D[temp] = 1
+    print("D:")
+    print(D)
     """
     #parallel condition
     NG = copy.deepcopy(NG_pms)
@@ -1175,6 +1180,9 @@ def USC(master,draw):
         temp2 = temp[x]
         D[temp2] = 1
     """
+    NG = copy.deepcopy(NG_pms)
+    NH = copy.deepcopy(NH_pms)
+    NR = copy.deepcopy(NR_pms)
     change = 1
     while(change):
         #all accessible inneighbours of Y
