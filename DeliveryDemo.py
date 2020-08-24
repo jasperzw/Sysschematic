@@ -1091,22 +1091,6 @@ below are the functions for
 -------------------------------------------------------- PMS --------------------------------------------------------
 """
 
-def TEST(draw,master):
-    global outputStore
-    global outputNumber
-    start = 0
-    end = 0
-    NG, NR_pms, NH_pms, Unknownnodes_pms = toAdjacencyMatrix(draw,master)
-    for x in range(outputNumber):
-        if(outputStore[x]!=0):
-            if(outputStore[x][1].stat==2):
-                start = x
-            elif(outputStore[x][1].stat==3):
-                end = x
-    nodeSearchList = [outputStore[start],outputStore[end]]
-    list = graphDisjointPath(NG,group1,group2,0)
-    print(list)
-
 def USC(master,draw):
     global outputStore
     global currentAmountOutputSelected
@@ -1120,6 +1104,7 @@ def USC(master,draw):
     global NR_pms
     global NH_pms
     NG_pms, NR_pms, NH_pms, Unknownnodes_pms = toAdjacencyMatrix(draw,master)
+
     #look for the button
     for x in range(number_of_nodes):
         if(btnStore[x]!=0):
@@ -1144,6 +1129,25 @@ def USC(master,draw):
     #fill the A and B sets with the initial nodes
     D[i] = 1
     Y[j] = 1
+    #find in-neighbours of Y
+    inneighbours = []
+    for x in range(len(NG_pms)):
+        if(NG_pms[j][x]):
+            inneighbours.append(x)
+    #find out-neighbours of D
+    outneighbours = []
+    for x in range(len(NG_pms)):
+        if(NG_pms[x][i]):
+            outneighbours.append(x)
+    #find disconnecting set
+    storeNG = copy.deepcopy(NG_pms)
+    print(inneighbours)
+    print(outneighbours)
+    disconnected_set = graphDisjointPath(storeNG, inneighbours, outneighbours,0)
+    for x in range(len(disconnected_set)-1):
+        temp = disconnected_set[x]
+        D[temp] = 1
+    """
     #parallel condition
     NG = copy.deepcopy(NG_pms)
     NH = copy.deepcopy(NH_pms)
@@ -1170,7 +1174,7 @@ def USC(master,draw):
     for x in range(len(temp)-1):
         temp2 = temp[x]
         D[temp2] = 1
-
+    """
     change = 1
     while(change):
         #all accessible inneighbours of Y
@@ -1335,7 +1339,6 @@ def USC(master,draw):
                     A[x] = 0
                     Y[x] = 1
                     Q[x] = 1
-
     #select the nodes in D and Y
     for f in range(len(D)):
         id = outputStore[f][1]
