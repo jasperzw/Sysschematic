@@ -1128,58 +1128,27 @@ def USC(master,draw):
     #fill the A and B sets with the initial nodes
     D[i] = 1
     Y[j] = 1
-    #find in-neighbours of Y
+        #find in-neighbours of Y
     inneighbours = []
     for x in range(len(NG_pms)):
         if(NG_pms[j][x]):
             for y in range(outputNumber):
-                if(outputStore[y][1].nmb==x):
+                if(outputStore[y][1].nmb-1==x):
                     inneighbours.append(outputStore[y])
     #find out-neighbours of D
     outneighbours = []
     for x in range(len(NG_pms)):
         if(NG_pms[x][i]):
             for y in range(outputNumber):
-                if(outputStore[y][1].nmb==x):
+                if(outputStore[y][1].nmb-1==x):
                     outneighbours.append(outputStore[y])
     #find disconnecting set
-    disconnected_set = graphDisjointPath(storeNG, inneighbours, outneighbours,0)
-    print("Disconnected")
-    print(disconnected_set)
+    NG = copy.deepcopy(NG_pms)
+    disconnected_set = graphDisjointPath(NG, outneighbours, inneighbours,0)
     for x in range(len(disconnected_set)):
         temp = disconnected_set[x]
-        if(accessible[temp] and temp!=j):
+        if(accessible[temp]):
             D[temp] = 1
-    print("D:")
-    print(D)
-    """
-    #parallel condition
-    NG = copy.deepcopy(NG_pms)
-    NH = copy.deepcopy(NH_pms)
-    NR = copy.deepcopy(NR_pms)
-    NG[j][i] = 0
-    nodeSearchList = [outputStore[i],outputStore[j]]
-    list = graphShortestPath(NG,nodeSearchList)
-    for x in range(len(list)-2):
-        print(x+1)
-        temp = list[x+1]
-        D[temp] = 1
-    #loop condition
-    list = []
-    temp = [0]
-    NG = copy.deepcopy(NG_pms)
-    for x in range(len(NG)):
-        if(NG[x][j]):
-            nodeSearchList = [outputStore[x],outputStore[j]]
-            list.append(graphShortestPath(NG,nodeSearchList))
-            temp = list[0]
-    for x in range(len(list)):
-        if(len(temp)>len(list[x])):
-            temp = list[x]
-    for x in range(len(temp)-1):
-        temp2 = temp[x]
-        D[temp2] = 1
-    """
     NG = copy.deepcopy(NG_pms)
     NH = copy.deepcopy(NH_pms)
     NR = copy.deepcopy(NR_pms)
@@ -1486,32 +1455,30 @@ def MIC(master,draw):
     #fill the A and B sets with the initial nodes
     D[i] = 1
     Y[j] = 1
-    #parallel condition
+    #find in-neighbours of Y
+    inneighbours = []
+    for x in range(len(NG_pms)):
+        if(NG_pms[j][x]):
+            for y in range(outputNumber):
+                if(outputStore[y][1].nmb-1==x):
+                    inneighbours.append(outputStore[y])
+    #find out-neighbours of D
+    outneighbours = []
+    for x in range(len(NG_pms)):
+        if(NG_pms[x][i]):
+            for y in range(outputNumber):
+                if(outputStore[y][1].nmb-1==x):
+                    outneighbours.append(outputStore[y])
+    #find disconnecting set
+    NG = copy.deepcopy(NG_pms)
+    disconnected_set = graphDisjointPath(NG, outneighbours, inneighbours,0)
+    for x in range(len(disconnected_set)):
+        temp = disconnected_set[x]
+        D[temp] = 1
     NG = copy.deepcopy(NG_pms)
     NH = copy.deepcopy(NH_pms)
     NR = copy.deepcopy(NR_pms)
-    NG[j][i] = 0
-    nodeSearchList = [outputStore[i],outputStore[j]]
-    list = graphShortestPath(NG,nodeSearchList)
-    for x in range(len(list)-2):
-        print(x+1)
-        temp = list[x+1]
-        D[temp] = 1
-    #loop condition
-    list = []
-    temp = [0]
-    NG = copy.deepcopy(NG_pms)
-    for x in range(len(NG)):
-        if(NG[x][j]):
-            nodeSearchList = [outputStore[x],outputStore[j]]
-            list.append(graphShortestPath(NG,nodeSearchList))
-            temp = list[0]
-    for x in range(len(list)):
-        if(len(temp)>len(list[x])):
-            temp = list[x]
-    for x in range(len(temp)-1):
-        temp2 = temp[x]
-        D[temp2] = 1
+
     #step node signal
     Q = (np.zeros(len(NG_pms))).tolist()
     change = 1
