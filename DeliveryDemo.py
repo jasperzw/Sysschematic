@@ -2296,7 +2296,6 @@ def trueCoordinates(draw,node):
     #xObj = draw.canvasx(node[2])
     #yObj = draw.canvasy(node[3])
     return xObj, yObj
-no
 
 """
 Below you will find the basic setup of the grid
