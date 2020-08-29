@@ -102,7 +102,6 @@ def initSubMenu(frame):
     Button(frame, text="Create minimum psuedo tree", command= lambda: draw_tree(draw,master), height = 1, width=20).pack(padx=2, pady=2)
     Button(frame, text="merge maximum psuedo tree", command= lambda: find_maximum_tree(draw,master), height = 1, width=20).pack(padx=2, pady=2)
     Button(frame, text="Immersion", command= lambda: Immersion_call(master, draw), height = 1, width=20).pack(padx=2, pady=2)
-    Button(frame, text="Test", command= lambda: TEST(master, draw), height = 1, width=20).pack(padx=2, pady=2)
     #in reload every button or Checkbox is stored which is reloaded on calling reloadCall when currentAmountOutputSelected > 1
     reload = [
     Button(frame, text="remove node", command= lambda: removeOutput(draw, master), height = 1, width=20),
@@ -1870,83 +1869,6 @@ def Immersion(NG,NR,NH,Unknownnodes,draw,master):
             G[y][len_G-x-1] = 0
             G[len_G-x-1][y] = 0
     print(G)
-    """
-    #Change NG into a Laplacian form L
-    #creating Diagonal A1
-    for x in range(len(NG)):
-        A1.append(0)
-        for y in range(len(NG)):
-            A1[x]=A1[x]+NG[x][y]
-    for x in range(len(NG)):
-        new = []
-        for y in range(len(NG)):
-            if(y==x):
-                new.append(A1[x])
-            else:
-                new.append(-NG[x][y])
-        L.append(new)
-    for x in range(len(NG)-unknownNodenumber):
-        new = []
-        for y in range(len(NG)-unknownNodenumber):
-            new.append(L[x][y])
-        L11.append(new)
-    for x in range(unknownNodenumber):
-        new = []
-        for y in range(len(NG)-unknownNodenumber):
-            new.append(L[len(NG)-unknownNodenumber+x][y])
-        L12.append(new)
-    for x in range(len(NG)-unknownNodenumber):
-        new = []
-        for y in range(unknownNodenumber):
-            new.append(L[x][len(NG)-unknownNodenumber+y])
-        L21.append(new)
-    for x in range(unknownNodenumber):
-        new = []
-        for y in range(unknownNodenumber):
-            new.append(L[len(NG)-unknownNodenumber+x][len(NG)-unknownNodenumber+y])
-        L22.append(new)
-    L11 = np.array(L11)
-    L12 = np.transpose(np.array(L12))
-    L21 = np.transpose(np.array(L21))
-    #if the inverse of L22 is not available use the pseudo inverse
-    if(np.linalg.det(L22)==0):
-        L22 = np.linalg.pinv(np.array(L22))
-    else:
-        L22 = np.linalg.inv(np.array(L22))
-    #Use kron reduction to calculate the new laplacian
-    L12_22 = L12.dot(L22)
-    L12_22_21 = L12_22.dot(L21)
-    Lhat = np.subtract(L11,L12_22_21)
-    #Change the laplacian into an Adjacency matrix
-    A = np.subtract(Lhat,np.diag(np.diag(Lhat)))
-    print("L22:")
-    print(L22)
-    print("New Adjecency:")
-    print(A)
-    A = A.tolist()
-    #unweigh the matrix A
-    for x in range(len(A)):
-        for y in range(len(A)):
-            if(A[x][y]!=0):
-                A[x][y]=1
-            else:
-                A[x][y]=0;
-    #adding the old nodes with no connection at the bottom
-
-    G = []
-    for x in range(len(NG)):
-        new = []
-        if(x>len(NG)-1-unknownNodenumber):
-            for y in range(len(NG)):
-                new.append(0)
-        else:
-            for y in range(len(NG)):
-                if(y>len(NG)-1-unknownNodenumber):
-                    new.append(0)
-                else:
-                    new.append(A[x][y])
-        G.append(new)
-    """
     #switching to the right position
 
     B = NH
