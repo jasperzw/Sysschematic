@@ -78,34 +78,6 @@ def toAdjacencyMatrixCall(draw,master,overlay,storeNG,storeNH,storeNR,lineStore,
                             nmb = int(excitation.nmb)
                             NR[x][nmb-1] = 1
 
-    """
-    x = 0
-    while( x < (len(NG))):
-        emptyrow = 0;
-        for y in range(len(NG)):
-            if(NG[x][y]==0):
-                emptyrow = emptyrow + 1;
-        if(emptyrow==len(NG)):
-            emptycolumn = 0;
-            for y in range(len(NG)):
-                if(NG[y][x]==0):
-                    emptycolumn = emptycolumn + 1;
-            if(emptycolumn==len(NG)):
-                NG.pop(x)
-                NH = list(NH)
-                NH.pop(x)
-                for y in range(len(NG)):
-                    NG[y].pop(x)
-                NH = np.asarray(NH, dtype=np.float32)
-                KnownNodes.pop(x)
-                a = 0
-                while(a<outputNumber):
-                    if(outputStore[a]!=0 and int(outputStore[a][1].nmb)>int(x)):
-                        outputStore[a][1].nmb = int(outputStore[a][1].nmb) -1
-                    a = a + 1
-                outputNumber = outputNumber - 1
-        x = x + 1
-    """
     storeNG = NG
     storeNR = NR
     storeNH = NH
