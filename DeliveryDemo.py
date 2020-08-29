@@ -2296,21 +2296,7 @@ def trueCoordinates(draw,node):
     #xObj = draw.canvasx(node[2])
     #yObj = draw.canvasy(node[3])
     return xObj, yObj
-
-""""
-    Zoom_buttons(unit.imscale)
-
-def Zoom_buttons(scale):
-    global scale_prev
-    global number_of_nodes
-    global btnStore
-    if(scale_prev!=scale):
-        scale_prev = scale
-        for x in range(number_of_nodes):
-            if(btnStore[x]!=0):
-                btnStore[x][1].configure(height=int(scale*10),width=int(scale*30))
-                btnStore[x][1].pack()
-"""
+no
 
 """
 Below you will find the basic setup of the grid
