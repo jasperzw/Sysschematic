@@ -109,7 +109,7 @@ def initSubMenu(frame):
     Button(frame, text="remove external excitation", command= lambda: removeNH(draw,master,0), height = 1, width=20),
     Button(frame, text="add noise", command= lambda: addNHCall(master, draw,1), height = 1, width=20),
     Button(frame, text="remove noise", command= lambda: removeNH(master, draw,1), height = 1, width=20),
-    Button(frame, text="Make unknown", command= lambda: makeunkown(master, draw), height = 1, width=20),
+    Button(frame, text="Make unknown", command= lambda: makeunknown(master, draw), height = 1, width=20),
     Checkbutton(frame, text="excitation measurable", height = 1, width=20),
     Checkbutton(frame, text="noise measurable", height = 1, width=20),
     Checkbutton(frame, text="Blue", height = 1, width=20),
@@ -201,7 +201,7 @@ def testIdentifiability(master,draw):
 
     #check each node if they have the nosie or excitation measurable selected and the note that in the NH and NR matrix
 
-    adjG, adjR, adjH, unkown = toAdjacencyMatrix(draw,master)
+    adjG, adjR, adjH, unknown = toAdjacencyMatrix(draw,master)
 
     replaceH = []
     for x in range(len(adjH)):
@@ -343,7 +343,7 @@ def plotNoise(draw,master):
     #       for y in range(outputNumber):
     #            if(outputStore[y][1].nmb==x):
     #                selectOutput(outputStore[y][1])
-    #                makeunkown(master, draw)
+    #                makeunknown(master, draw)
     storeNR = NR
     storeNH = NH
     storeNG = NG
@@ -403,7 +403,7 @@ def plotMatrix(draw,master,init):
     #        for y in range(outputNumber):
     #            if(outputStore[y][1].nmb==x):
     #                selectOutput(outputStore[y][1])
-    #                makeunkown(master, draw)
+    #                makeunknown(master, draw)
 
     #this is a priority to put the circle and text aboven the lines
 
@@ -1063,7 +1063,7 @@ def selectOutput(f,draw):
                 if (id==lineStore[a][1] or id==lineStore[a][2]):
                     draw.itemconfig(lineStore[a][0], fill=lineStore[a][4])
 
-def makeunkown(master, draw):
+def makeunknown(master, draw):
     global currentAmountOutputSelected
     global outputStore
     global outputNumber
@@ -1087,6 +1087,77 @@ below are the functions for
 
 -------------------------------------------------------- PMS --------------------------------------------------------
 """
+
+def USC2(master,draw):
+    global outputStore
+    global currentAmountOutputSelected
+    global number_of_nodes
+    global lineNumber
+    global lineStore
+    global btnStore
+    global unknownNodenumber
+    global outputNumber
+    global NG_pms
+    global NR_pms
+    global NH_pms
+    NG_pms, NR_pms, NH_pms, Unknownnodes_pms = toAdjacencyMatrix(draw,master)
+    #look for nonaccessible nodes
+    nonaccessible = (np.ones(len(NG_pms))).tolist()
+    for x in range(outputNumber):
+        if(outputStore[x]!=0):
+            if(outputStore[x][1].stat==2 or outputStore[x][1].stat==4):
+                nonaccessible[x] = 0
+    #immerse all the nonaccessible nodes
+    G, B, R = Immersion(NG_pms,NR_pms,NH_pms,nonaccessible,draw,master)
+    B = B.tolist()
+    R = R.tolist()
+    print("G")
+    print(G)
+    print("B")
+    print(B)
+    print("R")
+    print(R)
+    x = 0
+    popped = 0
+    while(x<outputNumber):
+        if(nonaccessible[x]):
+            G.pop(x-popped)
+            for y in range(len(G)):
+                G[y].pop(x-popped)
+            R.pop(x-popped)
+            B.pop(x-popped)
+            popped += 1
+        x += 1
+    print("G 1")
+    print(G)
+    print("B 1")
+    print(B)
+    print("R 1")
+    print(R)
+    #FIC
+    D, Y, A, Beta = FIC(master,draw,G, R, B)
+    #create the output message
+    msg = "Inputs:"
+    for x in range(len(D)):
+        if(D[x]):
+            msg = msg+" w"+str(x+1)+","
+    msg = msg[:-1]
+    msg = msg+"\nOutputs:"
+    for x in range(len(Y)):
+        if(Y[x]):
+            msg = msg+" w"+str(x+1)+","
+    msg = msg[:-1]
+    msg = msg+"\nA:"
+    for x in range(len(A)):
+        if(A[x]):
+            msg = msg+" w"+str(x+1)+","
+    msg = msg[:-1]
+    msg = msg+"\nB:"
+    for x in range(len(Beta)):
+        if(Beta[x]):
+            msg = msg+" w"+str(x+1)+","
+    msg = msg[:-1]
+    popupmsg(msg)
 
 def USC(master,draw):
     global outputStore
@@ -1578,7 +1649,7 @@ def FIC(master,draw,NG_fic, NR_fic, NH_fic):
     global lineStore
     global lineNumber
     #look for the button
-    NG_pms, NR_pms, NH_pms = NG_fic, NR_fic, NH_fic
+    NG_pms, NR_pms, NH_pms = copy.deepcopy(NG_fic, NR_fic, NH_fic)
     for x in range(number_of_nodes):
         if(btnStore[x]!=0):
             if(btnStore[x][1].pms==1):
@@ -1749,7 +1820,7 @@ def popupmsg(msg):
 def PMS_option(draw,master):
     type_pms = layoutMethod1.get()
     if(type_pms == "USC"):
-        USC(master,draw)
+        USC2(master,draw)
     if(type_pms == "MIC"):
         MIC(master,draw)
     #if(type_pms == "PMS"):
@@ -1845,11 +1916,11 @@ def Immersion(NG,NR,NH,Unknownnodes,draw,master):
     test = np.array(NG)
     test1 = np.array(NH)
     test2 = np.array(NR)
-    print("NG with unkownnodes at the bottom:")
+    print("NG with unknownnodes at the bottom:")
     print(test)
-    print("NH with unkownnodes at the bottom:")
+    print("NH with unknownnodes at the bottom:")
     print(test1)
-    print("NR with unkownnodes at the bottom:")
+    print("NR with unknownnodes at the bottom:")
     print(test2)
     iteration = 0
     G = copy.deepcopy(NG)
