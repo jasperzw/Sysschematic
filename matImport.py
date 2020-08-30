@@ -71,12 +71,7 @@ def toAdjacencyMatrixCall(draw,master,overlay,storeNG,storeNH,storeNR,lineStore,
                 NR = storeNR
             else:
                 NH = storeNH
-                for y in range(excitationNumber):
-                    if(excitationStore[y]!=0):
-                        if(excitationStore[y][4]==currentOutput):
-                            excitation = excitationStore[y][1]
-                            nmb = int(excitation.nmb)
-                            NR[x][nmb-1] = 1
+                NR = storeNR
 
     storeNG = NG
     storeNR = NR

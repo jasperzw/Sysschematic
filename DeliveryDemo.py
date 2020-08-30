@@ -1840,19 +1840,18 @@ def Immersion(NG,NR,NH,Unknownnodes,draw,master):
     global storeNG
     global storeNH
     global storeNR
-    A1 = []
-    L = []
-    L11 = []
-    L12 = []
-    L21 = []
-    L22 = []
-    B = []
     Unknownnodes_start = copy.deepcopy(Unknownnodes)
     Unknownnodes_start_1 = copy.deepcopy(Unknownnodes)
     NG, NR, NH, Unknownnodes= Unknownnodesbottom(NG, NR, NH, Unknownnodes)
     test = np.array(NG)
+    test1 = np.array(NH)
+    test2 = np.array(NR)
     print("NG with unkownnodes at the bottom:")
     print(test)
+    print("NH with unkownnodes at the bottom:")
+    print(test1)
+    print("NR with unkownnodes at the bottom:")
+    print(test2)
     iteration = 0
     G = copy.deepcopy(NG)
     while(iteration<unknownNodenumber):
@@ -1868,7 +1867,6 @@ def Immersion(NG,NR,NH,Unknownnodes,draw,master):
         for y in range(len(G)):
             G[y][len_G-x-1] = 0
             G[len_G-x-1][y] = 0
-    print(G)
     #switching to the right position
 
     B = NH
@@ -1884,7 +1882,7 @@ def Immersion(NG,NR,NH,Unknownnodes,draw,master):
                                 NH[y][a] = 1
         itteration += 1
 
-    R = copy.deepcopy(NR)
+    R = NR
     #Same computation for NR as for NH
     itteration = 0
     while(itteration<unknownNodenumber):
@@ -1954,6 +1952,9 @@ def Immersion(NG,NR,NH,Unknownnodes,draw,master):
     print("New NH after Immersion is:")
     B = np.array(B)
     print(B)
+    print("New NR after Immersion is:")
+    R = np.array(R)
+    print(R)
     print("End of Immersion")
     return G, B, R
 
