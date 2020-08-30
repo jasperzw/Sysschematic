@@ -1088,77 +1088,6 @@ below are the functions for
 -------------------------------------------------------- PMS --------------------------------------------------------
 """
 
-def USC2(master,draw):
-    global outputStore
-    global currentAmountOutputSelected
-    global number_of_nodes
-    global lineNumber
-    global lineStore
-    global btnStore
-    global unknownNodenumber
-    global outputNumber
-    global NG_pms
-    global NR_pms
-    global NH_pms
-    NG_pms, NR_pms, NH_pms, Unknownnodes_pms = toAdjacencyMatrix(draw,master)
-    #look for nonaccessible nodes
-    nonaccessible = (np.ones(len(NG_pms))).tolist()
-    for x in range(outputNumber):
-        if(outputStore[x]!=0):
-            if(outputStore[x][1].stat==2 or outputStore[x][1].stat==4):
-                nonaccessible[x] = 0
-    #immerse all the nonaccessible nodes
-    G, B, R = Immersion(NG_pms,NR_pms,NH_pms,nonaccessible,draw,master)
-    B = B.tolist()
-    R = R.tolist()
-    print("G")
-    print(G)
-    print("B")
-    print(B)
-    print("R")
-    print(R)
-    x = 0
-    popped = 0
-    while(x<outputNumber):
-        if(nonaccessible[x]):
-            G.pop(x-popped)
-            for y in range(len(G)):
-                G[y].pop(x-popped)
-            R.pop(x-popped)
-            B.pop(x-popped)
-            popped += 1
-        x += 1
-    print("G 1")
-    print(G)
-    print("B 1")
-    print(B)
-    print("R 1")
-    print(R)
-    #FIC
-    D, Y, A, Beta = FIC(master,draw,G, R, B)
-    #create the output message
-    msg = "Inputs:"
-    for x in range(len(D)):
-        if(D[x]):
-            msg = msg+" w"+str(x+1)+","
-    msg = msg[:-1]
-    msg = msg+"\nOutputs:"
-    for x in range(len(Y)):
-        if(Y[x]):
-            msg = msg+" w"+str(x+1)+","
-    msg = msg[:-1]
-    msg = msg+"\nA:"
-    for x in range(len(A)):
-        if(A[x]):
-            msg = msg+" w"+str(x+1)+","
-    msg = msg[:-1]
-    msg = msg+"\nB:"
-    for x in range(len(Beta)):
-        if(Beta[x]):
-            msg = msg+" w"+str(x+1)+","
-    msg = msg[:-1]
-    popupmsg(msg)
-
 def USC(master,draw):
     global outputStore
     global currentAmountOutputSelected
@@ -1649,7 +1578,9 @@ def FIC(master,draw,NG_fic, NR_fic, NH_fic):
     global lineStore
     global lineNumber
     #look for the button
-    NG_pms, NR_pms, NH_pms = copy.deepcopy(NG_fic, NR_fic, NH_fic)
+    NG_pms = copy.deepcopy(NG_fic)
+    NH_pms = copy.deepcopy(NH_fic)
+    NR_pms = copy.deepcopy(NR_fic)
     for x in range(number_of_nodes):
         if(btnStore[x]!=0):
             if(btnStore[x][1].pms==1):
@@ -1744,7 +1675,6 @@ def PMS(master, draw):
     global btnStore
     global lineStore
     global lineNumber
-    NG_pms, NR_pms, NH_pms, Unknownnodes_pms = toAdjacencyMatrix(draw,master)
     #look for the button
     for x in range(number_of_nodes):
         if(btnStore[x]!=0):
@@ -1820,11 +1750,9 @@ def popupmsg(msg):
 def PMS_option(draw,master):
     type_pms = layoutMethod1.get()
     if(type_pms == "USC"):
-        USC2(master,draw)
+        USC(master,draw)
     if(type_pms == "MIC"):
         MIC(master,draw)
-    #if(type_pms == "PMS"):
-    #    PMS_call(master,draw)
     if(type_pms == "FIC"):
         FIC_call(master,draw)
 
