@@ -6,10 +6,10 @@ def addNoiseNodeCall(draw, x, y, master, noiseNodeNumber, noiseNodeStore, img1Bt
     switch = 0
     node = 0
     #set img1btn as object so that we can add .widget containing the circle id.
-    img1Btn.widget = draw.create_circle(x,y,10*unit.currentZoom, fill="yellow", tags="nodes")
+    img1Btn.widget = draw.create_circle(x,y,5*unit.currentZoom, fill="yellow", tags="nodes")
     img1Btn.nmb =1
     img1Btn.stat = 1
-    img1Btn.zoom = 10*unit.currentZoom
+    img1Btn.zoom = 5*unit.currentZoom
     textSize = round(2*unit.currentZoom)
     if(textSize<1):
         textSize = 1
