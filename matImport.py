@@ -28,7 +28,7 @@ def toAdjacencyMatrixCall(draw,master,overlay,storeNG,storeNH,storeNR,lineStore,
             new.append(0)
         NG.append(new)
         new = []
-        for y in range(noiseNumber):
+        for y in range(noiseNodeNumber):
             new.append(0)
         NH.append(new)
         new = []
@@ -60,6 +60,8 @@ def toAdjacencyMatrixCall(draw,master,overlay,storeNG,storeNH,storeNR,lineStore,
                 KnownNodes[x]=1
 
             if(overlay==1):
+                print("noisenodeNumber")
+                print(noiseNodeNumber)
                 for y in range(lineNumber):
                     if(lineStore[y]!=0):
                         if(lineStore[y][2]==currentOutput):
@@ -73,6 +75,26 @@ def toAdjacencyMatrixCall(draw,master,overlay,storeNG,storeNH,storeNR,lineStore,
                 NH = storeNH
                 NR = storeNR
 
+    if(len(NH)==0):
+        NH = []
+        for x in range(outputNumber):
+            new = []
+            for y in range(outputNumber):
+                if(x==y):
+                    new.append(1)
+                else:
+                    new.append(0)
+            NH.append(new)
+    if(len(NR)==0):
+        NR = []
+        for x in range(outputNumber):
+            new = []
+            for y in range(outputNumber):
+                if(x==y):
+                    new.append(1)
+                else:
+                    new.append(0)
+            NR.append(new)
     storeNG = NG
     storeNR = NR
     storeNH = NH
