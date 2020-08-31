@@ -28,7 +28,7 @@ def toAdjacencyMatrixCall(draw,master,overlay,storeNG,storeNH,storeNR,lineStore,
             new.append(0)
         NG.append(new)
         new = []
-        for y in range(noiseNumber):
+        for y in range(noiseNodeNumber):
             new.append(0)
         NH.append(new)
         new = []
@@ -60,6 +60,8 @@ def toAdjacencyMatrixCall(draw,master,overlay,storeNG,storeNH,storeNR,lineStore,
                 KnownNodes[x]=1
 
             if(overlay==1):
+                print("noisenodeNumber")
+                print(noiseNodeNumber)
                 for y in range(lineNumber):
                     if(lineStore[y]!=0):
                         if(lineStore[y][2]==currentOutput):
@@ -71,41 +73,28 @@ def toAdjacencyMatrixCall(draw,master,overlay,storeNG,storeNH,storeNR,lineStore,
                 NR = storeNR
             else:
                 NH = storeNH
-                for y in range(excitationNumber):
-                    if(excitationStore[y]!=0):
-                        if(excitationStore[y][4]==currentOutput):
-                            excitation = excitationStore[y][1]
-                            nmb = int(excitation.nmb)
-                            NR[x][nmb-1] = 1
+                NR = storeNR
 
-    """
-    x = 0
-    while( x < (len(NG))):
-        emptyrow = 0;
-        for y in range(len(NG)):
-            if(NG[x][y]==0):
-                emptyrow = emptyrow + 1;
-        if(emptyrow==len(NG)):
-            emptycolumn = 0;
-            for y in range(len(NG)):
-                if(NG[y][x]==0):
-                    emptycolumn = emptycolumn + 1;
-            if(emptycolumn==len(NG)):
-                NG.pop(x)
-                NH = list(NH)
-                NH.pop(x)
-                for y in range(len(NG)):
-                    NG[y].pop(x)
-                NH = np.asarray(NH, dtype=np.float32)
-                KnownNodes.pop(x)
-                a = 0
-                while(a<outputNumber):
-                    if(outputStore[a]!=0 and int(outputStore[a][1].nmb)>int(x)):
-                        outputStore[a][1].nmb = int(outputStore[a][1].nmb) -1
-                    a = a + 1
-                outputNumber = outputNumber - 1
-        x = x + 1
-    """
+    if(len(NH)==0):
+        NH = []
+        for x in range(outputNumber):
+            new = []
+            for y in range(outputNumber):
+                if(x==y):
+                    new.append(1)
+                else:
+                    new.append(0)
+            NH.append(new)
+    if(len(NR)==0):
+        NR = []
+        for x in range(outputNumber):
+            new = []
+            for y in range(outputNumber):
+                if(x==y):
+                    new.append(1)
+                else:
+                    new.append(0)
+            NR.append(new)
     storeNG = NG
     storeNR = NR
     storeNH = NH
