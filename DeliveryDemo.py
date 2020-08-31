@@ -1,6 +1,6 @@
 # Importing tkinter module
 from tkinter import *
-from matImport import readFile, toAdjacencyMatrixCall, generateGraph, graphShortestPath, graphDisjointPath, treeAllocation, mergeTree
+from matImport import readFile, toAdjacencyMatrixCall, generateGraph, graphShortestPath, graphDisjointPath, treeAllocation, mergeTree, saveToFile
 from tkinter.filedialog import askopenfilename
 import math
 from Scrollwindow import *
@@ -53,7 +53,7 @@ unknownNodenumber = 0
 newPathColor = 0
 currentGroup = 1
 fancyColor = COLORS
-#fancyColor = ["green","yellow","orange","blue","cyan","dark sea green","khaki","lightSteelBlue1"]
+#fancyColor = ["green","yellow","orange","blue","cyan","dark sea green","khaki","lightSteelBlue1","pink","lime","black"]
 treeStore = []
 
 class nodeHolder():
@@ -65,7 +65,7 @@ def initMainMenu(frame, canvas):
 
     #column 0
     Button(frame, text="load .mat file", command= lambda: loadMat(draw, master), height = 1, width=20).grid(row=0, padx=2, pady=2)
-    Button(frame, text="export .mat file", command= lambda: toAdjacencyMatrix(draw, master), height = 1, width=20).grid(row=1, padx=2, pady=2)
+    Button(frame, text="export .mat file", command= lambda: toFile(draw, master), height = 1, width=20).grid(row=1, padx=2, pady=2)
     Button(frame, text="change node view", command= lambda: switchView(draw, master), height = 1, width=20).grid(row=2, padx=2, pady=2)
 
     #column 1
@@ -127,6 +127,14 @@ below are all the functions for
 
 used to plot adjency matrix and return everything to Adjacency matrix
 """
+
+def toFile(draw,master):
+    storeNG, storeNR, storeNH, Unknownnodes = toAdjacencyMatrix(draw,master)
+    call = popupWindow(master)
+    master.wait_window(call.top)
+    name = call.value + ".mat"
+    print("saved file under:",name)
+    saveToFile(storeNG,storeNR,storeNH,Unknownnodes,name)
 
 
 def toggleTransfer(master,draw):
@@ -853,6 +861,7 @@ def paint_disjoint_path(draw,master):
 
 def draw_tree(draw,master):
     global treeStore
+    toAdjacencyMatrix(draw,master)
     treeStore = []
     i=10
     for x in outputStore:
