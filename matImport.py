@@ -251,7 +251,7 @@ def treeAllocation(treeStore):
                         #check if a node is in this tree and mark it
                         #print("scanning in: ",targetUnit)
                         #print("check line from:",line[1].nmb,"to",line[2].nmb,"with",targetUnit[1].nmb,"while working tree",unit[0],masterTree,slaveTree)
-                        if line[2] == targetUnit[1]:
+                        if line[2] == targetUnit[1] or line[2] in targetUnit[2]:
                             #now we will check if it is mergable
                             mergeMatrix[masterTree][slaveTree] = checkMerge(unit,targetUnit)
                     slaveTree += 1
@@ -269,15 +269,27 @@ def mergeTree(masterTree, slaveTree):
     tempUnit.append(masterTree[1])
     tempUnit.append([])
     tempUnit.append([])
+    tempUnit.append([])
     for x in masterTree[2]:
         tempUnit[2].append(x)
 
     for x in masterTree[3]:
         tempUnit[3].append(x)
 
+    check_root = 0
+    tempUnit[3].extend(slaveTree[3])
+
+    for line in tempUnit[3]:
+        if line[2] == slaveTree[1] and line[1] == masterTree[1]:
+            check_root += 1
+        if line[1] == slaveTree[1] and line[2] == masterTree[1]:
+            check_root += 1
+
+    if check_root == 2:
+        tempUnit[4].extend(slaveTree[1])
     tempUnit[2].append(slaveTree[1])
     tempUnit[2].extend(slaveTree[2])
-    tempUnit[3].extend(slaveTree[3])
+
 
     return tempUnit
 
