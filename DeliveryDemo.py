@@ -46,7 +46,7 @@ currentAmountOutputSelected = 1 #this variable is so we know the order that outp
 #global declare is unnecessary since they are declared in the upper script outside any function
 #variable which indicates if a click means a module add
 clickOperation=0
-currentView = 0
+currentView = 1
 butTestStore = []
 butTestNumber = 0
 unknownNodenumber = 0
@@ -267,6 +267,9 @@ def loadMat(draw,master):
     global storeNR
     global storeNH
     global nodeSize
+    global currentview
+    currentView = 1
+    switchView(draw, master)
     filename = askopenfilename()
     storeNG, storeNR, storeNH = readFile(filename)
     #plotMatrix(draw,master,1)
@@ -478,6 +481,7 @@ def switchView(draw, master):
 
         else:
             if(currentView == 1):
+                toAdjacencyMatrix(draw,master)
                 NG = storeNG
                 NR = storeNR
                 NH = storeNH
@@ -1019,7 +1023,7 @@ def removeOutput(draw,master):
                             draw.delete(lineStore[i][0])
                             removeNode(draw, master)
                             lineStore[i]=0
-                draw.delete(outputStore[x][4])
+                draw.delete(outputStore[x][5])
                 draw.delete(outputStore[x][0])
                 outputStore[x] = 0
 
