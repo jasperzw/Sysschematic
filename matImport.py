@@ -16,6 +16,12 @@ def  readFile(fileLocation):
 
     return NG, NR, NH
 
+def saveToFile(storeNG,storeNR,storeNH,unknownnodes,name):
+    location = "data/"+name
+    netw = {"adjacencyG":storeNG, "adjacencyR":storeNR, "adjacencyH":storeNH}
+    mdic = {"netw":netw}
+    sio.savemat(location, mdic)
+
 def toAdjacencyMatrixCall(draw,master,overlay,storeNG,storeNH,storeNR,lineStore,lineNumber,outputStore,outputNumber,excitationStore,excitationNumber,noiseNodeStore,noiseNodeNumber,KnownNodes,noiseNumber):
     NG = []
     NR = []
@@ -112,6 +118,8 @@ def toAdjacencyMatrixCall(draw,master,overlay,storeNG,storeNH,storeNR,lineStore,
     print(KnownNodes)
 
     return NG, NR, NH, outputNumber, outputStore, KnownNodes
+
+
 
 def generateGraph(NG,NH,NR, typeGraph, setScale, layoutMethod):
 
@@ -275,7 +283,7 @@ def mergeTree(masterTree, slaveTree):
             check_root += 1
 
     if check_root == 2:
-        tempUnit[4].extend(slaveTree[1])
+        tempUnit[4].append(slaveTree[1])
     tempUnit[2].append(slaveTree[1])
     tempUnit[2].extend(slaveTree[2])
 
