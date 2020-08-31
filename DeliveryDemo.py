@@ -872,7 +872,7 @@ def draw_tree(draw,master):
                                 draw.itemconfig(f[0],fill=fancyColor[i])
                         lineDrawer.append(y)
 
-            drawer = [i,x[1],[],lineDrawer]
+            drawer = [i,x[1],[],lineDrawer,[]]
             #drawer looks like this drawer = [colorID,rootNode, passingNodes,linesInTree]
             treeStore.append(drawer)
             i += 5
@@ -1336,14 +1336,6 @@ def USC(master,draw):
                     Y[x] = 1
                     Q[x] = 1
 
-    #change the transfer back to unselected
-    for x in range(number_of_nodes):
-        if(btnStore[x]!=0):
-                if(btnStore[x][1].pms==1):
-                    btnStore[x][1].stat = 2
-                    btnStore[x][1].pms = 0
-                    x, y = trueCoordinates(draw,btnStore[x])
-                    circleScan(draw,master,x,y)
     #select the nodes in D and Y
     for f in range(len(D)):
         id = outputStore[f][1]
@@ -1531,14 +1523,6 @@ def MIC(master,draw):
         if(D[x] and Q[x]==0):
             A[x] = 1
 
-    #change the transfer back to unselected
-    for x in range(number_of_nodes):
-        if(btnStore[x]!=0):
-                if(btnStore[x][1].pms==1):
-                    btnStore[x][1].stat = 2
-                    btnStore[x][1].pms = 0
-                    x, y = trueCoordinates(draw,btnStore[x])
-                    circleScan(draw,master,x,y)
     #select the nodes in D and Y
     for f in range(len(D)):
         if(D[f] or Y[f]):
@@ -1571,14 +1555,6 @@ def FIC_call(master,draw):
     #FIC
     NG_fic, NR_fic, NH_fic, Unknownnodes_pms = toAdjacencyMatrix(draw,master)
     D, Y, A, Blocking = FIC(master,draw,NG_fic, NR_fic, NH_fic)
-    #change the transfer back to unselected
-    for x in range(number_of_nodes):
-        if(btnStore[x]!=0):
-                if(btnStore[x][1].pms==1):
-                    btnStore[x][1].stat = 2
-                    btnStore[x][1].pms = 0
-                    x, y = trueCoordinates(draw,btnStore[x])
-                    circleScan(draw,master,x,y)
     #select the nodes in D and Y
     for f in range(len(D)):
         if(D[f] or Y[f]):
