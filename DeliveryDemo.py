@@ -1,6 +1,6 @@
 # Importing tkinter module
 from tkinter import *
-from matImport import readFile, toAdjacencyMatrixCall, generateGraph, graphShortestPath, graphDisjointPath, treeAllocation, mergeTree
+from matImport import readFile, toAdjacencyMatrixCall, generateGraph, graphShortestPath, graphDisjointPath, treeAllocation, mergeTree, saveToFile
 from tkinter.filedialog import askopenfilename
 import math
 from Scrollwindow import *
@@ -46,14 +46,14 @@ currentAmountOutputSelected = 1 #this variable is so we know the order that outp
 #global declare is unnecessary since they are declared in the upper script outside any function
 #variable which indicates if a click means a module add
 clickOperation=0
-currentView = 0
+currentView = 1
 butTestStore = []
 butTestNumber = 0
 unknownNodenumber = 0
 newPathColor = 0
 currentGroup = 1
-#fancyColor = COLORS
-fancyColor = ["green","yellow","orange","blue","cyan","dark sea green","khaki","lightSteelBlue1"]
+fancyColor = COLORS
+#fancyColor = ["green","yellow","orange","blue","cyan","dark sea green","khaki","lightSteelBlue1","pink","lime","black"]
 treeStore = []
 
 class nodeHolder():
@@ -65,7 +65,7 @@ def initMainMenu(frame, canvas):
 
     #column 0
     Button(frame, text="load .mat file", command= lambda: loadMat(draw, master), height = 1, width=20).grid(row=0, padx=2, pady=2)
-    Button(frame, text="export .mat file", command= lambda: toAdjacencyMatrix(draw, master), height = 1, width=20).grid(row=1, padx=2, pady=2)
+    Button(frame, text="export .mat file", command= lambda: toFile(draw, master), height = 1, width=20).grid(row=1, padx=2, pady=2)
     Button(frame, text="change node view", command= lambda: switchView(draw, master), height = 1, width=20).grid(row=2, padx=2, pady=2)
 
     #column 1
@@ -99,10 +99,9 @@ def initSubMenu(frame):
     Button(frame, text="Perform test identifiability", command= lambda: testIdentifiability(master, draw), height = 1, width=20).pack(padx=2, pady=2)
     Button(frame, text="Find shortest path", command= lambda: find_path(draw,master), height = 1, width=20).pack(padx=2, pady=2)
     Button(frame, text="Find disjoint path", command= lambda: paint_disjoint_path(draw,master), height = 1, width=20).pack(padx=2, pady=2)
-    Button(frame, text="Create minimum psuedo tree", command= lambda: draw_tree(draw,master), height = 1, width=20).pack(padx=2, pady=2)
-    Button(frame, text="merge maximum psuedo tree", command= lambda: find_maximum_tree(draw,master), height = 1, width=20).pack(padx=2, pady=2)
+    Button(frame, text="Create minimum tree", command= lambda: draw_tree(draw,master), height = 1, width=20).pack(padx=2, pady=2)
+    Button(frame, text="merge maximum tree", command= lambda: find_maximum_tree(draw,master), height = 1, width=20).pack(padx=2, pady=2)
     Button(frame, text="Immersion", command= lambda: Immersion_call(master, draw), height = 1, width=20).pack(padx=2, pady=2)
-    Button(frame, text="Test", command= lambda: TEST(master, draw), height = 1, width=20).pack(padx=2, pady=2)
     #in reload every button or Checkbox is stored which is reloaded on calling reloadCall when currentAmountOutputSelected > 1
     reload = [
     Button(frame, text="remove node", command= lambda: removeOutput(draw, master), height = 1, width=20),
@@ -110,7 +109,7 @@ def initSubMenu(frame):
     Button(frame, text="remove external excitation", command= lambda: removeNH(draw,master,0), height = 1, width=20),
     Button(frame, text="add noise", command= lambda: addNHCall(master, draw,1), height = 1, width=20),
     Button(frame, text="remove noise", command= lambda: removeNH(master, draw,1), height = 1, width=20),
-    Button(frame, text="Make unknown", command= lambda: makeunkown(master, draw), height = 1, width=20),
+    Button(frame, text="Make unknown", command= lambda: makeunknown(master, draw), height = 1, width=20),
     Checkbutton(frame, text="excitation measurable", height = 1, width=20),
     Checkbutton(frame, text="noise measurable", height = 1, width=20),
     Checkbutton(frame, text="Blue", height = 1, width=20),
@@ -128,6 +127,14 @@ below are all the functions for
 
 used to plot adjency matrix and return everything to Adjacency matrix
 """
+
+def toFile(draw,master):
+    storeNG, storeNR, storeNH, Unknownnodes = toAdjacencyMatrix(draw,master)
+    call = popupWindow(master)
+    master.wait_window(call.top)
+    name = call.value + ".mat"
+    print("saved file under:",name)
+    saveToFile(storeNG,storeNR,storeNH,Unknownnodes,name)
 
 
 def toggleTransfer(master,draw):
@@ -202,7 +209,7 @@ def testIdentifiability(master,draw):
 
     #check each node if they have the nosie or excitation measurable selected and the note that in the NH and NR matrix
 
-    adjG, adjR, adjH, unkown = toAdjacencyMatrix(draw,master)
+    adjG, adjR, adjH, unknown = toAdjacencyMatrix(draw,master)
 
     replaceH = []
     for x in range(len(adjH)):
@@ -260,6 +267,9 @@ def loadMat(draw,master):
     global storeNR
     global storeNH
     global nodeSize
+    global currentview
+    currentView = 1
+    switchView(draw, master)
     filename = askopenfilename()
     storeNG, storeNR, storeNH = readFile(filename)
     #plotMatrix(draw,master,1)
@@ -344,7 +354,7 @@ def plotNoise(draw,master):
     #       for y in range(outputNumber):
     #            if(outputStore[y][1].nmb==x):
     #                selectOutput(outputStore[y][1])
-    #                makeunkown(master, draw)
+    #                makeunknown(master, draw)
     storeNR = NR
     storeNH = NH
     storeNG = NG
@@ -404,7 +414,7 @@ def plotMatrix(draw,master,init):
     #        for y in range(outputNumber):
     #            if(outputStore[y][1].nmb==x):
     #                selectOutput(outputStore[y][1])
-    #                makeunkown(master, draw)
+    #                makeunknown(master, draw)
 
     #this is a priority to put the circle and text aboven the lines
 
@@ -432,7 +442,6 @@ def toAdjacencyMatrix(draw,master):
     global outputNumber
     global outputStore
     global Unknownnodes
-    print(storeNR)
     storeNG, storeNR, storeNH, outputNumber, outputStore, Unknownnodes= toAdjacencyMatrixCall(draw,master,overlay,storeNG,storeNH,storeNR,lineStore,lineNumber,outputStore,outputNumber,excitationStore,excitationNumber,noiseNodeStore,noiseNodeNumber, Unknownnodes, noiseNumber)
 
     return storeNG, storeNR, storeNH, Unknownnodes
@@ -472,6 +481,7 @@ def switchView(draw, master):
 
         else:
             if(currentView == 1):
+                toAdjacencyMatrix(draw,master)
                 NG = storeNG
                 NR = storeNR
                 NH = storeNH
@@ -824,7 +834,6 @@ def paint_disjoint_path(draw,master):
     group1 = returnGroupList(1)
     group2 = returnGroupList(2)
 
-
     #adding them to a networkx to scan for the shortest route because networkx is lit
     path = graphDisjointPath(storeNG, group1, group2,1)
     disconnected_set = graphDisjointPath(storeNG, group1, group2,0)
@@ -856,8 +865,9 @@ def paint_disjoint_path(draw,master):
 
 def draw_tree(draw,master):
     global treeStore
+    toAdjacencyMatrix(draw,master)
     treeStore = []
-    i=0
+    i=10
     for x in outputStore:
         if x!=0:
             draw.itemconfig(x[0],fill=fancyColor[i])
@@ -872,10 +882,10 @@ def draw_tree(draw,master):
                                 draw.itemconfig(f[0],fill=fancyColor[i])
                         lineDrawer.append(y)
 
-            drawer = [i,x[1],[],lineDrawer]
+            drawer = [i,x[1],[],lineDrawer,[]]
             #drawer looks like this drawer = [colorID,rootNode, passingNodes,linesInTree]
             treeStore.append(drawer)
-            i += 1
+            i += 5
     #print("current generated treeStore:",treeStore)
 
 def find_maximum_tree(draw,master):
@@ -1013,7 +1023,7 @@ def removeOutput(draw,master):
                             draw.delete(lineStore[i][0])
                             removeNode(draw, master)
                             lineStore[i]=0
-                draw.delete(outputStore[x][4])
+                draw.delete(outputStore[x][5])
                 draw.delete(outputStore[x][0])
                 outputStore[x] = 0
 
@@ -1066,7 +1076,7 @@ def selectOutput(f,draw):
                 if (id==lineStore[a][1] or id==lineStore[a][2]):
                     draw.itemconfig(lineStore[a][0], fill=lineStore[a][4])
 
-def makeunkown(master, draw):
+def makeunknown(master, draw):
     global currentAmountOutputSelected
     global outputStore
     global outputNumber
@@ -1091,22 +1101,6 @@ below are the functions for
 -------------------------------------------------------- PMS --------------------------------------------------------
 """
 
-def TEST(draw,master):
-    global outputStore
-    global outputNumber
-    start = 0
-    end = 0
-    NG, NR_pms, NH_pms, Unknownnodes_pms = toAdjacencyMatrix(draw,master)
-    for x in range(outputNumber):
-        if(outputStore[x]!=0):
-            if(outputStore[x][1].stat==2):
-                start = x
-            elif(outputStore[x][1].stat==3):
-                end = x
-    nodeSearchList = [outputStore[start],outputStore[end]]
-    list = graphDisjointPath(NG,group1,group2,0)
-    print(list)
-
 def USC(master,draw):
     global outputStore
     global currentAmountOutputSelected
@@ -1120,6 +1114,7 @@ def USC(master,draw):
     global NR_pms
     global NH_pms
     NG_pms, NR_pms, NH_pms, Unknownnodes_pms = toAdjacencyMatrix(draw,master)
+
     #look for the button
     for x in range(number_of_nodes):
         if(btnStore[x]!=0):
@@ -1144,33 +1139,30 @@ def USC(master,draw):
     #fill the A and B sets with the initial nodes
     D[i] = 1
     Y[j] = 1
-    #parallel condition
+        #find in-neighbours of Y
+    inneighbours = []
+    for x in range(len(NG_pms)):
+        if(NG_pms[j][x]):
+            for y in range(outputNumber):
+                if(outputStore[y][1].nmb-1==x):
+                    inneighbours.append(outputStore[y])
+    #find out-neighbours of D
+    outneighbours = []
+    for x in range(len(NG_pms)):
+        if(NG_pms[x][i]):
+            for y in range(outputNumber):
+                if(outputStore[y][1].nmb-1==x):
+                    outneighbours.append(outputStore[y])
+    #find disconnecting set
+    NG = copy.deepcopy(NG_pms)
+    disconnected_set = graphDisjointPath(NG, outneighbours, inneighbours,0)
+    for x in range(len(disconnected_set)):
+        temp = disconnected_set[x]
+        if(accessible[temp]):
+            D[temp] = 1
     NG = copy.deepcopy(NG_pms)
     NH = copy.deepcopy(NH_pms)
     NR = copy.deepcopy(NR_pms)
-    NG[j][i] = 0
-    nodeSearchList = [outputStore[i],outputStore[j]]
-    list = graphShortestPath(NG,nodeSearchList)
-    for x in range(len(list)-2):
-        print(x+1)
-        temp = list[x+1]
-        D[temp] = 1
-    #loop condition
-    list = []
-    temp = [0]
-    NG = copy.deepcopy(NG_pms)
-    for x in range(len(NG)):
-        if(NG[x][j]):
-            nodeSearchList = [outputStore[x],outputStore[j]]
-            list.append(graphShortestPath(NG,nodeSearchList))
-            temp = list[0]
-    for x in range(len(list)):
-        if(len(temp)>len(list[x])):
-            temp = list[x]
-    for x in range(len(temp)-1):
-        temp2 = temp[x]
-        D[temp2] = 1
-
     change = 1
     while(change):
         #all accessible inneighbours of Y
@@ -1335,15 +1327,6 @@ def USC(master,draw):
                     A[x] = 0
                     Y[x] = 1
                     Q[x] = 1
-
-    #change the transfer back to unselected
-    for x in range(number_of_nodes):
-        if(btnStore[x]!=0):
-                if(btnStore[x][1].pms==1):
-                    btnStore[x][1].stat = 2
-                    btnStore[x][1].pms = 0
-                    x, y = trueCoordinates(draw,btnStore[x])
-                    circleScan(draw,master,x,y)
     #select the nodes in D and Y
     for f in range(len(D)):
         id = outputStore[f][1]
@@ -1483,32 +1466,30 @@ def MIC(master,draw):
     #fill the A and B sets with the initial nodes
     D[i] = 1
     Y[j] = 1
-    #parallel condition
+    #find in-neighbours of Y
+    inneighbours = []
+    for x in range(len(NG_pms)):
+        if(NG_pms[j][x]):
+            for y in range(outputNumber):
+                if(outputStore[y][1].nmb-1==x):
+                    inneighbours.append(outputStore[y])
+    #find out-neighbours of D
+    outneighbours = []
+    for x in range(len(NG_pms)):
+        if(NG_pms[x][i]):
+            for y in range(outputNumber):
+                if(outputStore[y][1].nmb-1==x):
+                    outneighbours.append(outputStore[y])
+    #find disconnecting set
+    NG = copy.deepcopy(NG_pms)
+    disconnected_set = graphDisjointPath(NG, outneighbours, inneighbours,0)
+    for x in range(len(disconnected_set)):
+        temp = disconnected_set[x]
+        D[temp] = 1
     NG = copy.deepcopy(NG_pms)
     NH = copy.deepcopy(NH_pms)
     NR = copy.deepcopy(NR_pms)
-    NG[j][i] = 0
-    nodeSearchList = [outputStore[i],outputStore[j]]
-    list = graphShortestPath(NG,nodeSearchList)
-    for x in range(len(list)-2):
-        print(x+1)
-        temp = list[x+1]
-        D[temp] = 1
-    #loop condition
-    list = []
-    temp = [0]
-    NG = copy.deepcopy(NG_pms)
-    for x in range(len(NG)):
-        if(NG[x][j]):
-            nodeSearchList = [outputStore[x],outputStore[j]]
-            list.append(graphShortestPath(NG,nodeSearchList))
-            temp = list[0]
-    for x in range(len(list)):
-        if(len(temp)>len(list[x])):
-            temp = list[x]
-    for x in range(len(temp)-1):
-        temp2 = temp[x]
-        D[temp2] = 1
+
     #step node signal
     Q = (np.zeros(len(NG_pms))).tolist()
     change = 1
@@ -1531,14 +1512,6 @@ def MIC(master,draw):
         if(D[x] and Q[x]==0):
             A[x] = 1
 
-    #change the transfer back to unselected
-    for x in range(number_of_nodes):
-        if(btnStore[x]!=0):
-                if(btnStore[x][1].pms==1):
-                    btnStore[x][1].stat = 2
-                    btnStore[x][1].pms = 0
-                    x, y = trueCoordinates(draw,btnStore[x])
-                    circleScan(draw,master,x,y)
     #select the nodes in D and Y
     for f in range(len(D)):
         if(D[f] or Y[f]):
@@ -1571,14 +1544,6 @@ def FIC_call(master,draw):
     #FIC
     NG_fic, NR_fic, NH_fic, Unknownnodes_pms = toAdjacencyMatrix(draw,master)
     D, Y, A, Blocking = FIC(master,draw,NG_fic, NR_fic, NH_fic)
-    #change the transfer back to unselected
-    for x in range(number_of_nodes):
-        if(btnStore[x]!=0):
-                if(btnStore[x][1].pms==1):
-                    btnStore[x][1].stat = 2
-                    btnStore[x][1].pms = 0
-                    x, y = trueCoordinates(draw,btnStore[x])
-                    circleScan(draw,master,x,y)
     #select the nodes in D and Y
     for f in range(len(D)):
         if(D[f] or Y[f]):
@@ -1626,7 +1591,9 @@ def FIC(master,draw,NG_fic, NR_fic, NH_fic):
     global lineStore
     global lineNumber
     #look for the button
-    NG_pms, NR_pms, NH_pms = NG_fic, NR_fic, NH_fic
+    NG_pms = copy.deepcopy(NG_fic)
+    NH_pms = copy.deepcopy(NH_fic)
+    NR_pms = copy.deepcopy(NR_fic)
     for x in range(number_of_nodes):
         if(btnStore[x]!=0):
             if(btnStore[x][1].pms==1):
@@ -1721,7 +1688,6 @@ def PMS(master, draw):
     global btnStore
     global lineStore
     global lineNumber
-    NG_pms, NR_pms, NH_pms, Unknownnodes_pms = toAdjacencyMatrix(draw,master)
     #look for the button
     for x in range(number_of_nodes):
         if(btnStore[x]!=0):
@@ -1800,8 +1766,6 @@ def PMS_option(draw,master):
         USC(master,draw)
     if(type_pms == "MIC"):
         MIC(master,draw)
-    #if(type_pms == "PMS"):
-    #    PMS_call(master,draw)
     if(type_pms == "FIC"):
         FIC_call(master,draw)
 
@@ -1887,19 +1851,18 @@ def Immersion(NG,NR,NH,Unknownnodes,draw,master):
     global storeNG
     global storeNH
     global storeNR
-    A1 = []
-    L = []
-    L11 = []
-    L12 = []
-    L21 = []
-    L22 = []
-    B = []
     Unknownnodes_start = copy.deepcopy(Unknownnodes)
     Unknownnodes_start_1 = copy.deepcopy(Unknownnodes)
     NG, NR, NH, Unknownnodes= Unknownnodesbottom(NG, NR, NH, Unknownnodes)
     test = np.array(NG)
-    print("NG with unkownnodes at the bottom:")
+    test1 = np.array(NH)
+    test2 = np.array(NR)
+    print("NG with unknownnodes at the bottom:")
     print(test)
+    print("NH with unknownnodes at the bottom:")
+    print(test1)
+    print("NR with unknownnodes at the bottom:")
+    print(test2)
     iteration = 0
     G = copy.deepcopy(NG)
     while(iteration<unknownNodenumber):
@@ -1915,84 +1878,6 @@ def Immersion(NG,NR,NH,Unknownnodes,draw,master):
         for y in range(len(G)):
             G[y][len_G-x-1] = 0
             G[len_G-x-1][y] = 0
-    print(G)
-    """
-    #Change NG into a Laplacian form L
-    #creating Diagonal A1
-    for x in range(len(NG)):
-        A1.append(0)
-        for y in range(len(NG)):
-            A1[x]=A1[x]+NG[x][y]
-    for x in range(len(NG)):
-        new = []
-        for y in range(len(NG)):
-            if(y==x):
-                new.append(A1[x])
-            else:
-                new.append(-NG[x][y])
-        L.append(new)
-    for x in range(len(NG)-unknownNodenumber):
-        new = []
-        for y in range(len(NG)-unknownNodenumber):
-            new.append(L[x][y])
-        L11.append(new)
-    for x in range(unknownNodenumber):
-        new = []
-        for y in range(len(NG)-unknownNodenumber):
-            new.append(L[len(NG)-unknownNodenumber+x][y])
-        L12.append(new)
-    for x in range(len(NG)-unknownNodenumber):
-        new = []
-        for y in range(unknownNodenumber):
-            new.append(L[x][len(NG)-unknownNodenumber+y])
-        L21.append(new)
-    for x in range(unknownNodenumber):
-        new = []
-        for y in range(unknownNodenumber):
-            new.append(L[len(NG)-unknownNodenumber+x][len(NG)-unknownNodenumber+y])
-        L22.append(new)
-    L11 = np.array(L11)
-    L12 = np.transpose(np.array(L12))
-    L21 = np.transpose(np.array(L21))
-    #if the inverse of L22 is not available use the pseudo inverse
-    if(np.linalg.det(L22)==0):
-        L22 = np.linalg.pinv(np.array(L22))
-    else:
-        L22 = np.linalg.inv(np.array(L22))
-    #Use kron reduction to calculate the new laplacian
-    L12_22 = L12.dot(L22)
-    L12_22_21 = L12_22.dot(L21)
-    Lhat = np.subtract(L11,L12_22_21)
-    #Change the laplacian into an Adjacency matrix
-    A = np.subtract(Lhat,np.diag(np.diag(Lhat)))
-    print("L22:")
-    print(L22)
-    print("New Adjecency:")
-    print(A)
-    A = A.tolist()
-    #unweigh the matrix A
-    for x in range(len(A)):
-        for y in range(len(A)):
-            if(A[x][y]!=0):
-                A[x][y]=1
-            else:
-                A[x][y]=0;
-    #adding the old nodes with no connection at the bottom
-
-    G = []
-    for x in range(len(NG)):
-        new = []
-        if(x>len(NG)-1-unknownNodenumber):
-            for y in range(len(NG)):
-                new.append(0)
-        else:
-            for y in range(len(NG)):
-                if(y>len(NG)-1-unknownNodenumber):
-                    new.append(0)
-                else:
-                    new.append(A[x][y])
-        G.append(new)
-    """
     #switching to the right position
 
     B = NH
@@ -2008,7 +1893,7 @@ def Immersion(NG,NR,NH,Unknownnodes,draw,master):
                                 NH[y][a] = 1
         itteration += 1
 
-    R = copy.deepcopy(NR)
+    R = NR
     #Same computation for NR as for NH
     itteration = 0
     while(itteration<unknownNodenumber):
@@ -2078,6 +1963,9 @@ def Immersion(NG,NR,NH,Unknownnodes,draw,master):
     print("New NH after Immersion is:")
     B = np.array(B)
     print(B)
+    print("New NR after Immersion is:")
+    R = np.array(R)
+    print(R)
     print("End of Immersion")
     return G, B, R
 
@@ -2128,6 +2016,10 @@ def clearWindow(canvas,canReset):
     global unit
     global currentView
     global newPathColor
+    global currentGroup
+    global treeStore
+    global butTestStore
+    global butTestNumber
     canvas.delete("all")
     number_of_nodes = 0
     outputNumber = 0
@@ -2146,6 +2038,11 @@ def clearWindow(canvas,canReset):
     overlay = 0
     newPathColor = 0
     currentview = 0
+    butTestStore = []
+    butTestNumber = 0
+    unknownNodenumber = 0
+    currentGroup = 1
+    treeStore = []
     if(canReset==1):
         excitationNumber = 0
         if(unit.currentZoom > 1):
@@ -2420,21 +2317,6 @@ def trueCoordinates(draw,node):
     #xObj = draw.canvasx(node[2])
     #yObj = draw.canvasy(node[3])
     return xObj, yObj
-
-""""
-    Zoom_buttons(unit.imscale)
-
-def Zoom_buttons(scale):
-    global scale_prev
-    global number_of_nodes
-    global btnStore
-    if(scale_prev!=scale):
-        scale_prev = scale
-        for x in range(number_of_nodes):
-            if(btnStore[x]!=0):
-                btnStore[x][1].configure(height=int(scale*10),width=int(scale*30))
-                btnStore[x][1].pack()
-"""
 
 """
 Below you will find the basic setup of the grid

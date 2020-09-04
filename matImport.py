@@ -16,6 +16,12 @@ def  readFile(fileLocation):
 
     return NG, NR, NH
 
+def saveToFile(storeNG,storeNR,storeNH,unknownnodes,name):
+    location = "data/"+name
+    netw = {"adjacencyG":storeNG, "adjacencyR":storeNR, "adjacencyH":storeNH}
+    mdic = {"netw":netw}
+    sio.savemat(location, mdic)
+
 def toAdjacencyMatrixCall(draw,master,overlay,storeNG,storeNH,storeNR,lineStore,lineNumber,outputStore,outputNumber,excitationStore,excitationNumber,noiseNodeStore,noiseNodeNumber,KnownNodes,noiseNumber):
     NG = []
     NR = []
@@ -28,7 +34,7 @@ def toAdjacencyMatrixCall(draw,master,overlay,storeNG,storeNH,storeNR,lineStore,
             new.append(0)
         NG.append(new)
         new = []
-        for y in range(noiseNumber):
+        for y in range(noiseNodeNumber):
             new.append(0)
         NH.append(new)
         new = []
@@ -60,6 +66,8 @@ def toAdjacencyMatrixCall(draw,master,overlay,storeNG,storeNH,storeNR,lineStore,
                 KnownNodes[x]=1
 
             if(overlay==1):
+                print("noisenodeNumber")
+                print(noiseNodeNumber)
                 for y in range(lineNumber):
                     if(lineStore[y]!=0):
                         if(lineStore[y][2]==currentOutput):
@@ -71,41 +79,28 @@ def toAdjacencyMatrixCall(draw,master,overlay,storeNG,storeNH,storeNR,lineStore,
                 NR = storeNR
             else:
                 NH = storeNH
-                for y in range(excitationNumber):
-                    if(excitationStore[y]!=0):
-                        if(excitationStore[y][4]==currentOutput):
-                            excitation = excitationStore[y][1]
-                            nmb = int(excitation.nmb)
-                            NR[x][nmb-1] = 1
+                NR = storeNR
 
-    """
-    x = 0
-    while( x < (len(NG))):
-        emptyrow = 0;
-        for y in range(len(NG)):
-            if(NG[x][y]==0):
-                emptyrow = emptyrow + 1;
-        if(emptyrow==len(NG)):
-            emptycolumn = 0;
-            for y in range(len(NG)):
-                if(NG[y][x]==0):
-                    emptycolumn = emptycolumn + 1;
-            if(emptycolumn==len(NG)):
-                NG.pop(x)
-                NH = list(NH)
-                NH.pop(x)
-                for y in range(len(NG)):
-                    NG[y].pop(x)
-                NH = np.asarray(NH, dtype=np.float32)
-                KnownNodes.pop(x)
-                a = 0
-                while(a<outputNumber):
-                    if(outputStore[a]!=0 and int(outputStore[a][1].nmb)>int(x)):
-                        outputStore[a][1].nmb = int(outputStore[a][1].nmb) -1
-                    a = a + 1
-                outputNumber = outputNumber - 1
-        x = x + 1
-    """
+    if(len(NH)==0):
+        NH = []
+        for x in range(outputNumber):
+            new = []
+            for y in range(outputNumber):
+                if(x==y):
+                    new.append(1)
+                else:
+                    new.append(0)
+            NH.append(new)
+    if(len(NR)==0):
+        NR = []
+        for x in range(outputNumber):
+            new = []
+            for y in range(outputNumber):
+                if(x==y):
+                    new.append(1)
+                else:
+                    new.append(0)
+            NR.append(new)
     storeNG = NG
     storeNR = NR
     storeNH = NH
@@ -123,6 +118,8 @@ def toAdjacencyMatrixCall(draw,master,overlay,storeNG,storeNH,storeNR,lineStore,
     print(KnownNodes)
 
     return NG, NR, NH, outputNumber, outputStore, KnownNodes
+
+
 
 def generateGraph(NG,NH,NR, typeGraph, setScale, layoutMethod):
 
@@ -251,7 +248,7 @@ def treeAllocation(treeStore):
                         #check if a node is in this tree and mark it
                         #print("scanning in: ",targetUnit)
                         #print("check line from:",line[1].nmb,"to",line[2].nmb,"with",targetUnit[1].nmb,"while working tree",unit[0],masterTree,slaveTree)
-                        if line[2] == targetUnit[1]:
+                        if line[2] == targetUnit[1] or line[2] in targetUnit[2]:
                             #now we will check if it is mergable
                             mergeMatrix[masterTree][slaveTree] = checkMerge(unit,targetUnit)
                     slaveTree += 1
@@ -269,15 +266,27 @@ def mergeTree(masterTree, slaveTree):
     tempUnit.append(masterTree[1])
     tempUnit.append([])
     tempUnit.append([])
+    tempUnit.append([])
     for x in masterTree[2]:
         tempUnit[2].append(x)
 
     for x in masterTree[3]:
         tempUnit[3].append(x)
 
+    check_root = 0
+    tempUnit[3].extend(slaveTree[3])
+
+    for line in tempUnit[3]:
+        if line[2] == slaveTree[1] and line[1] == masterTree[1]:
+            check_root += 1
+        if line[1] == slaveTree[1] and line[2] == masterTree[1]:
+            check_root += 1
+
+    if check_root == 2:
+        tempUnit[4].append(slaveTree[1])
     tempUnit[2].append(slaveTree[1])
     tempUnit[2].extend(slaveTree[2])
-    tempUnit[3].extend(slaveTree[3])
+
 
     return tempUnit
 
