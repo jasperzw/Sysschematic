@@ -52,8 +52,8 @@ butTestNumber = 0
 unknownNodenumber = 0
 newPathColor = 0
 currentGroup = 1
-fancyColor = COLORS
-#fancyColor = ["green","yellow","orange","blue","cyan","dark sea green","khaki","lightSteelBlue1"]
+#fancyColor = COLORS
+fancyColor = ["green","yellow","orange","blue","cyan","dark sea green","khaki","lightSteelBlue1"]
 treeStore = []
 
 class nodeHolder():
