@@ -4,6 +4,7 @@ import networkx as nx
 import numpy as np
 import copy
 
+    #reads a specific matlab file and returns the matrixes which are contained within
 def  readFile(fileLocation):
     mat = sio.loadmat(fileLocation)
     NG = mat['netw']['adjacencyG'][0][0]
@@ -16,12 +17,14 @@ def  readFile(fileLocation):
 
     return NG, NR, NH
 
+    #save a adjecency matrix to a .mat file for storage
 def saveToFile(storeNG,storeNR,storeNH,unknownnodes,name):
     location = "data/"+name
     netw = {"adjacencyG":storeNG, "adjacencyR":storeNR, "adjacencyH":storeNH}
     mdic = {"netw":netw}
     sio.savemat(location, mdic)
 
+    #this function accepts all the arguments supplied by the main file ToAdjecencyMatrix function. It then runs thorugh it and checks all the values to create a matrix
 def toAdjacencyMatrixCall(draw,master,overlay,storeNG,storeNH,storeNR,lineStore,lineNumber,outputStore,outputNumber,excitationStore,excitationNumber,noiseNodeStore,noiseNodeNumber,KnownNodes,noiseNumber):
     NG = []
     NR = []
@@ -120,7 +123,7 @@ def toAdjacencyMatrixCall(draw,master,overlay,storeNG,storeNH,storeNR,lineStore,
     return NG, NR, NH, outputNumber, outputStore, KnownNodes
 
 
-
+#this function adds everything to a nx network to perform a plotting algorithm
 def generateGraph(NG,NH,NR, typeGraph, setScale, layoutMethod):
 
     nmbOutputs = len(NG)
@@ -163,6 +166,7 @@ def generateGraph(NG,NH,NR, typeGraph, setScale, layoutMethod):
     print("shortest find path: ",test)
     return pos
 
+#Adds everything to a nx system and peforms the shortest path algorithm
 def graphShortestPath(NG,nodeSearchList):
 
     nmbOutputs = len(NG)
@@ -181,7 +185,7 @@ def graphShortestPath(NG,nodeSearchList):
 
     return path
 
-
+#adds everything to a nx network and checks for the disjoint vertex set
 def graphDisjointPath(NG, group1, group2, operation):
 
     nmbOutputs = len(NG)
@@ -215,6 +219,7 @@ def graphDisjointPath(NG, group1, group2, operation):
 
     return result
 
+#This function runs creates a merge matrix and returns it
 def treeAllocation(treeStore):
     amountTree = len(treeStore)
     mergeMatrix = []
@@ -260,6 +265,7 @@ def treeAllocation(treeStore):
 
     return mergeMatrix
 
+#this function merges 2 trees and return the combined results
 def mergeTree(masterTree, slaveTree):
     tempUnit = []
     tempUnit.append(masterTree[0])
@@ -290,6 +296,7 @@ def mergeTree(masterTree, slaveTree):
 
     return tempUnit
 
+#this functions combines 2 trees and then gives it to checkIfTree
 def checkMerge(unit,targetUnit):
     tempUnit = mergeTree(unit, targetUnit)
 
@@ -298,6 +305,7 @@ def checkMerge(unit,targetUnit):
     out = checkIfTree(tempUnit)
     return out
 
+#chcecks if a tree is a valid pseudo tree
 def checkIfTree(tempUnit):
     #check if no line go to the same node (this means a node has 2 inputs or more)
     for firstLine in tempUnit[3]:
