@@ -129,7 +129,7 @@ def reloadCall(subMenu,reload,currentAmountOutputSelected,selectedNode):
         reloadStatus = 0
     elif(currentAmountOutputSelected == 2 and reloadStatus == 0):
         print("loading in the select window")
-        print("node: ",selectedNode.nmb)
+        #print("node: ",selectedNode.nmb)
         for x in range(6):
             reload[x].pack(padx=2, pady=2)
         for x in range(5):
