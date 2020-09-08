@@ -260,6 +260,7 @@ def testIdentifiability(master,draw):
 
 # Load mat will move everything in from the specific mat file.
 def loadMat(draw,master):
+    print("starting to loadMat")
     global connect
     global lineNumber
     global lineStore
@@ -268,11 +269,11 @@ def loadMat(draw,master):
     global storeNR
     global storeNH
     global nodeSize
-    global currentview
+    global currentView
     #make sure that currentview is in abstract modus
-    currentView = 1
-    switchView(draw, master)
+    currentView = 0
     #ask for a file name
+    print("trying to ask for file name")
     filename = askopenfilename()
     #read the file
     storeNG, storeNR, storeNH = readFile(filename)
@@ -329,7 +330,7 @@ def plotNoise(draw,master):
                 plotNoise.add_edge(y+amountNodes,x)
     #obtain position for the noise view nodes
     posNoise = nx.spring_layout(plotNoise, scale=500*unit.currentZoom, center=(500,500))
-    print(posNoise)
+    #print(posNoise)
 
 
     #below function will read through the mat file and try to find how many modules their are
@@ -735,7 +736,7 @@ def addNoiseNode(draw,x,y,master):
     global noiseNodeStore
 
     img1Btn = nodeHolder()
-    noiseNodeNumber, noiseNodeStore = addNoiseNodeCall(draw,x,y,master,noiseNodeNumber,noiseNodeStore, img1Btn,unit)
+    noiseNodeNumber, noiseNodeStore = addNoiseNodeCall(draw,x,y,master,noiseNodeNumber,noiseNodeStore, img1Btn,unit, nodeSize)
 
     #ass the noiseNode for the noise Overview sets a specific node to the select conditions
 def selectNoiseNode(node):
