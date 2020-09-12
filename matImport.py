@@ -104,6 +104,20 @@ def toAdjacencyMatrixCall(draw,master,overlay,storeNG,storeNH,storeNR,lineStore,
                 else:
                     new.append(0)
             NR.append(new)
+    if(isinstance(NR,list)==False):
+        NR = NR.tolist()
+    while(len(NR)<outputNumber):
+        new = []
+        for x in range(len(NR[0])):
+            new.append(0)
+        NR.append(new)
+    if(isinstance(NH,list)==False):
+        NH = NH.tolist()
+    while(len(NH)<outputNumber):
+        new = []
+        for x in range(len(NH[0])):
+            new.append(0)
+        NH.append(new)
     storeNG = NG
     storeNR = NR
     storeNH = NH
