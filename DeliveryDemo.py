@@ -1128,7 +1128,8 @@ def USC(master,draw):
     global NR_pms
     global NH_pms
     NG_pms, NR_pms, NH_pms, Unknownnodes_pms = toAdjacencyMatrix(draw,master)
-
+    i = 0
+    j = 0
     #look for the button
     for x in range(number_of_nodes):
         if(btnStore[x]!=0):
@@ -1140,6 +1141,10 @@ def USC(master,draw):
                                 j = a
                             if(lineStore[y][1]==outputStore[a][1]):
                                 i = a
+    if(i==j==0):
+        msg = "No target module selected"
+        popupmsg(msg)
+        return 0,0,0,0,False
     #look for accessible nodes
     accessible = (np.zeros(len(NG_pms))).tolist()
     for x in range(outputNumber):
@@ -1465,6 +1470,8 @@ def MIC(master,draw):
     global currentAmountOutputSelected
     NG_pms, NR_pms, NH_pms, Unknownnodes_pms = toAdjacencyMatrix(draw,master)
     #look for the button
+    i = 0
+    j = 0
     for x in range(number_of_nodes):
         if(btnStore[x]!=0):
             if(btnStore[x][1].pms==1):
@@ -1475,6 +1482,10 @@ def MIC(master,draw):
                                 j = a
                             if(lineStore[y][1]==outputStore[a][1]):
                                 i = a
+    if(i==j==0):
+        msg = "No target module selected"
+        popupmsg(msg)
+        return
     D = (np.zeros(len(NG_pms))).tolist()
     Y = (np.zeros(len(NG_pms))).tolist()
     #fill the A and B sets with the initial nodes
@@ -1557,37 +1568,38 @@ def MIC(master,draw):
 def FIC_call(master,draw):
     #FIC
     NG_fic, NR_fic, NH_fic, Unknownnodes_pms = toAdjacencyMatrix(draw,master)
-    D, Y, A, Blocking = FIC(master,draw,NG_fic, NR_fic, NH_fic)
-    #select the nodes in D and Y
-    for f in range(len(D)):
-        if(D[f] or Y[f]):
-            id = outputStore[f][1]
-            draw.itemconfig(outputStore[f][0],fill="yellow")
-        if(Blocking[f]):
-            id = outputStore[f][1]
-            draw.itemconfig(outputStore[f][0],fill="orange")
-    #create the output message
-    msg = "Inputs:"
-    for x in range(len(D)):
-        if(D[x]):
-            msg = msg+" w"+str(x+1)+","
-    msg = msg[:-1]
-    msg = msg+"\nOutputs:"
-    for x in range(len(Y)):
-        if(Y[x]):
-            msg = msg+" w"+str(x+1)+","
-    msg = msg[:-1]
-    msg = msg+"\nA:"
-    for x in range(len(A)):
-        if(A[x]):
-            msg = msg+" w"+str(x+1)+","
-    msg = msg[:-1]
-    msg = msg+"\nBlocking:"
-    for x in range(len(Blocking)):
-        if(Blocking[x]):
-            msg = msg+" w"+str(x+1)+","
-    msg = msg[:-1]
-    popupmsg(msg)
+    D, Y, A, Blocking, condition = FIC(master,draw,NG_fic, NR_fic, NH_fic)
+    if(condition):
+        #select the nodes in D and Y
+        for f in range(len(D)):
+            if(D[f] or Y[f]):
+                id = outputStore[f][1]
+                draw.itemconfig(outputStore[f][0],fill="yellow")
+            if(Blocking[f]):
+                id = outputStore[f][1]
+                draw.itemconfig(outputStore[f][0],fill="orange")
+        #create the output message
+        msg = "Inputs:"
+        for x in range(len(D)):
+            if(D[x]):
+                msg = msg+" w"+str(x+1)+","
+        msg = msg[:-1]
+        msg = msg+"\nOutputs:"
+        for x in range(len(Y)):
+            if(Y[x]):
+                msg = msg+" w"+str(x+1)+","
+        msg = msg[:-1]
+        msg = msg+"\nA:"
+        for x in range(len(A)):
+            if(A[x]):
+                msg = msg+" w"+str(x+1)+","
+        msg = msg[:-1]
+        msg = msg+"\nBlocking:"
+        for x in range(len(Blocking)):
+            if(Blocking[x]):
+                msg = msg+" w"+str(x+1)+","
+        msg = msg[:-1]
+        popupmsg(msg)
 
 
 def FIC(master,draw,NG_fic, NR_fic, NH_fic):
@@ -1608,6 +1620,8 @@ def FIC(master,draw,NG_fic, NR_fic, NH_fic):
     NG_pms = copy.deepcopy(NG_fic)
     NH_pms = copy.deepcopy(NH_fic)
     NR_pms = copy.deepcopy(NR_fic)
+    i = 0
+    j = 0
     for x in range(number_of_nodes):
         if(btnStore[x]!=0):
             if(btnStore[x][1].pms==1):
@@ -1618,6 +1632,10 @@ def FIC(master,draw,NG_fic, NR_fic, NH_fic):
                                 j = a
                             if(lineStore[y][1]==outputStore[a][1]):
                                 i = a
+    if(i==j==0):
+        msg = "No target module selected"
+        popupmsg(msg)
+        return 0,0,0,0,False
     D = (np.zeros(len(NG_pms))).tolist()
     Y = (np.zeros(len(NG_pms))).tolist()
     #fill the A and B sets with the initial nodes
@@ -1671,7 +1689,7 @@ def FIC(master,draw,NG_fic, NR_fic, NH_fic):
     for x in range(len(Blocking_possible)):
         if(Blocking[x]):
             D[x]= 1
-    return D, Y, A, Blocking
+    return D, Y, A, Blocking, True
 
 def PMS_call(master,draw):
     D,Y = PMS(master,draw)
