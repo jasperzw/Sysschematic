@@ -712,7 +712,6 @@ def removeNH(draw, master, NorH):
                 #print("scanning: ",excitationStore[x])
                 if(excitationStore[x]!=0):
                     if(excitationStore[x][4] == node[1]):
-                        #print("removing excitation")
                         #remove it
                         draw.delete(excitationStore[x][1].text)
                         draw.delete(excitationStore[x][0])
@@ -725,10 +724,9 @@ def removeNH(draw, master, NorH):
                 #print("scanning: ",noiseStore[x])
                 if(noiseStore[x]!=0):
                     if(noiseStore[x][4] == node[1]):
-                        #print("removing noise")
                         #remove it
-                        draw.delete(noiseStore[x][1].text)
-                        draw.delete(noiseStore[x][0])
+                        #draw.delete(noiseStore[x][1].text)
+                        #draw.delete(noiseStore[x][0])
                         noiseStore[x] = 0
                         if(x == noiseNumber):
                             noiseNumber = noiseNumber - 1
@@ -763,7 +761,16 @@ def removeNoise():
     global noiseNodeStore
     global lineStore
     global noiseNodeNumber
-
+    global number_of_nodes
+    global btnStore
+    for y in range(noiseNodeNumber):
+        if(noiseNodeStore[y]!=0):
+            if(noiseNodeStore[y][1].stat == 2):
+                temp = noiseNodeStore[y][1].nmb
+    for x in range(number_of_nodes):
+        if(btnStore[x]!=0):
+            if(btnStore[x][4] == temp or btnStore[x][5] == temp):
+                btnStore[x][1].stat = 2
     noiseNodeStore, lineStore, noiseNodeNumber = removeNoiseNodeCall(noiseNodeStore, noiseNodeNumber, lineStore, lineNumber, draw)
     removeNode(draw, master)
 
