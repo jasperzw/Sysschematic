@@ -89,7 +89,7 @@ def initSubMenu(frame):
 
     Button(frame, text="connect Transfer/module", command= lambda: connectCall(draw,master), height = 1, width=20).pack(padx=2, pady=2)
     Button(frame, text="Remove transfer", command= lambda: removeNode(draw, master),  height = 1, width=20).pack(padx=2, pady=2)
-    Button(frame, text="add output", command= lambda: addWidget(2), height = 1, width=20).pack(padx=2, pady=2)
+    Button(frame, text="add node", command= lambda: addWidget(2), height = 1, width=20).pack(padx=2, pady=2)
     Button(frame, text="toggle transfer known", command= lambda: toggleTransfer(master, draw), height = 1, width=20).pack(padx=2, pady=2)
     Button(frame, text="toggle transfer pms", command= lambda: PMSTransfer(master, draw), height = 1, width=20).pack(padx=2, pady=2)
     Button(frame, text="Make group", command= lambda: makeGroup(draw,master), height = 1, width=20).pack(padx=2, pady=2)
@@ -103,10 +103,10 @@ def initSubMenu(frame):
     #in reload every button or Checkbox is stored which is reloaded on calling reloadCall when currentAmountOutputSelected > 1
     reload = [
     Button(frame, text="remove node", command= lambda: removeOutput(draw, master), height = 1, width=20),
-    Button(frame, text="add external excitation", command= lambda: addNHCall(master, draw,0), height = 1, width=20),
-    Button(frame, text="remove external excitation", command= lambda: removeNH(draw,master,0), height = 1, width=20),
-    Button(frame, text="add noise", command= lambda: addNHCall(master, draw,1), height = 1, width=20),
-    Button(frame, text="remove noise", command= lambda: removeNH(master, draw,1), height = 1, width=20),
+    Button(frame, text="add external excitation", command= lambda: addNHCall(master, draw,1), height = 1, width=20),
+    Button(frame, text="remove external excitation", command= lambda: removeNH(draw,master,1), height = 1, width=20),
+    Button(frame, text="add noise", command= lambda: addNHCall(master, draw,0), height = 1, width=20),
+    Button(frame, text="remove noise", command= lambda: removeNH(master, draw,0), height = 1, width=20),
     Button(frame, text="Make unknown", command= lambda: makeunknown(master, draw), height = 1, width=20),
     Checkbutton(frame, text="excitation measurable", height = 1, width=20),
     Checkbutton(frame, text="noise measurable", height = 1, width=20),
@@ -416,11 +416,11 @@ def plotMatrix(draw,master,init):
     for x in range(len(NH)):
         for y in range(len(NH[x])):
             if(NH[x][y]==1):
-                addNH(outputStore[x],master,draw,1,y)
+                addNH(outputStore[x],master,draw,0,y)
     for x in range(len(NR)):
         for y in range(len(NR[x])):
             if(NR[x][y]==1):
-                addNH(outputStore[x],master,draw,0,y)
+                addNH(outputStore[x],master,draw,1,y)
 
     draw.tag_raise("nodes")
     draw.tag_raise("rect")
@@ -499,7 +499,7 @@ Each function uses the global variables to store the nodes and to make changes
 """
 # adding a node
 
-    #addNode takes as argument firstly the draw variable and coordinates and then adds a node for the transfers 
+    #addNode takes as argument firstly the draw variable and coordinates and then adds a node for the transfers
 def addNode(w,x,y,master,node1,node2):
         global number_of_nodes
         global btnStore
@@ -513,7 +513,7 @@ def addNode(w,x,y,master,node1,node2):
 
         height = nodeSize*unit.currentZoom*0.8
         width = nodeSize*unit.currentZoom
-        
+
         #check if it should plot transfer for noise or for normal
         node_name = "G"
         if(overlay):
@@ -619,7 +619,7 @@ def addNHCall(master, draw,NorH):
     else:
         clickOperation=3
 
-    #Add the final noise or excitation marker 
+    #Add the final noise or excitation marker
 def addNH(node,master,draw,NorH,nmb):
     global outputStore
     global outputNumber
@@ -627,6 +627,8 @@ def addNH(node,master,draw,NorH,nmb):
     global noiseStore
     global excitationStore
     global excitationNumber
+    global storeNH
+    global storeNR
     switch = 0
     width = nodeSize*unit.currentZoom*1.6
     heigth = nodeSize*unit.currentZoom*1.6
@@ -639,7 +641,7 @@ def addNH(node,master,draw,NorH,nmb):
     if(textSize<1):
         textSize = 1
 
-    if(NorH==1):
+    if(NorH==0):
         marker.arc = draw.create_arc(x,y,x+width,y-heigth,fill="yellow")
         marker.text = draw.create_text(x+width*(11/16), y-heigth*(11/16), text="V",width=0, font=("Courier", textSize),tags="wNotation")
     else:
@@ -670,7 +672,14 @@ def addNH(node,master,draw,NorH,nmb):
                 noiseStore.append(save)
                 noiseNumber = noiseNumber + 1
             #print("noise or excitation added! number: ",noise)
-
+            #change the store NH or NR
+        for x in range(outputNumber):
+            if(outputStore[x]==node):
+                temp = copy.deepcopy(x)
+        if(NorH):
+            storeNR[temp][int(nmb)] = 1
+        else:
+            storeNH[temp][int(nmb)] = 1
     #as said it searches the active node and removes either the excitation or noise
 def removeNH(draw, master, NorH):
     global noiseStore
@@ -679,6 +688,8 @@ def removeNH(draw, master, NorH):
     global outputNumber
     global excitationNumber
     global excitationStore
+    global storeNH
+    global storeNR
 
     if(overlay==1):
         removeNoise()
@@ -692,6 +703,7 @@ def removeNH(draw, master, NorH):
             if(outputStore[x]!=0):
                 if(outputStore[x][1].stat == 2):
                     node = outputStore[x]
+                    temp = copy.deepcopy(x)
                     #print("found output: ",node)
 
         #search for noise entry which has the selected output
@@ -707,6 +719,7 @@ def removeNH(draw, master, NorH):
                         excitationStore[x] = 0
                         if(x == excitationNumber):
                             excitationNumber = excitationNumber - 1
+                        storeNR[temp][x] = 0
         else:
             for x in range(noiseNumber):
                 #print("scanning: ",noiseStore[x])
@@ -719,6 +732,7 @@ def removeNH(draw, master, NorH):
                         noiseStore[x] = 0
                         if(x == noiseNumber):
                             noiseNumber = noiseNumber - 1
+                        storeNH[temp][x] = 0
 
 
 
