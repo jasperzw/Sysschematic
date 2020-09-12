@@ -106,7 +106,7 @@ def initSubMenu(frame):
     Button(frame, text="add external excitation", command= lambda: addNHCall(master, draw,1), height = 1, width=20),
     Button(frame, text="remove external excitation", command= lambda: removeNH(draw,master,1), height = 1, width=20),
     Button(frame, text="add noise", command= lambda: addNHCall(master, draw,0), height = 1, width=20),
-    Button(frame, text="remove noise", command= lambda: removeNH(master, draw,0), height = 1, width=20),
+    Button(frame, text="remove noise", command= lambda: removeNH(draw,master,0), height = 1, width=20),
     Button(frame, text="Make unknown", command= lambda: makeunknown(master, draw), height = 1, width=20),
     Checkbutton(frame, text="excitation measurable", height = 1, width=20),
     Checkbutton(frame, text="noise measurable", height = 1, width=20),
@@ -721,15 +721,15 @@ def removeNH(draw, master, NorH):
                         storeNR[temp][x] = 0
         else:
             for x in range(noiseNumber):
-                #print("scanning: ",noiseStore[x])
+                #print("scanning: ",noiseNodeStore[x])
                 if(noiseStore[x]!=0):
                     if(noiseStore[x][4] == node[1]):
                         #remove it
-                        #draw.delete(noiseStore[x][1].text)
-                        #draw.delete(noiseStore[x][0])
+                        draw.delete(noiseStore[x][1].text)
+                        draw.delete(noiseStore[x][0])
                         noiseStore[x] = 0
                         if(x == noiseNumber):
-                            noiseNumber = noiseNumber - 1
+                            noiseNumber = noiceNumber - 1
                         storeNH[temp][x] = 0
 
 
