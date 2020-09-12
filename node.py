@@ -31,5 +31,6 @@ def removeNodeCall(draw,master,number_of_nodes,btnStore,lineStore,lineNumber):
                     #print("x: ",x," is deleted")
                     draw.delete(lineStore[x][0])
                     lineStore[x]=0
-
+                    if(x==lineNumber-1):
+                        lineNumber = lineNumber - 1
     return number_of_nodes, btnStore, lineStore, lineNumber
