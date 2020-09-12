@@ -974,6 +974,7 @@ def removeGroup(draw,master):
 def addOutput(draw, x, y, master):
         global outputStore
         global outputNumber
+        global storeNR
         #create output
         switch = 0
         node = 0
@@ -1021,6 +1022,7 @@ def addOutput(draw, x, y, master):
             save.append(nmb)
             outputStore.append(save)
             outputNumber = outputNumber + 1
+
 
     #removes a node (here called output)
 def removeOutput(draw,master):
@@ -1939,11 +1941,11 @@ def Immersion(NG,NR,NH,Unknownnodes,draw,master):
     #Same computation for NR as for NH
     itteration = 0
     while(itteration<unknownNodenumber):
-        for x in range(len(R)):
+        for x in range(len(Unknownnodes)):
             if(Unknownnodes[x]):          #unknown node is found
-                for y in range(len(R)):
+                for y in range(len(NG)):
                     if(NG[y][x]):       #nodes to which the unknown node point
-                        for a in range(len(R)):
+                        for a in range(len(R[0])):
                             if(NR[x][a]):
                                 R[y][a] = 1
         itteration += 1
