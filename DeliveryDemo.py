@@ -725,12 +725,13 @@ def removeNH(draw, master, NorH):
                 if(noiseStore[x]!=0):
                     if(noiseStore[x][4] == node[1]):
                         #remove it
+                        temp2 = noiseStore[x][1].nmb
                         draw.delete(noiseStore[x][1].text)
                         draw.delete(noiseStore[x][0])
                         noiseStore[x] = 0
                         if(x == noiseNumber):
-                            noiseNumber = noiceNumber - 1
-                        storeNH[temp][x] = 0
+                            noiseNumber = noiseNumber - 1
+                        storeNH[temp][temp2] = 0
 
 
 
