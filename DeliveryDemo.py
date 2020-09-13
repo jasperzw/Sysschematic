@@ -817,7 +817,11 @@ def deselectActiveNodes():
     #finds the path from one point to another along the shortest path using the nx library
 def find_path(draw,master):
     global newPathColor
-
+    global storeNG
+    global storeNR
+    global storeNH
+    global Unknownnodes
+    storeNG, storeNR, storeNH, Unknownnodes = toAdjacencyMatrix(draw,master)
     #putting all selected nodes in a list
     nodeSearchList = returnSelectedNodes()
 
@@ -848,6 +852,11 @@ def find_path(draw,master):
     #search the disjoint path for a group of nodes
 def paint_disjoint_path(draw,master):
     global newPathColor
+    global storeNG
+    global storeNR
+    global storeNH
+    global Unknownnodes
+    storeNG, storeNR, storeNH, Unknownnodes = toAdjacencyMatrix(draw,master)
     #putting all selected nodes in a list
     group1 = returnGroupList(1)
     group2 = returnGroupList(2)
