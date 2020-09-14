@@ -478,7 +478,7 @@ def switchView(draw, master):
             print("changing to detail")
             draw.delete("all")
             plotMatrix(draw,master,1)
-
+            
         else:
             if(currentView == 1):
                 toAdjacencyMatrix(draw,master)
