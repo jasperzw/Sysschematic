@@ -40,7 +40,7 @@ nodeSize = 5
 storeNG = storeNR = storeNH = []
 NG_pms = NR_pms = NH_pms = []
 Unknownnodes = []
-lineshow = 1;
+lineshow = 1
 overlay = 0 #overlay value 0 means the NG matrix and overlay 1 is the Noise overlay
 currentAmountOutputSelected = 1 #this variable is so we know the order that outputs are connected. it is not zero because unselected are 0
 #global declare is unnecessary since they are declared in the upper script outside any function
@@ -70,7 +70,6 @@ def initMainMenu(frame, canvas):
 
     #column 1
     Button(frame, text="Options", height = 1, width=20).grid(row=0, column=1, padx=2, pady=2)
-    Button(frame, text="Go to global view", height = 1, width=20).grid(row=1, column=1, padx=2, pady=2)
     Button(frame, text="Clear window", command= lambda: clearWindow(canvas,1), height = 1, width=20).grid(row=2, column=1, padx=2, pady=2)
 
     #column 2
@@ -87,15 +86,9 @@ def initMainMenu(frame, canvas):
 #same as main menu initializes the submenu
 def initSubMenu(frame):
 
-    #Label(frame, text="currently selected:", bg="gray").pack()
-    #Button(frame, text="Add transfer", command= lambda: addWidget(1), height = 1, width=20).pack(padx=2, pady=2)
+    Button(frame, text="add node", command= lambda: addWidget(2), height = 1, width=20).pack(padx=2, pady=2)
     Button(frame, text="connect Transfer/module", command= lambda: connectCall(draw,master), height = 1, width=20).pack(padx=2, pady=2)
     Button(frame, text="Remove transfer", command= lambda: removeNode(draw, master),  height = 1, width=20).pack(padx=2, pady=2)
-    Button(frame, text="add output", command= lambda: addWidget(2), height = 1, width=20).pack(padx=2, pady=2)
-    Button(frame, text="toggle transfer known", command= lambda: toggleTransfer(master, draw), height = 1, width=20).pack(padx=2, pady=2)
-    Button(frame, text="toggle transfer pms", command= lambda: PMSTransfer(master, draw), height = 1, width=20).pack(padx=2, pady=2)
-    Button(frame, text="Make group", command= lambda: makeGroup(draw,master), height = 1, width=20).pack(padx=2, pady=2)
-    Button(frame, text="Remove group", command= lambda: removeGroup(draw,master), height = 1, width=20).pack(padx=2, pady=2)
     Button(frame, text="Perform test identifiability", command= lambda: testIdentifiability(master, draw), height = 1, width=20).pack(padx=2, pady=2)
     Button(frame, text="Find shortest path", command= lambda: find_path(draw,master), height = 1, width=20).pack(padx=2, pady=2)
     Button(frame, text="Find disjoint path", command= lambda: paint_disjoint_path(draw,master), height = 1, width=20).pack(padx=2, pady=2)
@@ -104,11 +97,15 @@ def initSubMenu(frame):
     Button(frame, text="Immersion", command= lambda: Immersion_call(master, draw), height = 1, width=20).pack(padx=2, pady=2)
     #in reload every button or Checkbox is stored which is reloaded on calling reloadCall when currentAmountOutputSelected > 1
     reload = [
+    Button(frame, text="toggle transfer known", command= lambda: toggleTransfer(master, draw), height = 1, width=20),
+    Button(frame, text="toggle transfer pms", command= lambda: PMSTransfer(master, draw), height = 1, width=20),
     Button(frame, text="remove node", command= lambda: removeOutput(draw, master), height = 1, width=20),
-    Button(frame, text="add external excitation", command= lambda: addNHCall(master, draw,0), height = 1, width=20),
-    Button(frame, text="remove external excitation", command= lambda: removeNH(draw,master,0), height = 1, width=20),
-    Button(frame, text="add noise", command= lambda: addNHCall(master, draw,1), height = 1, width=20),
-    Button(frame, text="remove noise", command= lambda: removeNH(master, draw,1), height = 1, width=20),
+    Button(frame, text="Make group", command= lambda: makeGroup(draw,master), height = 1, width=20),
+    Button(frame, text="Remove group", command= lambda: removeGroup(draw,master), height = 1, width=20),
+    Button(frame, text="add external excitation", command= lambda: addNHCall(master, draw,1), height = 1, width=20),
+    Button(frame, text="remove external excitation", command= lambda: removeNH(draw,master,1), height = 1, width=20),
+    Button(frame, text="add noise", command= lambda: addNHCall(master, draw,0), height = 1, width=20),
+    Button(frame, text="remove noise", command= lambda: removeNH(draw,master,0), height = 1, width=20),
     Button(frame, text="Make unknown", command= lambda: makeunknown(master, draw), height = 1, width=20),
     Checkbutton(frame, text="excitation measurable", height = 1, width=20),
     Checkbutton(frame, text="noise measurable", height = 1, width=20),
@@ -118,33 +115,31 @@ def initSubMenu(frame):
     ]
     return reload
 
-    #Button(frame, text="remove noise source", command= lambda: removeNoise(), height = 1, width=20).pack(padx=2, pady=2)
-    #Button(frame, text="Toggle noise", command= lambda: addWidget(2), height = 1, width=20).pack(padx=2, pady=2)
-"""
-below are all the functions for
-
--------------------------------------------------------- Adjacency Matrix --------------------------------------------------------
-
-used to plot adjency matrix and return everything to Adjacency matrix
-"""
 
 def toFile(draw,master):
+    #In this function we will store the entire matrix in a .mat file so that it can be reloaded again in the system.
+    #first we want to retrieve the current matrix
     storeNG, storeNR, storeNH, Unknownnodes = toAdjacencyMatrix(draw,master)
+    #ask how to call the file
     call = popupWindow(master)
     master.wait_window(call.top)
     name = call.value + ".mat"
     print("saved file under:",name)
+    #call saveToFile to perform scipy .mat save function
     saveToFile(storeNG,storeNR,storeNH,Unknownnodes,name)
 
 
 def toggleTransfer(master,draw):
+    #this function toggles any select node from begin known
     for x in range(number_of_nodes):
         if(btnStore[x]!=0):
+            #.stat == 2 means that the node is selected
             if(btnStore[x][1].stat==2):
                 if(btnStore[x][1].known==0):
                     btnStore[x][1].known = 1
                 else:
                     btnStore[x][1].known = 0
+                #true coordinates is called to perform the transform of the coordinates to the current view and then give them to deselect the node
                 x, y = trueCoordinates(draw,btnStore[x])
                 circleScan(draw,master,x,y)
 
@@ -158,6 +153,14 @@ def PMSTransfer(master,draw):
                     btnStore[x][1].pms = 0
                 x, y = trueCoordinates(draw,btnStore[x])
                 circleScan(draw,master,x,y)
+
+"""
+below are all the functions for
+
+-------------------------------------------------------- Adjacency Matrix --------------------------------------------------------
+
+used to plot adjency matrix and return everything to Adjacency matrix
+"""
 
 def testIdentifiability(master,draw):
     NG = []
@@ -196,9 +199,6 @@ def testIdentifiability(master,draw):
         if(outputStore[x]!=0):
             print("nodeMode: ", outputStore[x][1].nodeMode[0].get() ," found at: ", outputStore[x][0])
             if(outputStore[x][1].nodeMode[0].get()==1):
-                #for y in range(excitationNumber):
-                    #if(excitationStore[y][4]==outputStore[x][1]):
-                        #NR[x][excitationStore[y][1].nmb-1]=1
                         NR[x][x] = 1
                         print("set excitation to high")
             if(outputStore[x][1].nodeMode[1].get()==1):
@@ -259,6 +259,7 @@ def testIdentifiability(master,draw):
 
 # Load mat will move everything in from the specific mat file.
 def loadMat(draw,master):
+    print("starting to loadMat")
     global connect
     global lineNumber
     global lineStore
@@ -267,12 +268,15 @@ def loadMat(draw,master):
     global storeNR
     global storeNH
     global nodeSize
-    global currentview
-    currentView = 1
-    switchView(draw, master)
+    global currentView
+    #make sure that currentview is in abstract modus
+    currentView = 0
+    #ask for a file name
+    print("trying to ask for file name")
     filename = askopenfilename()
+    #read the file
     storeNG, storeNR, storeNH = readFile(filename)
-    #plotMatrix(draw,master,1)
+    #sent the information to abstractPlot
     abstractPlot(draw,master,storeNG,storeNR,storeNH)
     nodeSize = -(10/110)*(len(storeNG)**1.8)+26
     if(nodeSize<5):
@@ -296,10 +300,10 @@ def plotNoise(draw,master):
     global storeNH
     global storeNR
 
+    #set the view to be detailed:
     if(currentView==0):
         switchView(draw,master)
     NG, NR, NH, Unknownnodes = toAdjacencyMatrix(draw,master)
-
     clearWindow(draw,0)
     overlay = 1
 
@@ -307,6 +311,7 @@ def plotNoise(draw,master):
     nmbNoise = len(NH[0])
     excitationNumber = len(NR)
 
+    #get the coordinates of the node
     pos = generateGraph(NG,NR,NH,1,500*unit.currentZoom, layoutMethod)
     plotNoise = nx.DiGraph()
     plotNoise.add_nodes_from(pos.keys())
@@ -315,15 +320,16 @@ def plotNoise(draw,master):
 
     nmbOutputs = len(NH)
     nmbOutputs2 = len(NH[0])
-    #print("nmbOutputs: ",nmbOutputs," nmbOutputs2: ",nmbOutputs2)
+    #create nx matrix for the noise
     plotNoise.add_nodes_from(range(amountNodes,amountNodes+nmbOutputs))
     for x in range(nmbOutputs):
         for y in range(len(NH[x])):
             if(NH[x][y] == 1):
                 #print("added edge from y: ",y+amountNodes," to x: ",x, " for: ", NH[x][y])
                 plotNoise.add_edge(y+amountNodes,x)
+    #obtain position for the noise view nodes
     posNoise = nx.spring_layout(plotNoise, scale=500*unit.currentZoom, center=(500,500))
-    print(posNoise)
+    #print(posNoise)
 
 
     #below function will read through the mat file and try to find how many modules their are
@@ -349,16 +355,11 @@ def plotNoise(draw,master):
                 node1 = noiseNodeStore[y]
                 node2 = outputStore[x]
                 connectOutputs(node1,node2,draw,master,1)
-    #for x in range(len(Unknownnodes)):
-    #    if(Unknownnodes[x]):
-    #       for y in range(outputNumber):
-    #            if(outputStore[y][1].nmb==x):
-    #                selectOutput(outputStore[y][1])
-    #                makeunknown(master, draw)
     storeNR = NR
     storeNH = NH
     storeNG = NG
 
+    #this function is called to load the plotMatrix from the global known Matrix
 def plotMatrix(draw,master,init):
     global overlay
     global storeNH
@@ -369,6 +370,7 @@ def plotMatrix(draw,master,init):
     global outputNumber
     global excitationNumber
 
+    #switch to detailed
     if(currentView==0):
         switchView(draw,master)
         overlay = 0
@@ -409,23 +411,15 @@ def plotMatrix(draw,master,init):
                 node2 = outputStore[x]
                 connectOutputs(node1,node2,draw,master,1)
 
-    #for x in range(len(Unknownnodes)):
-    #    if(Unknownnodes[x]):
-    #        for y in range(outputNumber):
-    #            if(outputStore[y][1].nmb==x):
-    #                selectOutput(outputStore[y][1])
-    #                makeunknown(master, draw)
-
     #this is a priority to put the circle and text aboven the lines
-
     for x in range(len(NH)):
         for y in range(len(NH[x])):
             if(NH[x][y]==1):
-                addNH(outputStore[x],master,draw,1,y)
+                addNH(outputStore[x],master,draw,0,y)
     for x in range(len(NR)):
         for y in range(len(NR[x])):
             if(NR[x][y]==1):
-                addNH(outputStore[x],master,draw,0,y)
+                addNH(outputStore[x],master,draw,1,y)
 
     draw.tag_raise("nodes")
     draw.tag_raise("rect")
@@ -434,6 +428,7 @@ def plotMatrix(draw,master,init):
     #connecting each output is below
 
 
+    #this functions read the current Storage variables to then return everything in a matrix so that it can be saveds
 def toAdjacencyMatrix(draw,master):
     global storeNG
     global storeNH
@@ -442,6 +437,7 @@ def toAdjacencyMatrix(draw,master):
     global outputNumber
     global outputStore
     global Unknownnodes
+    #this simply is a really large call so that the entire function can be in a different file and that DeliveryDemo.py maintains some smaller size
     storeNG, storeNR, storeNH, outputNumber, outputStore, Unknownnodes= toAdjacencyMatrixCall(draw,master,overlay,storeNG,storeNH,storeNR,lineStore,lineNumber,outputStore,outputNumber,excitationStore,excitationNumber,noiseNodeStore,noiseNodeNumber, Unknownnodes, noiseNumber)
 
     return storeNG, storeNR, storeNH, Unknownnodes
@@ -453,7 +449,7 @@ def abstractPlot(draw,master,NG,NR,NH):
     pos = generateGraph(NG,NR,NH,3,500*unit.currentZoom, layoutMethod)
     nmbOutputs = len(NG)
 
-    #make all the connectiosn tussen connectOutputs
+    #make all the connection between nodes
     for x in range(nmbOutputs):
         for y in range(nmbOutputs):
             if(NG[x][y]==1):
@@ -478,7 +474,7 @@ def switchView(draw, master):
             print("changing to detail")
             draw.delete("all")
             plotMatrix(draw,master,1)
-            
+
         else:
             if(currentView == 1):
                 toAdjacencyMatrix(draw,master)
@@ -502,17 +498,7 @@ Each function uses the global variables to store the nodes and to make changes
 """
 # adding a node
 
-def toggleTransfer(master,draw):
-    for x in range(number_of_nodes):
-        if(btnStore[x]!=0):
-            if(btnStore[x][1].stat==2):
-                if(btnStore[x][1].known==0):
-                    btnStore[x][1].known = 1
-                else:
-                    btnStore[x][1].known = 1
-                x, y = trueCoordinates(draw,btnStore[x])
-                circleScan(draw,master,x,y)
-
+    #addNode takes as argument firstly the draw variable and coordinates and then adds a node for the transfers
 def addNode(w,x,y,master,node1,node2):
         global number_of_nodes
         global btnStore
@@ -527,6 +513,7 @@ def addNode(w,x,y,master,node1,node2):
         height = nodeSize*unit.currentZoom*0.8
         width = nodeSize*unit.currentZoom
 
+        #check if it should plot transfer for noise or for normal
         node_name = "G"
         if(overlay):
             node_name = "H"
@@ -605,7 +592,7 @@ and therefor the fastes one and change it if needed for excitation
 """
 
 
-
+    #this function takes as most important NorH and then plots the corresponding marker on a node. N is Noise and H is excitation. it will ask which source it should have
 def addNHCall(master, draw,NorH):
     global outputStore
     global outputNumber
@@ -614,6 +601,7 @@ def addNHCall(master, draw,NorH):
     global clickOperation
 
     if(overlay==0):
+        #ask which noise or excitation source it belongs to
         call = popupWindow(master)
         master.wait_window(call.top)
         node = 0
@@ -630,6 +618,7 @@ def addNHCall(master, draw,NorH):
     else:
         clickOperation=3
 
+    #Add the final noise or excitation marker
 def addNH(node,master,draw,NorH,nmb):
     global outputStore
     global outputNumber
@@ -637,6 +626,8 @@ def addNH(node,master,draw,NorH,nmb):
     global noiseStore
     global excitationStore
     global excitationNumber
+    global storeNH
+    global storeNR
     switch = 0
     width = nodeSize*unit.currentZoom*1.6
     heigth = nodeSize*unit.currentZoom*1.6
@@ -649,7 +640,7 @@ def addNH(node,master,draw,NorH,nmb):
     if(textSize<1):
         textSize = 1
 
-    if(NorH==1):
+    if(NorH==0):
         marker.arc = draw.create_arc(x,y,x+width,y-heigth,fill="yellow")
         marker.text = draw.create_text(x+width*(11/16), y-heigth*(11/16), text="V",width=0, font=("Courier", textSize),tags="wNotation")
     else:
@@ -680,7 +671,15 @@ def addNH(node,master,draw,NorH,nmb):
                 noiseStore.append(save)
                 noiseNumber = noiseNumber + 1
             #print("noise or excitation added! number: ",noise)
-
+            #change the store NH or NR
+        for x in range(outputNumber):
+            if(outputStore[x]==node):
+                temp = copy.deepcopy(x)
+        if(NorH):
+            storeNR[temp][int(nmb)] = 1
+        else:
+            storeNH[temp][int(nmb)] = 1
+    #as said it searches the active node and removes either the excitation or noise
 def removeNH(draw, master, NorH):
     global noiseStore
     global noiseNumber
@@ -688,6 +687,8 @@ def removeNH(draw, master, NorH):
     global outputNumber
     global excitationNumber
     global excitationStore
+    global storeNH
+    global storeNR
 
     if(overlay==1):
         removeNoise()
@@ -701,6 +702,7 @@ def removeNH(draw, master, NorH):
             if(outputStore[x]!=0):
                 if(outputStore[x][1].stat == 2):
                     node = outputStore[x]
+                    temp = copy.deepcopy(x)
                     #print("found output: ",node)
 
         #search for noise entry which has the selected output
@@ -709,25 +711,26 @@ def removeNH(draw, master, NorH):
                 #print("scanning: ",excitationStore[x])
                 if(excitationStore[x]!=0):
                     if(excitationStore[x][4] == node[1]):
-                        #print("removing excitation")
                         #remove it
                         draw.delete(excitationStore[x][1].text)
                         draw.delete(excitationStore[x][0])
                         excitationStore[x] = 0
                         if(x == excitationNumber):
                             excitationNumber = excitationNumber - 1
+                        storeNR[temp][x] = 0
         else:
             for x in range(noiseNumber):
-                #print("scanning: ",noiseStore[x])
+                #print("scanning: ",noiseNodeStore[x])
                 if(noiseStore[x]!=0):
                     if(noiseStore[x][4] == node[1]):
-                        #print("removing noise")
                         #remove it
+                        temp2 = noiseStore[x][1].nmb
                         draw.delete(noiseStore[x][1].text)
                         draw.delete(noiseStore[x][0])
                         noiseStore[x] = 0
                         if(x == noiseNumber):
                             noiseNumber = noiseNumber - 1
+                        storeNH[temp][temp2] = 0
 
 
 
@@ -739,23 +742,35 @@ Below are the functions for
 tada
 """
 
+    #ass the noiseNode for the noise Overview
 def addNoiseNode(draw,x,y,master):
     global noiseNodeNumber
     global noiseNodeStore
 
     img1Btn = nodeHolder()
-    noiseNodeNumber, noiseNodeStore = addNoiseNodeCall(draw,x,y,master,noiseNodeNumber,noiseNodeStore, img1Btn,unit)
+    noiseNodeNumber, noiseNodeStore = addNoiseNodeCall(draw,x,y,master,noiseNodeNumber,noiseNodeStore, img1Btn,unit, nodeSize)
 
+    #ass the noiseNode for the noise Overview sets a specific node to the select conditions
 def selectNoiseNode(node):
     global currentAmountOutputSelected
 
     currentAmountOutputSelected = selectNoiseNodeCall(draw,master,noiseNodeNumber,noiseNodeStore, currentAmountOutputSelected, node,lineNumber,lineStore)
 
+    #removes the noise in the noiseOverview when selected
 def removeNoise():
     global noiseNodeStore
     global lineStore
     global noiseNodeNumber
-
+    global number_of_nodes
+    global btnStore
+    for y in range(noiseNodeNumber):
+        if(noiseNodeStore[y]!=0):
+            if(noiseNodeStore[y][1].stat == 2):
+                temp = noiseNodeStore[y][1].nmb
+    for x in range(number_of_nodes):
+        if(btnStore[x]!=0):
+            if(btnStore[x][4] == temp or btnStore[x][5] == temp):
+                btnStore[x][1].stat = 2
     noiseNodeStore, lineStore, noiseNodeNumber = removeNoiseNodeCall(noiseNodeStore, noiseNodeNumber, lineStore, lineNumber, draw)
     removeNode(draw, master)
 
@@ -776,6 +791,7 @@ def returnSelectedNodes():
                 nodeList.append(outputStore[x])
     return nodeList
 
+    #returns list of node in selected groupNumber
 def returnGroupList(groupNumber):
     nodeList = []
     for x in outputStore:
@@ -784,22 +800,28 @@ def returnGroupList(groupNumber):
 
     return nodeList
 
+    #saves nodes from a list
 def saveSelectedNodes(nodeList):
     global outputStore
 
     for x in nodeList:
         outputStore[x[1].nmb-1] = x
 
+    #puts all active nodes to none active
 def deselectActiveNodes():
     nodeList = returnSelectedNodes()
     for x in nodeList:
         selectOutput(x[1].nmb-1,draw)
 
-#ends here
 
+    #finds the path from one point to another along the shortest path using the nx library
 def find_path(draw,master):
     global newPathColor
-
+    global storeNG
+    global storeNR
+    global storeNH
+    global Unknownnodes
+    storeNG, storeNR, storeNH, Unknownnodes = toAdjacencyMatrix(draw,master)
     #putting all selected nodes in a list
     nodeSearchList = returnSelectedNodes()
 
@@ -827,9 +849,14 @@ def find_path(draw,master):
     newPathColor += 1
     deselectActiveNodes()
 
-
+    #search the disjoint path for a group of nodes
 def paint_disjoint_path(draw,master):
     global newPathColor
+    global storeNG
+    global storeNR
+    global storeNH
+    global Unknownnodes
+    storeNG, storeNR, storeNH, Unknownnodes = toAdjacencyMatrix(draw,master)
     #putting all selected nodes in a list
     group1 = returnGroupList(1)
     group2 = returnGroupList(2)
@@ -846,7 +873,7 @@ def paint_disjoint_path(draw,master):
         while(i<dis):
             for x in range(lineNumber):
                 if(lineStore[x]!=0):
-                    #print("current i loop: ",i)
+                    #we loop here through the list of all path and set each variable to a original color
                     if(lineStore[x][1].nmb == path[f][i]+1 and lineStore[x][2].nmb == path[f][i+1]+1):
                         draw.itemconfig(lineStore[x][0],fill=fancyColor[newPathColor])
                         draw.itemconfig(lineStore[x][0],width=5)
@@ -863,6 +890,7 @@ def paint_disjoint_path(draw,master):
 
     deselectActiveNodes()
 
+    #Create the minimum tree case
 def draw_tree(draw,master):
     global treeStore
     toAdjacencyMatrix(draw,master)
@@ -888,6 +916,7 @@ def draw_tree(draw,master):
             i += 5
     #print("current generated treeStore:",treeStore)
 
+    #tries to do all the merging so that we can create the maximum tree
 def find_maximum_tree(draw,master):
     global treeStore
     stat = 1
@@ -925,10 +954,7 @@ def find_maximum_tree(draw,master):
         if found == 0:
             stat = 0
 
-
-
-
-
+    #sets a set of nodes to a group
 def makeGroup(draw,master):
     global currentGroup
     print("setting the currentGroup: ", currentGroup)
@@ -941,6 +967,7 @@ def makeGroup(draw,master):
     currentGroup += 1
     deselectActiveNodes()
 
+    #removes all current groups
 def removeGroup(draw,master):
     global outputStore
     global currentGroup
@@ -952,9 +979,11 @@ def removeGroup(draw,master):
                 draw.itemconfig(outputStore[x][0],fill="red")
     currentGroup = 1
 
+    #adds a node (here called output)
 def addOutput(draw, x, y, master):
         global outputStore
         global outputNumber
+        global storeNR
         #create output
         switch = 0
         node = 0
@@ -1004,6 +1033,7 @@ def addOutput(draw, x, y, master):
             outputNumber = outputNumber + 1
 
 
+    #removes a node (here called output)
 def removeOutput(draw,master):
     global outputStore
     global outputNumber
@@ -1027,6 +1057,7 @@ def removeOutput(draw,master):
                 draw.delete(outputStore[x][0])
                 outputStore[x] = 0
 
+    #changes the appearance of a node based on if it is selected
 def selectOutput(f,draw):
     global currentAmountOutputSelected
     global lineNumber
@@ -1076,6 +1107,7 @@ def selectOutput(f,draw):
                 if (id==lineStore[a][1] or id==lineStore[a][2]):
                     draw.itemconfig(lineStore[a][0], fill=lineStore[a][4])
 
+    #make a specific node known or unknown
 def makeunknown(master, draw):
     global currentAmountOutputSelected
     global outputStore
@@ -1114,7 +1146,8 @@ def USC(master,draw):
     global NR_pms
     global NH_pms
     NG_pms, NR_pms, NH_pms, Unknownnodes_pms = toAdjacencyMatrix(draw,master)
-
+    i = 0
+    j = 0
     #look for the button
     for x in range(number_of_nodes):
         if(btnStore[x]!=0):
@@ -1126,6 +1159,10 @@ def USC(master,draw):
                                 j = a
                             if(lineStore[y][1]==outputStore[a][1]):
                                 i = a
+    if(i==j==0):
+        msg = "No target module selected"
+        popupmsg(msg)
+        return 0,0,0,0,False
     #look for accessible nodes
     accessible = (np.zeros(len(NG_pms))).tolist()
     for x in range(outputNumber):
@@ -1451,6 +1488,8 @@ def MIC(master,draw):
     global currentAmountOutputSelected
     NG_pms, NR_pms, NH_pms, Unknownnodes_pms = toAdjacencyMatrix(draw,master)
     #look for the button
+    i = 0
+    j = 0
     for x in range(number_of_nodes):
         if(btnStore[x]!=0):
             if(btnStore[x][1].pms==1):
@@ -1461,6 +1500,10 @@ def MIC(master,draw):
                                 j = a
                             if(lineStore[y][1]==outputStore[a][1]):
                                 i = a
+    if(i==j==0):
+        msg = "No target module selected"
+        popupmsg(msg)
+        return
     D = (np.zeros(len(NG_pms))).tolist()
     Y = (np.zeros(len(NG_pms))).tolist()
     #fill the A and B sets with the initial nodes
@@ -1543,37 +1586,38 @@ def MIC(master,draw):
 def FIC_call(master,draw):
     #FIC
     NG_fic, NR_fic, NH_fic, Unknownnodes_pms = toAdjacencyMatrix(draw,master)
-    D, Y, A, Blocking = FIC(master,draw,NG_fic, NR_fic, NH_fic)
-    #select the nodes in D and Y
-    for f in range(len(D)):
-        if(D[f] or Y[f]):
-            id = outputStore[f][1]
-            draw.itemconfig(outputStore[f][0],fill="yellow")
-        if(Blocking[f]):
-            id = outputStore[f][1]
-            draw.itemconfig(outputStore[f][0],fill="orange")
-    #create the output message
-    msg = "Inputs:"
-    for x in range(len(D)):
-        if(D[x]):
-            msg = msg+" w"+str(x+1)+","
-    msg = msg[:-1]
-    msg = msg+"\nOutputs:"
-    for x in range(len(Y)):
-        if(Y[x]):
-            msg = msg+" w"+str(x+1)+","
-    msg = msg[:-1]
-    msg = msg+"\nA:"
-    for x in range(len(A)):
-        if(A[x]):
-            msg = msg+" w"+str(x+1)+","
-    msg = msg[:-1]
-    msg = msg+"\nBlocking:"
-    for x in range(len(Blocking)):
-        if(Blocking[x]):
-            msg = msg+" w"+str(x+1)+","
-    msg = msg[:-1]
-    popupmsg(msg)
+    D, Y, A, Blocking, condition = FIC(master,draw,NG_fic, NR_fic, NH_fic)
+    if(condition):
+        #select the nodes in D and Y
+        for f in range(len(D)):
+            if(D[f] or Y[f]):
+                id = outputStore[f][1]
+                draw.itemconfig(outputStore[f][0],fill="yellow")
+            if(Blocking[f]):
+                id = outputStore[f][1]
+                draw.itemconfig(outputStore[f][0],fill="orange")
+        #create the output message
+        msg = "Inputs:"
+        for x in range(len(D)):
+            if(D[x]):
+                msg = msg+" w"+str(x+1)+","
+        msg = msg[:-1]
+        msg = msg+"\nOutputs:"
+        for x in range(len(Y)):
+            if(Y[x]):
+                msg = msg+" w"+str(x+1)+","
+        msg = msg[:-1]
+        msg = msg+"\nA:"
+        for x in range(len(A)):
+            if(A[x]):
+                msg = msg+" w"+str(x+1)+","
+        msg = msg[:-1]
+        msg = msg+"\nBlocking:"
+        for x in range(len(Blocking)):
+            if(Blocking[x]):
+                msg = msg+" w"+str(x+1)+","
+        msg = msg[:-1]
+        popupmsg(msg)
 
 
 def FIC(master,draw,NG_fic, NR_fic, NH_fic):
@@ -1594,6 +1638,8 @@ def FIC(master,draw,NG_fic, NR_fic, NH_fic):
     NG_pms = copy.deepcopy(NG_fic)
     NH_pms = copy.deepcopy(NH_fic)
     NR_pms = copy.deepcopy(NR_fic)
+    i = 0
+    j = 0
     for x in range(number_of_nodes):
         if(btnStore[x]!=0):
             if(btnStore[x][1].pms==1):
@@ -1604,6 +1650,10 @@ def FIC(master,draw,NG_fic, NR_fic, NH_fic):
                                 j = a
                             if(lineStore[y][1]==outputStore[a][1]):
                                 i = a
+    if(i==j==0):
+        msg = "No target module selected"
+        popupmsg(msg)
+        return 0,0,0,0,False
     D = (np.zeros(len(NG_pms))).tolist()
     Y = (np.zeros(len(NG_pms))).tolist()
     #fill the A and B sets with the initial nodes
@@ -1657,7 +1707,7 @@ def FIC(master,draw,NG_fic, NR_fic, NH_fic):
     for x in range(len(Blocking_possible)):
         if(Blocking[x]):
             D[x]= 1
-    return D, Y, A, Blocking
+    return D, Y, A, Blocking, True
 
 def PMS_call(master,draw):
     D,Y = PMS(master,draw)
@@ -1751,6 +1801,7 @@ def PMS(master, draw):
                                             D[a]=1;
     return D,Y
 
+#pops open a window to display a specific message
 def popupmsg(msg):
     popup = Tk()
     popup.wm_title("!")
@@ -1760,6 +1811,7 @@ def popupmsg(msg):
     B1.pack()
     popup.mainloop()
 
+#peforms the correct pms based on what the user has selected
 def PMS_option(draw,master):
     type_pms = layoutMethod1.get()
     if(type_pms == "USC"):
@@ -1839,6 +1891,7 @@ def Immersion_call(master,draw):
     storeNR = R
     plotMatrix(draw,master,1)
 
+#this function performs Immersion
 def Immersion(NG,NR,NH,Unknownnodes,draw,master):
     global NG_pms
     global NR_pms
@@ -1897,11 +1950,11 @@ def Immersion(NG,NR,NH,Unknownnodes,draw,master):
     #Same computation for NR as for NH
     itteration = 0
     while(itteration<unknownNodenumber):
-        for x in range(len(R)):
+        for x in range(len(Unknownnodes)):
             if(Unknownnodes[x]):          #unknown node is found
-                for y in range(len(R)):
+                for y in range(len(NG)):
                     if(NG[y][x]):       #nodes to which the unknown node point
-                        for a in range(len(R)):
+                        for a in range(len(R[0])):
                             if(NR[x][a]):
                                 R[y][a] = 1
         itteration += 1
@@ -1975,6 +2028,7 @@ below are the remaining
 -------------------------------------------------------- Remaining --------------------------------------------------------
 """
 
+#sets line between nodes to be dashed which is very usefull in the noiseview
 def Dashed_line(draw,master):
     global lineshow
     global lineStore
@@ -1994,6 +2048,7 @@ def Dashed_line(draw,master):
                     draw.itemconfig(lineStore[x][0],fill = "black")
             lineshow = 1
 
+#deletes all entries on the canvas and sets all variables back to 0
 def clearWindow(canvas,canReset):
     #remove everythin and set all global to 0
     global number_of_nodes
@@ -2053,7 +2108,7 @@ def clearWindow(canvas,canReset):
 
 
 
-#Deze functie word aangeroepen van uit het menu en haalt dan 2 nodes er uit die hij door geeft aan connectoutput
+#this functions searches 2 selected nodes and then gives them to connectOutputs to be well connected with each other
 def connectCall(draw,master):
     global number_of_nodes
     global btnStore
@@ -2097,7 +2152,7 @@ def connectCall(draw,master):
         else:
             selectNoiseNode(node2[1])
 
-#connect outputs is nu 2 functies zodat je via plotmatrix ook connectOutputs direct kan aangroepen
+#connectOutputs is given 2 nodes and a variable placeBtn which determines the to only create a line or also a button. Afterwards it creates a line connetion between the 2 nodes
 def connectOutputs(node1,node2,draw,master,placeBtn):
     global number_of_nodes
     global btnStore
@@ -2209,12 +2264,13 @@ def define_circle(p1, p2, p3):
     radius = np.sqrt((cx - p1[0])**2 + (cy - p1[1])**2)
     return (cx, cy, radius)
 
+#set the clickOperation button to a specific variable so that it can peform that operation on the next click
 def addWidget(input):
     #set the clickOperation variable
     global clickOperation
     clickOperation = input
 
-
+#This function is triggered everytime one clicks on the canvas. it will check if you selected anything and then peform the necessary operations
 def clickEvent(event):
     #on button press perform an action based on click clickOperation
     global clickOperation
@@ -2235,6 +2291,7 @@ def clickEvent(event):
         addNoiseNode(draw, x, y, master)
         clickOperation=0
 
+#this function does all the transformations to check if you mouse click was in a node
 def circleScan(draw,master,x,y):
     global currentAmountOutputSelected
     global outputStore
@@ -2309,7 +2366,7 @@ def circleScan(draw,master,x,y):
 
 
 
-
+#the zoom and pan function changes the x y coordinates relative to what was saved. this corrects those
 def trueCoordinates(draw,node):
     #draw.coords obtains the current coordinates based on the widget id. + the radius multiply by zoom to shift the left corner of the widget to the center.
     xObj = draw.coords(node[0])[0]+nodeSize*unit.currentZoom
@@ -2324,7 +2381,7 @@ Below you will find the basic setup of the grid
 -------------------------------------------------------- Grid interface setup and initialization --------------------------------------------------------
 """
 
-# creating Tk window
+# creating Tk window which will hold all content
 master = Tk()
 master.configure(background="gray")
 master.title("Delivery Demo")
@@ -2341,7 +2398,7 @@ Grid.rowconfigure(masterFrame, 1, weight=100)
 Grid.columnconfigure(masterFrame, 0, weight=100)
 Grid.columnconfigure(masterFrame, 1, weight=1)
 
-#seperating the menu in different frames which will hold all the components so that it is easier to use .grid for button placemant
+#seperating the menu in different frames which will hold all the components so that it is easier to use .grid for button placement
 #main menu is for the upper buttons, canvas is for draw, subMenu is for the component selection
 mainMenu = Frame(masterFrame, bg="gray")
 canvas = Frame(masterFrame, bg="white")
@@ -2356,6 +2413,7 @@ subMenu.grid(row=0, column=1, rowspan=2, sticky=N+S+E+W)
 draw = Canvas(canvas, bg="white")
 draw.pack(fill="both", expand=True)
 
+#defines options that need to be shown on screen
 layout = [
 "circular",
 "kamada_kawai",
@@ -2383,4 +2441,6 @@ reload = initSubMenu(subMenu)
 unit = Zoom_Advanced(draw)
 #bind button Release to the clickevent
 unit.canvas.bind("<ButtonRelease-1>",clickEvent)
+
+#start the loop in which it will watch for events
 mainloop()
