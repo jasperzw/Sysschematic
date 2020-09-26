@@ -99,6 +99,7 @@ def initSubMenu(frame):
     Button(frame, text="Remove group", command= lambda: removeGroup(draw,master), height = 1, width=20).pack(padx=2, pady=2)
 	
     #in reload every button or Checkbox is stored which is reloaded on calling reloadCall when currentAmountOutputSelected > 1
+    #check if correct commit information
     reload = [
     Button(frame, text="toggle transfer known", command= lambda: toggleTransfer(master, draw), height = 1, width=20),
     Button(frame, text="toggle transfer pms", command= lambda: PMSTransfer(master, draw), height = 1, width=20),
