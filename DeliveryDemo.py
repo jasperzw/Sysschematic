@@ -6,7 +6,7 @@ import math
 from Scrollwindow import *
 from node import removeNodeCall
 from noise import addNoiseNodeCall, selectNoiseNodeCall, removeNoiseNodeCall
-#from matlabCaller import test_identifiability_caller
+from matlabCaller import test_identifiability_caller
 import numpy as np
 import networkx as nx
 import copy
@@ -70,7 +70,7 @@ def initMainMenu(frame, canvas):
 
     #column 1
     Button(frame, text="Options", height = 1, width=20).grid(row=0, column=1, padx=2, pady=2)
-    Button(frame, text="Clear window", command= lambda: clearWindow(canvas,1), height = 1, width=20).grid(row=2, column=1, padx=2, pady=2)
+    Button(frame, text="Clear window", command= lambda: clearWindow(canvas,1), height = 1, width=20).grid(row=1, column=1, padx=2, pady=2)
 
     #column 2
     Button(frame, text="load noise view", command= lambda: plotNoise(draw,master), height = 1, width=20).grid(row=0, column=2, padx=2, pady=2)
@@ -95,13 +95,14 @@ def initSubMenu(frame):
     Button(frame, text="Create minimum tree", command= lambda: draw_tree(draw,master), height = 1, width=20).pack(padx=2, pady=2)
     Button(frame, text="merge maximum tree", command= lambda: find_maximum_tree(draw,master), height = 1, width=20).pack(padx=2, pady=2)
     Button(frame, text="Immersion", command= lambda: Immersion_call(master, draw), height = 1, width=20).pack(padx=2, pady=2)
+    Button(frame, text="Make group", command= lambda: makeGroup(draw,master), height = 1, width=20).pack(padx=2, pady=2)
+    Button(frame, text="Remove group", command= lambda: removeGroup(draw,master), height = 1, width=20).pack(padx=2, pady=2)
+	
     #in reload every button or Checkbox is stored which is reloaded on calling reloadCall when currentAmountOutputSelected > 1
     reload = [
     Button(frame, text="toggle transfer known", command= lambda: toggleTransfer(master, draw), height = 1, width=20),
     Button(frame, text="toggle transfer pms", command= lambda: PMSTransfer(master, draw), height = 1, width=20),
     Button(frame, text="remove node", command= lambda: removeOutput(draw, master), height = 1, width=20),
-    Button(frame, text="Make group", command= lambda: makeGroup(draw,master), height = 1, width=20),
-    Button(frame, text="Remove group", command= lambda: removeGroup(draw,master), height = 1, width=20),
     Button(frame, text="add external excitation", command= lambda: addNHCall(master, draw,1), height = 1, width=20),
     Button(frame, text="remove external excitation", command= lambda: removeNH(draw,master,1), height = 1, width=20),
     Button(frame, text="add noise", command= lambda: addNHCall(master, draw,0), height = 1, width=20),
