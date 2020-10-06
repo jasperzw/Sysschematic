@@ -6,7 +6,7 @@ import math
 from Scrollwindow import *
 from node import removeNodeCall
 from noise import addNoiseNodeCall, selectNoiseNodeCall, removeNoiseNodeCall
-from matlabCaller import test_identifiability_caller
+#from matlabCaller import test_identifiability_caller
 import numpy as np
 import networkx as nx
 import copy
@@ -64,51 +64,52 @@ class nodeHolder():
 def initMainMenu(frame, canvas):
 
     #column 0
-    Button(frame, text="load .mat file", command= lambda: loadMat(draw, master), height = 1, width=20).grid(row=0, padx=2, pady=2)
-    Button(frame, text="export .mat file", command= lambda: toFile(draw, master), height = 1, width=20).grid(row=1, padx=2, pady=2)
-    Button(frame, text="change node view", command= lambda: switchView(draw, master), height = 1, width=20).grid(row=2, padx=2, pady=2)
+    Button(frame, text="load .mat file", command= lambda: loadMat(draw, master), height = 1, width=20, bg="red").grid(row=0, padx=2, pady=2)
+    Button(frame, text="export .mat file", command= lambda: toFile(draw, master), height = 1, width=20, bg="red").grid(row=1, padx=2, pady=2)
+    Button(frame, text="Options", height = 1, width=20, bg="red").grid(row=2, column=0, padx=2, pady=2)
+
 
     #column 1
-    Button(frame, text="Options", height = 1, width=20).grid(row=0, column=1, padx=2, pady=2)
-    Button(frame, text="Clear window", command= lambda: clearWindow(canvas,1), height = 1, width=20).grid(row=1, column=1, padx=2, pady=2)
+    Button(frame, text="change node view", command= lambda: switchView(draw, master), height = 1, width=20, bg="blue").grid(row=0, column=1, padx=2, pady=2)
+    Button(frame, text="Clear window", command= lambda: clearWindow(canvas,1), height = 1, width=20, bg="blue").grid(row=1, column=1, padx=2, pady=2)
 
     #column 2
-    Button(frame, text="load noise view", command= lambda: plotNoise(draw,master), height = 1, width=20).grid(row=0, column=2, padx=2, pady=2)
-    Button(frame, text="load transfer view", command= lambda: plotMatrix(draw,master,0), height = 1, width=20).grid(row=1, column=2, padx=2, pady=2)
-    Button(frame, text="change line view", command= lambda: Dashed_line(draw,master), height = 1, width=20).grid(row=2, column=2, padx=2, pady=2)
+    Button(frame, text="load noise view", command= lambda: plotNoise(draw,master), height = 1, width=20, bg="blue").grid(row=0, column=2, padx=2, pady=2)
+    Button(frame, text="load transfer view", command= lambda: plotMatrix(draw,master,0), height = 1, width=20, bg="blue").grid(row=1, column=2, padx=2, pady=2)
+    Button(frame, text="change line view", command= lambda: Dashed_line(draw,master), height = 1, width=20, bg="blue").grid(row=2, column=2, padx=2, pady=2)
 
 
 
     #column 3
     OptionMenu(frame, layoutMethod, *layout).grid(row=0, column=3)
-    Button(frame, text="PMS", command= lambda: PMS_option(draw,master), height = 1, width=20).grid(row=1, column=3, padx=2, pady=2)
+    Button(frame, text="PMS", command= lambda: PMS_option(draw,master), height = 1, width=20, bg="purple").grid(row=1, column=3, padx=2, pady=2)
     OptionMenu(frame, layoutMethod1, *layout1).grid(row=2, column=3)
 #same as main menu initializes the submenu
 def initSubMenu(frame):
 
-    Button(frame, text="add node", command= lambda: addWidget(2), height = 1, width=20).pack(padx=2, pady=2)
-    Button(frame, text="connect Transfer/module", command= lambda: connectCall(draw,master), height = 1, width=20).pack(padx=2, pady=2)
-    Button(frame, text="Remove transfer", command= lambda: removeNode(draw, master),  height = 1, width=20).pack(padx=2, pady=2)
-    Button(frame, text="Perform test identifiability", command= lambda: testIdentifiability(master, draw), height = 1, width=20).pack(padx=2, pady=2)
-    Button(frame, text="Find shortest path", command= lambda: find_path(draw,master), height = 1, width=20).pack(padx=2, pady=2)
-    Button(frame, text="Find disjoint path", command= lambda: paint_disjoint_path(draw,master), height = 1, width=20).pack(padx=2, pady=2)
-    Button(frame, text="Create minimum tree", command= lambda: draw_tree(draw,master), height = 1, width=20).pack(padx=2, pady=2)
-    Button(frame, text="merge maximum tree", command= lambda: find_maximum_tree(draw,master), height = 1, width=20).pack(padx=2, pady=2)
-    Button(frame, text="Immersion", command= lambda: Immersion_call(master, draw), height = 1, width=20).pack(padx=2, pady=2)
-    Button(frame, text="Make group", command= lambda: makeGroup(draw,master), height = 1, width=20).pack(padx=2, pady=2)
-    Button(frame, text="Remove group", command= lambda: removeGroup(draw,master), height = 1, width=20).pack(padx=2, pady=2)
-	
+    Button(frame, text="add node", command= lambda: addWidget(2), height = 1, width=20, bg="yellow").pack(padx=2, pady=2)
+    Button(frame, text="connect Transfer/module", command= lambda: connectCall(draw,master), height = 1, width=20, bg="yellow").pack(padx=2, pady=2)
+    Button(frame, text="Remove transfer", command= lambda: removeNode(draw, master),  height = 1, width=20, bg="yellow").pack(padx=2, pady=2)
+    Button(frame, text="Perform test identifiability", command= lambda: testIdentifiability(master, draw), height = 1, width=20, bg="purple").pack(padx=2, pady=2)
+    Button(frame, text="Find shortest path", command= lambda: find_path(draw,master), height = 1, width=20, bg="purple").pack(padx=2, pady=2)
+    Button(frame, text="Find disjoint path", command= lambda: paint_disjoint_path(draw,master), height = 1, width=20, bg="purple").pack(padx=2, pady=2)
+    Button(frame, text="Create minimum tree", command= lambda: draw_tree(draw,master), height = 1, width=20, bg="purple").pack(padx=2, pady=2)
+    Button(frame, text="merge maximum tree", command= lambda: find_maximum_tree(draw,master), height = 1, width=20, bg="purple").pack(padx=2, pady=2)
+    Button(frame, text="Immersion", command= lambda: Immersion_call(master, draw), height = 1, width=20, bg="purple").pack(padx=2, pady=2)
+    Button(frame, text="Make group", command= lambda: makeGroup(draw,master), height = 1, width=20, bg="purple").pack(padx=2, pady=2)
+    Button(frame, text="Remove group", command= lambda: removeGroup(draw,master), height = 1, width=20, bg="purple").pack(padx=2, pady=2)
+
     #in reload every button or Checkbox is stored which is reloaded on calling reloadCall when currentAmountOutputSelected > 1
     #check if correct commit information
     reload = [
-    Button(frame, text="toggle transfer known", command= lambda: toggleTransfer(master, draw), height = 1, width=20),
-    Button(frame, text="toggle transfer pms", command= lambda: PMSTransfer(master, draw), height = 1, width=20),
-    Button(frame, text="remove node", command= lambda: removeOutput(draw, master), height = 1, width=20),
-    Button(frame, text="add external excitation", command= lambda: addNHCall(master, draw,1), height = 1, width=20),
-    Button(frame, text="remove external excitation", command= lambda: removeNH(draw,master,1), height = 1, width=20),
-    Button(frame, text="add noise", command= lambda: addNHCall(master, draw,0), height = 1, width=20),
-    Button(frame, text="remove noise", command= lambda: removeNH(draw,master,0), height = 1, width=20),
-    Button(frame, text="Make unknown", command= lambda: makeunknown(master, draw), height = 1, width=20),
+    Button(frame, text="toggle transfer known", command= lambda: toggleTransfer(master, draw), height = 1, width=20, bg="yellow"),
+    Button(frame, text="toggle transfer pms", command= lambda: PMSTransfer(master, draw), height = 1, width=20, bg="yellow"),
+    Button(frame, text="remove node", command= lambda: removeOutput(draw, master), height = 1, width=20, bg="yellow"),
+    Button(frame, text="add external excitation", command= lambda: addNHCall(master, draw,1), height = 1, width=20, bg="yellow"),
+    Button(frame, text="remove external excitation", command= lambda: removeNH(draw,master,1), height = 1, width=20, bg="yellow"),
+    Button(frame, text="add noise", command= lambda: addNHCall(master, draw,0), height = 1, width=20, bg="yellow"),
+    Button(frame, text="remove noise", command= lambda: removeNH(draw,master,0), height = 1, width=20, bg="yellow"),
+    Button(frame, text="Make unknown", command= lambda: makeunknown(master, draw), height = 1, width=20, bg="yellow"),
     Checkbutton(frame, text="excitation measurable", height = 1, width=20),
     Checkbutton(frame, text="noise measurable", height = 1, width=20),
     Checkbutton(frame, text="Blue", height = 1, width=20),
