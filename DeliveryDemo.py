@@ -66,7 +66,7 @@ def initMainMenu(frame, canvas):
     #column 0
     Button(frame, text="load .mat file", command= lambda: loadMat(draw, master), height = 1, width=20, bg="red").grid(row=0, padx=2, pady=2)
     Button(frame, text="export .mat file", command= lambda: toFile(draw, master), height = 1, width=20, bg="red").grid(row=1, padx=2, pady=2)
-    Button(frame, text="Options", height = 1, width=20, bg="red").grid(row=2, column=0, padx=2, pady=2)
+    #Button(frame, text="Options", height = 1, width=20, bg="red").grid(row=2, column=0, padx=2, pady=2)
 
 
     #column 1
