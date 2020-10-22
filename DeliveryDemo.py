@@ -3,7 +3,7 @@ from tkinter import *
 from matImport import readFile, toAdjacencyMatrixCall, generateGraph, graphShortestPath, graphDisjointPath, treeAllocation, mergeTree, saveToFile
 from tkinter.filedialog import askopenfilename
 import math
-import matrix
+from matrix import loadMatrixEditor
 from Scrollwindow import *
 from node import removeNodeCall
 from noise import addNoiseNodeCall, selectNoiseNodeCall, removeNoiseNodeCall
@@ -78,13 +78,14 @@ def initMainMenu(frame, canvas):
     #Button(frame, text="load noise view", command= lambda: plotNoise(draw,master), height = 1, width=20, bg="blue").grid(row=0, column=2, padx=2, pady=2)
     #Button(frame, text="load transfer view", command= lambda: plotMatrix(draw,master,0), height = 1, width=20, bg="blue").grid(row=1, column=2, padx=2, pady=2)
     Button(frame, text="change line view", command= lambda: Dashed_line(draw,master), height = 1, width=20, bg="blue").grid(row=0, column=2, padx=2, pady=2)
+    Button(frame, text="PMS", command= lambda: PMS_option(draw,master), height = 1, width=20, bg="purple").grid(row=1, column=2, padx=2, pady=2)
+    Button(frame, text="Matrix editor", command= lambda: loadMatrixEditor(master), height = 1, width=20, bg="purple").grid(row=2, column=2, padx=2, pady=2)
 
 
 
     #column 3
     OptionMenu(frame, viewMethod, *views).grid(row=0, column=3)
     OptionMenu(frame, layoutMethod, *layout).grid(row=1, column=3)
-    Button(frame, text="PMS", command= lambda: PMS_option(draw,master), height = 1, width=20, bg="purple").grid(row=1, column=2, padx=2, pady=2)
     OptionMenu(frame, layoutMethod1, *layout1).grid(row=2, column=3)
 #same as main menu initializes the submenu
 def initSubMenu(frame):
