@@ -51,19 +51,17 @@ class Excel(Frame):
 class matrixWindow(object):
     def __init__(self,master,NG,NR,NH):
         top=self.top=Toplevel(master)
-        display=self.display=Frame(top).grid(row=0)
-        buttons=self.buttons=Frame(top).grid(row=1)
-        self.l=Label(display,text="Matrix editor")
+        self.l=Label(top,text="Matrix editor")
         self.l.grid(row=0)
-        self.loadCells(NG,display)
+        self.loadCells(NG,top)
         self.current = 1
         self.NG = NG
         self.NR = NR
         self.NH = NH
-        self.bt = Button(buttons, text='Save', command=self.cleanup).pack()
-        self.NG = Button(buttons, text='NG', command= lambda: self.change(NG,1,display)).pack()
-        self.NR = Button(buttons, text='NR', command= lambda: self.change(NR,2,display)).pack()
-        self.NH = Button(buttons, text='NH', command= lambda: self.change(NH,3,display)).pack()
+        self.bt = Button(top, text='Save', command=self.cleanup).grid(row=2, column=0)
+        self.NG = Button(top, text='NG', command= lambda: self.change(NG,1,top)).grid(row=2,column=1)
+        self.NR = Button(top, text='NR', command= lambda: self.change(NR,2,top)).grid(row=2,column=2)
+        self.NH = Button(top, text='NH', command= lambda: self.change(NH,3,top)).grid(row=2,column=3)
 
     def change(self,adjMatrix,id,top):
         print("matrix: ",adjMatrix)
@@ -73,7 +71,7 @@ class matrixWindow(object):
 
     def loadCells(self,adjMatrix,top):
         self.ex = Excel(top, rows=len(adjMatrix), columns=len(adjMatrix[0]), width=6,matrix=adjMatrix)
-        self.ex.grid(row=1)
+        self.ex.grid(row=1,sticky=W+E,columnspan=4)
 
     def cleanup(self):
         self.ex.show_cells()
