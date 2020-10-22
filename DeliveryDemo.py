@@ -79,7 +79,7 @@ def initMainMenu(frame, canvas):
     #Button(frame, text="load transfer view", command= lambda: plotMatrix(draw,master,0), height = 1, width=20, bg="blue").grid(row=1, column=2, padx=2, pady=2)
     Button(frame, text="change line view", command= lambda: Dashed_line(draw,master), height = 1, width=20, bg="blue").grid(row=0, column=2, padx=2, pady=2)
     Button(frame, text="PMS", command= lambda: PMS_option(draw,master), height = 1, width=20, bg="purple").grid(row=1, column=2, padx=2, pady=2)
-    Button(frame, text="Matrix editor", command= lambda: loadMatrixEditor(master), height = 1, width=20, bg="purple").grid(row=2, column=2, padx=2, pady=2)
+    Button(frame, text="Matrix editor", command= lambda: editorCaller(), height = 1, width=20, bg="purple").grid(row=2, column=2, padx=2, pady=2)
 
 
 
@@ -502,8 +502,10 @@ def viewCall(*args):
     currentMode = viewMethod.get()
     print(currentMode)
     if(currentMode=="Detail view"):
-        plotMatrix(draw,master,0)
-        print("test")
+        if(currentView==0):
+            switchView(draw,master)
+        else: 
+            plotMatrix(draw,master,0)
     elif(currentMode=="Noise view"):
         plotNoise(draw,master)
     elif(currentMode=="Abstract view"):
@@ -2465,6 +2467,20 @@ layoutMethod1.set(layout1[0])
 viewMethod = StringVar(master)
 viewMethod.set(views[1])
 viewMethod.trace("w",viewCall)
+
+def editorCaller():
+    global storeNG
+    global storeNR
+    global storeNH
+    global currentView
+    NG, NR, NH = loadMatrixEditor(master,storeNG,storeNR,storeNH)
+    clearWindow(draw,1)
+    storeNR = NR
+    storeNG = NG
+    storeNH = NH
+    currentView = 0
+    abstractPlot(draw,master,NG,NR,NH)
+    print("update matrix")
 
 #bind functions to events
 initMainMenu(mainMenu, draw)

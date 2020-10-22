@@ -175,9 +175,6 @@ def generateGraph(NG,NH,NR, typeGraph, setScale, layoutMethod):
     if(typeGraph=="spiral"):
         pos = nx.spiral_layout(plot, scale=setScale, center=(500,500))
         print("spiral layout")
-
-    test = nx.shortest_path(plot,source=0)
-    print("shortest find path: ",test)
     return pos
 
 #Adds everything to a nx system and peforms the shortest path algorithm
