@@ -70,19 +70,20 @@ def initMainMenu(frame, canvas):
 
 
     #column 1
-    Button(frame, text="change node view", command= lambda: switchView(draw, master), height = 1, width=20, bg="blue").grid(row=0, column=1, padx=2, pady=2)
-    Button(frame, text="Clear window", command= lambda: clearWindow(canvas,1), height = 1, width=20, bg="blue").grid(row=1, column=1, padx=2, pady=2)
+    #Button(frame, text="change node view", command= lambda: switchView(draw, master), height = 1, width=20, bg="blue").grid(row=0, column=1, padx=2, pady=2)
+    Button(frame, text="Clear window", command= lambda: clearWindow(canvas,1), height = 1, width=20, bg="blue").grid(row=0, column=1, padx=2, pady=2)
 
     #column 2
-    Button(frame, text="load noise view", command= lambda: plotNoise(draw,master), height = 1, width=20, bg="blue").grid(row=0, column=2, padx=2, pady=2)
-    Button(frame, text="load transfer view", command= lambda: plotMatrix(draw,master,0), height = 1, width=20, bg="blue").grid(row=1, column=2, padx=2, pady=2)
-    Button(frame, text="change line view", command= lambda: Dashed_line(draw,master), height = 1, width=20, bg="blue").grid(row=2, column=2, padx=2, pady=2)
+    #Button(frame, text="load noise view", command= lambda: plotNoise(draw,master), height = 1, width=20, bg="blue").grid(row=0, column=2, padx=2, pady=2)
+    #Button(frame, text="load transfer view", command= lambda: plotMatrix(draw,master,0), height = 1, width=20, bg="blue").grid(row=1, column=2, padx=2, pady=2)
+    Button(frame, text="change line view", command= lambda: Dashed_line(draw,master), height = 1, width=20, bg="blue").grid(row=0, column=2, padx=2, pady=2)
 
 
 
     #column 3
-    OptionMenu(frame, layoutMethod, *layout).grid(row=0, column=3)
-    Button(frame, text="PMS", command= lambda: PMS_option(draw,master), height = 1, width=20, bg="purple").grid(row=1, column=3, padx=2, pady=2)
+    OptionMenu(frame, viewMethod, *views).grid(row=0, column=3)
+    OptionMenu(frame, layoutMethod, *layout).grid(row=1, column=3)
+    Button(frame, text="PMS", command= lambda: PMS_option(draw,master), height = 1, width=20, bg="purple").grid(row=1, column=2, padx=2, pady=2)
     OptionMenu(frame, layoutMethod1, *layout1).grid(row=2, column=3)
 #same as main menu initializes the submenu
 def initSubMenu(frame):
@@ -492,6 +493,24 @@ def switchView(draw, master):
                 storeNH = NH
 
                 currentView = 0
+
+#this is the callback function for when the dropbox of views is changed and the corresponding view is here updated
+def viewCall(*args):
+    print("Updating view!")
+    currentMode = viewMethod.get()
+    print(currentMode)
+    if(currentMode=="Detail view"):
+        plotMatrix(draw,master,0)
+        print("test")
+    elif(currentMode=="Noise view"):
+        plotNoise(draw,master)
+    elif(currentMode=="Abstract view"):
+        #if in noise mode first go to detail view and the change to abstract
+        if(overlay==1):
+            plotMatrix(draw,master,0)
+        switchView(draw,master)
+
+
 """
 Below we have the subsection of:
 
@@ -2431,10 +2450,19 @@ layout1 = [
 "USC"
 ]
 
+views = [
+"Noise view",
+"Abstract view",
+"Detail view"
+]
+
 layoutMethod = StringVar(master)
 layoutMethod.set(layout[1])
 layoutMethod1 = StringVar(master)
 layoutMethod1.set(layout1[0])
+viewMethod = StringVar(master)
+viewMethod.set(views[1])
+viewMethod.trace("w",viewCall)
 
 #bind functions to events
 initMainMenu(mainMenu, draw)
