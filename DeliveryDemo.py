@@ -80,33 +80,36 @@ def initMainMenu(frame, canvas):
 
 
     #column 3
-    OptionMenu(frame, layoutMethod, *layout).grid(row=0, column=3)
-    Button(frame, text="PMS", command= lambda: PMS_option(draw,master), height = 1, width=20).grid(row=1, column=3, padx=2, pady=2)
+    OptionMenu(frame, viewMethod, *views).grid(row=0, column=3)
+    OptionMenu(frame, layoutMethod, *layout).grid(row=1, column=3)
+    Button(frame, text="PMS", command= lambda: PMS_option(draw,master), height = 1, width=20, bg="purple").grid(row=1, column=2, padx=2, pady=2)
     OptionMenu(frame, layoutMethod1, *layout1).grid(row=2, column=3)
 #same as main menu initializes the submenu
 def initSubMenu(frame):
 
-    Button(frame, text="add node", command= lambda: addWidget(2), height = 1, width=20).pack(padx=2, pady=2)
-    Button(frame, text="connect Transfer/module", command= lambda: connectCall(draw,master), height = 1, width=20).pack(padx=2, pady=2)
-    Button(frame, text="Remove transfer", command= lambda: removeNode(draw, master),  height = 1, width=20).pack(padx=2, pady=2)
-    Button(frame, text="Perform test identifiability", command= lambda: testIdentifiability(master, draw), height = 1, width=20).pack(padx=2, pady=2)
-    Button(frame, text="Find shortest path", command= lambda: find_path(draw,master), height = 1, width=20).pack(padx=2, pady=2)
-    Button(frame, text="Find disjoint path", command= lambda: paint_disjoint_path(draw,master), height = 1, width=20).pack(padx=2, pady=2)
-    Button(frame, text="Create minimum tree", command= lambda: draw_tree(draw,master), height = 1, width=20).pack(padx=2, pady=2)
-    Button(frame, text="merge maximum tree", command= lambda: find_maximum_tree(draw,master), height = 1, width=20).pack(padx=2, pady=2)
-    Button(frame, text="Immersion", command= lambda: Immersion_call(master, draw), height = 1, width=20).pack(padx=2, pady=2)
-    Button(frame, text="Make group", command= lambda: makeGroup(draw,master), height = 1, width=20)
-    Button(frame, text="Remove group", command= lambda: removeGroup(draw,master), height = 1, width=20)
+    Button(frame, text="add node", command= lambda: addWidget(2), height = 1, width=20, bg="yellow").pack(padx=2, pady=2)
+    Button(frame, text="connect Transfer/module", command= lambda: connectCall(draw,master), height = 1, width=20, bg="yellow").pack(padx=2, pady=2)
+    Button(frame, text="Remove transfer", command= lambda: removeNode(draw, master),  height = 1, width=20, bg="yellow").pack(padx=2, pady=2)
+    Button(frame, text="Perform test identifiability", command= lambda: testIdentifiability(master, draw), height = 1, width=20, bg="purple").pack(padx=2, pady=2)
+    Button(frame, text="Find shortest path", command= lambda: find_path(draw,master), height = 1, width=20, bg="purple").pack(padx=2, pady=2)
+    Button(frame, text="Find disjoint path", command= lambda: paint_disjoint_path(draw,master), height = 1, width=20, bg="purple").pack(padx=2, pady=2)
+    Button(frame, text="Create minimum tree", command= lambda: draw_tree(draw,master), height = 1, width=20, bg="purple").pack(padx=2, pady=2)
+    Button(frame, text="merge maximum tree", command= lambda: find_maximum_tree(draw,master), height = 1, width=20, bg="purple").pack(padx=2, pady=2)
+    Button(frame, text="Immersion", command= lambda: Immersion_call(master, draw), height = 1, width=20, bg="purple").pack(padx=2, pady=2)
+    Button(frame, text="Make group", command= lambda: makeGroup(draw,master), height = 1, width=20, bg="purple").pack(padx=2, pady=2)
+    Button(frame, text="Remove group", command= lambda: removeGroup(draw,master), height = 1, width=20, bg="purple").pack(padx=2, pady=2)
+
     #in reload every button or Checkbox is stored which is reloaded on calling reloadCall when currentAmountOutputSelected > 1
+    #check if correct commit information
     reload = [
-    Button(frame, text="toggle transfer known", command= lambda: toggleTransfer(master, draw), height = 1, width=20),
-    Button(frame, text="toggle transfer pms", command= lambda: PMSTransfer(master, draw), height = 1, width=20),
-    Button(frame, text="remove node", command= lambda: removeOutput(draw, master), height = 1, width=20),
-    Button(frame, text="add external excitation", command= lambda: addNHCall(master, draw,1), height = 1, width=20),
-    Button(frame, text="remove external excitation", command= lambda: removeNH(draw,master,1), height = 1, width=20),
-    Button(frame, text="add noise", command= lambda: addNHCall(master, draw,0), height = 1, width=20),
-    Button(frame, text="remove noise", command= lambda: removeNH(draw,master,0), height = 1, width=20),
-    Button(frame, text="Make unknown", command= lambda: makeunknown(master, draw), height = 1, width=20),
+    Button(frame, text="toggle transfer known", command= lambda: toggleTransfer(master, draw), height = 1, width=20, bg="yellow"),
+    Button(frame, text="toggle transfer pms", command= lambda: PMSTransfer(master, draw), height = 1, width=20, bg="yellow"),
+    Button(frame, text="remove node", command= lambda: removeOutput(draw, master), height = 1, width=20, bg="yellow"),
+    Button(frame, text="add external excitation", command= lambda: addNHCall(master, draw,1), height = 1, width=20, bg="yellow"),
+    Button(frame, text="remove external excitation", command= lambda: removeNH(draw,master,1), height = 1, width=20, bg="yellow"),
+    Button(frame, text="add noise", command= lambda: addNHCall(master, draw,0), height = 1, width=20, bg="yellow"),
+    Button(frame, text="remove noise", command= lambda: removeNH(draw,master,0), height = 1, width=20, bg="yellow"),
+    Button(frame, text="Make unknown", command= lambda: makeunknown(master, draw), height = 1, width=20, bg="yellow"),
     Checkbutton(frame, text="excitation measurable", height = 1, width=20),
     Checkbutton(frame, text="noise measurable", height = 1, width=20),
     Checkbutton(frame, text="Blue", height = 1, width=20),
@@ -489,6 +492,24 @@ def switchView(draw, master):
                 storeNH = NH
 
                 currentView = 0
+
+#this is the callback function for when the dropbox of views is changed and the corresponding view is here updated
+def viewCall(*args):
+    print("Updating view!")
+    currentMode = viewMethod.get()
+    print(currentMode)
+    if(currentMode=="Detail view"):
+        plotMatrix(draw,master,0)
+        print("test")
+    elif(currentMode=="Noise view"):
+        plotNoise(draw,master)
+    elif(currentMode=="Abstract view"):
+        #if in noise mode first go to detail view and the change to abstract
+        if(overlay==1):
+            plotMatrix(draw,master,0)
+        switchView(draw,master)
+
+
 """
 Below we have the subsection of:
 
@@ -2428,10 +2449,19 @@ layout1 = [
 "USC"
 ]
 
+views = [
+"Noise view",
+"Abstract view",
+"Detail view"
+]
+
 layoutMethod = StringVar(master)
 layoutMethod.set(layout[1])
 layoutMethod1 = StringVar(master)
 layoutMethod1.set(layout1[0])
+viewMethod = StringVar(master)
+viewMethod.set(views[1])
+viewMethod.trace("w",viewCall)
 
 #bind functions to events
 initMainMenu(mainMenu, draw)
