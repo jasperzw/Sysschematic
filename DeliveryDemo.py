@@ -95,13 +95,13 @@ def initSubMenu(frame):
     Button(frame, text="Create minimum tree", command= lambda: draw_tree(draw,master), height = 1, width=20).pack(padx=2, pady=2)
     Button(frame, text="merge maximum tree", command= lambda: find_maximum_tree(draw,master), height = 1, width=20).pack(padx=2, pady=2)
     Button(frame, text="Immersion", command= lambda: Immersion_call(master, draw), height = 1, width=20).pack(padx=2, pady=2)
+    Button(frame, text="Make group", command= lambda: makeGroup(draw,master), height = 1, width=20)
+    Button(frame, text="Remove group", command= lambda: removeGroup(draw,master), height = 1, width=20)
     #in reload every button or Checkbox is stored which is reloaded on calling reloadCall when currentAmountOutputSelected > 1
     reload = [
     Button(frame, text="toggle transfer known", command= lambda: toggleTransfer(master, draw), height = 1, width=20),
     Button(frame, text="toggle transfer pms", command= lambda: PMSTransfer(master, draw), height = 1, width=20),
     Button(frame, text="remove node", command= lambda: removeOutput(draw, master), height = 1, width=20),
-    Button(frame, text="Make group", command= lambda: makeGroup(draw,master), height = 1, width=20),
-    Button(frame, text="Remove group", command= lambda: removeGroup(draw,master), height = 1, width=20),
     Button(frame, text="add external excitation", command= lambda: addNHCall(master, draw,1), height = 1, width=20),
     Button(frame, text="remove external excitation", command= lambda: removeNH(draw,master,1), height = 1, width=20),
     Button(frame, text="add noise", command= lambda: addNHCall(master, draw,0), height = 1, width=20),
