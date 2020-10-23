@@ -626,7 +626,7 @@ def addNHCall(master, draw,NorH):
         call = popupWindow(master)
         master.wait_window(call.top)
         node = 0
-        nmb = call.value
+        nmb = str(int(call.value)-1)
     #find output which is selected and save it to node
 
         for x in range(outputNumber):
