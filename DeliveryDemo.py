@@ -7,7 +7,7 @@ from matrix import loadMatrixEditor
 from Scrollwindow import *
 from node import removeNodeCall
 from noise import addNoiseNodeCall, selectNoiseNodeCall, removeNoiseNodeCall
-#from matlabCaller import test_identifiability_caller
+from matlabCaller import test_identifiability_caller
 import numpy as np
 import networkx as nx
 import copy
@@ -54,7 +54,7 @@ unknownNodenumber = 0
 newPathColor = 0
 currentGroup = 1
 fancyColor = COLORS
-#fancyColor = ["green","yellow","orange","blue","cyan","dark sea green","khaki","lightSteelBlue1","pink","lime","black"]
+smallColorUsage = ["green","yellow","orange","blue","cyan","dark sea green","khaki","lightSteelBlue1","pink","lime","black"]
 treeStore = []
 
 class nodeHolder():
@@ -173,6 +173,7 @@ def testIdentifiability(master,draw):
     NR = []
     NH = []
     KnownNodes = []
+    adjG, adjR, adjH, unknown = toAdjacencyMatrix(draw,master)
     #set everything first to zero
     print("test: ",noiseNumber)
     for x in range(outputNumber):
@@ -181,17 +182,16 @@ def testIdentifiability(master,draw):
             new.append(0)
         NG.append(new)
         new = []
-        if(noiseNumber!=0):
-            for y in range(noiseNumber):
+        if(outputNumber!=0):
+            for y in range(outputNumber):
                 new.append(0)
         NH.append(new)
         new = []
-        if(excitationNumber!=0):
-            for y in range(excitationNumber):
+        if(outputNumber!=0):
+            for y in range(outputNumber):
                 new.append(0)
         NR.append(new)
         KnownNodes.append(0)
-
     #run the above functions to generate a corresponding NG NR and NH matrix which we then fill with the measurable signals
 
     for x in range(number_of_nodes):
@@ -214,8 +214,6 @@ def testIdentifiability(master,draw):
                         print("set noise to high")
 
     #check each node if they have the nosie or excitation measurable selected and the note that in the NH and NR matrix
-
-    adjG, adjR, adjH, unknown = toAdjacencyMatrix(draw,master)
 
     replaceH = []
     for x in range(len(adjH)):
@@ -241,11 +239,14 @@ def testIdentifiability(master,draw):
     identifiability, identifiability_nodes, identifiability_modules = test_identifiability_caller(adjG,adjR,adjH,NG,NR,NH)
 
     print("found the following")
-    print("NG matrix: ",identifiability)
+    print("full Indentifiability: ",identifiability)
     print("--------------------------------------------------------------------------------------")
-    print("NR matrix: ",identifiability_nodes)
+    print("Identifiable nodes: ",identifiability_nodes)
     print("--------------------------------------------------------------------------------------")
-    print("NH matrix: ",identifiability_modules)
+    print("indentifiable modules: ")
+    for n in identifiability_modules:
+        print(n)
+
     for x in range(len(identifiability_modules)):
         for y in range(len(identifiability_modules[0])):
             if(identifiability_modules[x][y]==1):
@@ -850,7 +851,7 @@ def find_path(draw,master):
     storeNG, storeNR, storeNH, Unknownnodes = toAdjacencyMatrix(draw,master)
     #putting all selected nodes in a list
     nodeSearchList = returnSelectedNodes()
-
+    scaleColor=round(479/len(storeNG))
     if(nodeSearchList[0][1].order>nodeSearchList[1][1].order):
         temp = nodeSearchList[0]
         nodeSearchList[0] = nodeSearchList[1]
@@ -867,12 +868,12 @@ def find_path(draw,master):
             if(lineStore[x]!=0):
                 #print("current i loop: ",i)
                 if(lineStore[x][1].nmb == path[i]+1 and lineStore[x][2].nmb == path[i+1]+1):
-                    draw.itemconfig(lineStore[x][0],fill=fancyColor[newPathColor])
+                    draw.itemconfig(lineStore[x][0],fill=smallColorUsage[newPathColor])
                     draw.itemconfig(lineStore[x][0],width=5)
-                    lineStore[x][4] = fancyColor[newPathColor]
+                    lineStore[x][4] = smallColorUsage[newPathColor]
                     #print("painted the path to goal")
         i += 1
-    newPathColor += 1
+    newPathColor += scaleColor
     deselectActiveNodes()
 
     #search the disjoint path for a group of nodes
@@ -893,6 +894,7 @@ def paint_disjoint_path(draw,master):
     print("found disconnected set", disconnected_set)
     print("found disjoint path:", path)
     cyclePath = len(path)
+    newPathColor = 0
     for f in range(cyclePath):
         dis = len(path[f])-1
         i = 0
@@ -901,18 +903,19 @@ def paint_disjoint_path(draw,master):
                 if(lineStore[x]!=0):
                     #we loop here through the list of all path and set each variable to a original color
                     if(lineStore[x][1].nmb == path[f][i]+1 and lineStore[x][2].nmb == path[f][i+1]+1):
-                        draw.itemconfig(lineStore[x][0],fill=fancyColor[newPathColor])
+                        draw.itemconfig(lineStore[x][0],fill=smallColorUsage[newPathColor])
                         draw.itemconfig(lineStore[x][0],width=5)
                         if(lineStore[x][5]=="arrow"):
                             draw.itemconfig(lineStore[x][0],width=10)
-                        lineStore[x][4] = fancyColor[newPathColor]
+                        print("color index:",newPathColor)
+                        lineStore[x][4] = smallColorUsage[newPathColor]
                         #print("painted the path to goal")
             i += 1
         newPathColor += 1
 
     for x in disconnected_set:
         if(outputStore[x]!=0):
-            draw.itemconfig(outputStore[x][0],fill="purple")
+            draw.itemconfig(outputStore[x][0],fill="green")
 
     deselectActiveNodes()
 
@@ -921,7 +924,9 @@ def draw_tree(draw,master):
     global treeStore
     toAdjacencyMatrix(draw,master)
     treeStore = []
-    i=10
+    scaleColor=round(479/len(storeNG))
+    i = scaleColor
+    #print("length colors: ",len(fancyColor))
     for x in outputStore:
         if x!=0:
             draw.itemconfig(x[0],fill=fancyColor[i])
@@ -929,7 +934,7 @@ def draw_tree(draw,master):
             for y in lineStore:
                 if y!=[] and y!=0:
                     if y[1] == x[1] and y[5]=="line":
-                        print("found line:",y[0],",",y[1].nmb,",",y[2].nmb,"for node",x[1].nmb)
+                        #print("found line:",y[0],",",y[1].nmb,",",y[2].nmb,"for node",x[1].nmb)
                         draw.itemconfig(y[0],fill=fancyColor[i])
                         for f in btnStore:
                             if f[1] == y[3]:
@@ -939,7 +944,7 @@ def draw_tree(draw,master):
             drawer = [i,x[1],[],lineDrawer,[]]
             #drawer looks like this drawer = [colorID,rootNode, passingNodes,linesInTree]
             treeStore.append(drawer)
-            i += 5
+            i += scaleColor
     #print("current generated treeStore:",treeStore)
 
     #tries to do all the merging so that we can create the maximum tree
@@ -987,7 +992,7 @@ def makeGroup(draw,master):
     groupList = returnSelectedNodes()
     for x in groupList:
         x[1].group += currentGroup
-        x[4] = fancyColor[currentGroup]
+        x[4] = fancyColor[currentGroup*100]
 
     saveSelectedNodes(groupList)
     currentGroup += 1
