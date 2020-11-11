@@ -1,6 +1,6 @@
 # Importing tkinter module
 from tkinter import *
-from matImport import readFile, toAdjacencyMatrixCall, generateGraph, graphShortestPath, graphDisjointPath, treeAllocation, mergeTree, saveToFile
+from matImport import readFile, toAdjacencyMatrixCall, generateGraph, graphShortestPath, graphDisjointPath, treeAllocation, mergeTree, saveToFile, haspath
 from tkinter.filedialog import askopenfilename
 import math
 from Scrollwindow import *
@@ -1190,6 +1190,39 @@ def USC(master,draw):
         if(outputStore[x]!=0):
             if(outputStore[x][1].stat==2 or outputStore[x][1].stat==4):
                 accessible[x] = 1
+    #Check if the input and output nodes are accessible
+    if(accessible[i]==0 or accessible[j]==0):
+        msg = "Input or output of target is not known"
+        popupmsg(msg)
+        return 0,0,0,0,False
+    #Check if the parallel and loop path condition holds for accessible nodes
+    parallel_path = False
+    loop_path = False
+    change = 1
+    NG_path = copy.deepcopy(NG_pms)
+    NG_path[j][i] = 0
+    for x in range(len(NG_pms)):
+        if(accessible[x] and x!=i and x!=j):
+            for y in range(len(NG_pms)):
+                NG_path[y][x] = 0
+    print("NG PATH:")
+    print(NG_path)
+    #check if there are parralel paths without the accessible nodes
+    nodeSearchList = [outputStore[i],outputStore[j]]
+    parralel_path = haspath(NG_path,nodeSearchList)
+    test = haspath(NG_path,[outputStore[8],outputStore[5]])
+    #check if there are loop paths without the accessible nodes
+    for x in range(len(NG_pms)):
+        if(NG_path[x][j]):
+            nodeSearchList = [outputStore[x],outputStore[i]]
+            path_loop = haspath(NG_path,nodeSearchList)
+            if(path_loop):
+                loop_path = True
+    if(loop_path or parallel_path):
+        msg = "Parallel or loop paths are not blocked"
+        popupmsg(msg)
+        return 0,0,0,0,False
+    #create D,Y,Q,Beta
     D = (np.zeros(len(NG_pms))).tolist()
     Y = (np.zeros(len(NG_pms))).tolist()
     Q = (np.zeros(len(NG_pms))).tolist()
