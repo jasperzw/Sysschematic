@@ -7,7 +7,7 @@ from matrix import loadMatrixEditor
 from Scrollwindow import *
 from node import removeNodeCall
 from noise import addNoiseNodeCall, selectNoiseNodeCall, removeNoiseNodeCall
-#from matlabCaller import test_identifiability_caller
+from matlabCaller import test_identifiability_caller
 import numpy as np
 import networkx as nx
 import copy
@@ -504,7 +504,7 @@ def viewCall(*args):
     if(currentMode=="Detail view"):
         if(currentView==0):
             switchView(draw,master)
-        else: 
+        else:
             plotMatrix(draw,master,0)
     elif(currentMode=="Noise view"):
         plotNoise(draw,master)
@@ -930,7 +930,7 @@ def draw_tree(draw,master):
                 if y!=[] and y!=0:
                     if y[1] == x[1] and y[5]=="line":
                         print("found line:",y[0],",",y[1].nmb,",",y[2].nmb,"for node",x[1].nmb)
-                        draw.itemconfig(y[0],fill=fancyColor[i])
+                        draw.itemconfig(y[0],fill="red")
                         for f in btnStore:
                             if f[1] == y[3]:
                                 draw.itemconfig(f[0],fill=fancyColor[i])
