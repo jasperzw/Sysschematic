@@ -58,10 +58,10 @@ class matrixWindow(object):
         self.NG = NG
         self.NR = NR
         self.NH = NH
-        self.bt = Button(top, text='Save', command=self.cleanup).grid(row=2, column=0)
-        self.NG = Button(top, text='NG', command= lambda: self.change(NG,1,top)).grid(row=2,column=1)
-        self.NR = Button(top, text='NR', command= lambda: self.change(NR,2,top)).grid(row=2,column=2)
-        self.NH = Button(top, text='NH', command= lambda: self.change(NH,3,top)).grid(row=2,column=3)
+        self.bt = Button(top, text='Save', command=self.cleanup).grid(row=2, column=0,pady=10)
+        self.NG = Button(top, text='NG', command= lambda: self.change(NG,1,top)).grid(row=2,column=1,pady=10)
+        self.NR = Button(top, text='NR', command= lambda: self.change(NR,2,top)).grid(row=2,column=2,pady=10)
+        self.NH = Button(top, text='NH', command= lambda: self.change(NH,3,top)).grid(row=2,column=3,pady=10)
 
     def change(self,adjMatrix,id,top):
         print("matrix: ",adjMatrix)
@@ -71,7 +71,7 @@ class matrixWindow(object):
 
     def loadCells(self,adjMatrix,top):
         self.ex = Excel(top, rows=len(adjMatrix), columns=len(adjMatrix[0]), width=6,matrix=adjMatrix)
-        self.ex.grid(row=1,sticky=W+E,columnspan=4)
+        self.ex.grid(row=1,sticky=W+E,columnspan=4,padx=10,pady=10)
 
     def cleanup(self):
         self.ex.show_cells()

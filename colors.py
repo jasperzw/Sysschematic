@@ -1,7 +1,4 @@
-COLORS  =['snow', 'ghost white', 'white smoke', 'gainsboro', 'floral white', 'old lace',
-'linen', 'antique white', 'papaya whip', 'blanched almond', 'bisque', 'peach puff',
-'navajo white', 'lemon chiffon', 'mint cream', 'azure', 'alice blue', 'lavender',
-'lavender blush', 'misty rose', 'dark slate gray', 'dim gray', 'slate gray',
+COLORS  =[
 'light slate gray', 'gray', 'light grey', 'midnight blue', 'navy', 'cornflower blue', 'dark slate blue',
 'slate blue', 'medium slate blue', 'light slate blue', 'medium blue', 'royal blue',  'blue',
 'dodger blue', 'deep sky blue', 'sky blue', 'light sky blue', 'steel blue', 'light steel blue',
