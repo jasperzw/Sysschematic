@@ -277,7 +277,7 @@ def treeAllocation(treeStore):
     return mergeMatrix
 
 #this function merges 2 trees and return the combined results
-def mergeTree(masterTree, slaveTree, checkID):
+def mergeTree(masterTree, slaveTree):
     tempUnit = []
     tempUnit.append(masterTree[0])
     tempUnit.append(masterTree[1])
@@ -309,7 +309,7 @@ def mergeTree(masterTree, slaveTree, checkID):
 
 #this functions combines 2 trees and then gives it to checkIfTree
 def checkMerge(unit,targetUnit):
-    tempUnit = mergeTree(unit, targetUnit,0)
+    tempUnit = mergeTree(unit, targetUnit)
 
     #now check if correct tree
     #print("checking tree:",unit[0],"as head merge with",targetUnit[0])

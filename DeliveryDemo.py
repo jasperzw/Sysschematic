@@ -962,7 +962,7 @@ def find_maximum_tree(draw,master):
             for y in x:
                 if y == 1 and found == 0:
                     #print("performed merge for:",masterTree,",",slaveTree)
-                    combindedTree = mergeTree(treeStore[masterTree],treeStore[slaveTree],1)
+                    combindedTree = mergeTree(treeStore[masterTree],treeStore[slaveTree])
                     if(len(combindedTree)==4):
                         combindedTree.append([0])
                     print(combindedTree)
@@ -993,20 +993,38 @@ def find_maximum_tree(draw,master):
 def internalTestIdentifiability(draw,master):
     global currentGroup
     totalHeadNodes = []
-    print(treeStore)
+    #print(treeStore)
     for x in treeStore:
-        print(x[1].nmb)
-        totalHeadNodes.append(x[1])
-        totalHeadNodes.extend(x[4])
+        #print(x[1].nmb)
+        for y in outputStore:
+            if y[1] == x[1] or y[1] == x[4]:
+                totalHeadNodes.append(y)
 
-    for x in totalHeadNodes:
-        x.group +=currentGroup
 
-    #saveSelectedNodes(totalHeadNodes)
-    currentGroup += 1
 
+    print(totalHeadNodes)
+
+    testIdentity = True
     #werk hier effe verder. Add de disjoint path for elke node in de grid.
+    for x in outputStore:
+        if x !=0:
+            incomingNodes = []
+            for line in lineStore:
+                if line:
+                    if line[2] == x[1]:
+                        for y in outputStore:
+                            if line[1] == y[1]:
+                                incomingNodes.append(y)
 
+        result = graphDisjointPath(storeNG,totalHeadNodes,incomingNodes,1)
+        if len(incomingNodes) > len(result):
+            print("incomingNodes:",len(incomingNodes)," found path:",len(result))
+            testIdentity = False
+        #print(len(result))
+
+    print("---------------------------------------")
+    print("- Network indentifiable: ",testIdentity)
+    print("---------------------------------------")
 
     #sets a set of nodes to a group
 def makeGroup(draw,master):
