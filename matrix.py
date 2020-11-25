@@ -1,16 +1,16 @@
 from tkinter import *
 
 class Excel(Frame):
-    def __init__(self, master, rows, columns, width, matrix):
+    def __init__(self, master, rows, columns, width, matrix, indicator):
         super().__init__(master)
         self.col = columns
         self.row = rows
 
         for i in range(columns):
-            self.make_entry(0, i+1, width, f'W{i+1}', False)
+            self.make_entry(0, i+1, width, f'{indicator}{i+1}', False)
 
         for row in range(rows):
-            self.make_entry(row+1, 0, 5, f'W{row+1}', False)
+            self.make_entry(row+1, 0, 5, f'w{row+1}', False)
 
             for column in range(columns):
                 self.make_entry(row+1, column+1, width, str(matrix[row][column]), True)
@@ -53,24 +53,24 @@ class matrixWindow(object):
         top=self.top=Toplevel(master)
         self.l=Label(top,text="Matrix editor")
         self.l.grid(row=0)
-        self.loadCells(NG,top)
+        self.loadCells(NG,top,'w')
         self.current = 1
         self.NG = NG
         self.NR = NR
         self.NH = NH
         self.bt = Button(top, text='Save', command=self.cleanup).grid(row=2, column=0,pady=10)
-        self.NG = Button(top, text='NG', command= lambda: self.change(NG,1,top)).grid(row=2,column=1,pady=10)
-        self.NR = Button(top, text='NR', command= lambda: self.change(NR,2,top)).grid(row=2,column=2,pady=10)
-        self.NH = Button(top, text='NH', command= lambda: self.change(NH,3,top)).grid(row=2,column=3,pady=10)
+        self.NG = Button(top, text='NG', command= lambda: self.change(NG,1,top,'w')).grid(row=2,column=1,pady=10)
+        self.NR = Button(top, text='NR', command= lambda: self.change(NR,2,top,'r')).grid(row=2,column=2,pady=10)
+        self.NH = Button(top, text='NH', command= lambda: self.change(NH,3,top,'e')).grid(row=2,column=3,pady=10)
 
-    def change(self,adjMatrix,id,top):
+    def change(self,adjMatrix,id,top,indicator):
         print("matrix: ",adjMatrix)
         self.ex.pack_forget()
-        self.loadCells(adjMatrix,top)
+        self.loadCells(adjMatrix,top,indicator)
         self.current = id
 
-    def loadCells(self,adjMatrix,top):
-        self.ex = Excel(top, rows=len(adjMatrix), columns=len(adjMatrix[0]), width=6,matrix=adjMatrix)
+    def loadCells(self,adjMatrix,top,indicator):
+        self.ex = Excel(top, rows=len(adjMatrix), columns=len(adjMatrix[0]), width=6,matrix=adjMatrix, indicator=indicator)
         self.ex.grid(row=1,sticky=W+E,columnspan=4,padx=10,pady=10)
 
     def cleanup(self):

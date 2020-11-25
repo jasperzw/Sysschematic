@@ -926,7 +926,7 @@ def draw_tree(draw,master):
     global treeStore
     toAdjacencyMatrix(draw,master)
     treeStore = []
-    scaleColor=round(450/len(storeNG))
+    scaleColor=round((len(fancyColor)-10)/len(storeNG))
     i = scaleColor
     #print("length colors: ",len(fancyColor))
     for x in outputStore:
@@ -1045,7 +1045,12 @@ def internalTestIdentifiability(draw,master):
     print("final result")
     for m in minimalNodes:
         print(m[1].nmb)
+        addNH(m,master,draw,1,m[1].nmb-1)
     #sets a set of nodes to a group
+    #add a excitation signal to these nodes
+     
+
+
 def makeGroup(draw,master):
     global currentGroup
     print("setting the currentGroup: ", currentGroup)

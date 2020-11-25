@@ -1,7 +1,4 @@
-COLORS  =[
-'light slate gray', 'gray', 'light grey', 'midnight blue', 'navy', 'cornflower blue', 'dark slate blue',
-'slate blue', 'medium slate blue', 'light slate blue', 'medium blue', 'royal blue',  'blue',
-'dodger blue', 'deep sky blue', 'sky blue', 'light sky blue', 'steel blue', 'light steel blue',
+COLORS  =['sky blue', 'light sky blue', 'steel blue', 'light steel blue',
 'light blue', 'powder blue', 'pale turquoise', 'dark turquoise', 'medium turquoise', 'turquoise',
 'cyan', 'light cyan', 'cadet blue', 'medium aquamarine', 'aquamarine', 'dark green', 'dark olive green',
 'dark sea green', 'sea green', 'medium sea green', 'light sea green', 'pale green', 'spring green',
