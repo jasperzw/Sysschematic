@@ -66,14 +66,13 @@ class nodeHolder():
 def initMainMenu(frame, canvas):
 
     #column 0
-    Button(frame, text="load .mat file", command= lambda: loadMat(draw, master), height = 1, width=20, bg="red").grid(row=0, padx=2, pady=2)
-    Button(frame, text="export .mat file", command= lambda: toFile(draw, master), height = 1, width=20, bg="red").grid(row=1, padx=2, pady=2)
-    #Button(frame, text="Options", height = 1, width=20, bg="red").grid(row=2, column=0, padx=2, pady=2)
-
+    Button(frame, text="load .mat file", command= lambda: loadMat(draw, master), height = 1, width=20).grid(row=0, padx=2, pady=2)
+    Button(frame, text="export .mat file", command= lambda: toFile(draw, master), height = 1, width=20).grid(row=1, padx=2, pady=2)
+    Button(frame, text="change node view", command= lambda: switchView(draw, master), height = 1, width=20).grid(row=2, padx=2, pady=2)
 
     #column 1
-    #Button(frame, text="change node view", command= lambda: switchView(draw, master), height = 1, width=20, bg="blue").grid(row=0, column=1, padx=2, pady=2)
-    Button(frame, text="Clear window", command= lambda: clearWindow(canvas,1), height = 1, width=20, bg="blue").grid(row=0, column=1, padx=2, pady=2)
+    Button(frame, text="Options", height = 1, width=20).grid(row=0, column=1, padx=2, pady=2)
+    Button(frame, text="Clear window", command= lambda: clearWindow(canvas,1), height = 1, width=20).grid(row=2, column=1, padx=2, pady=2)
 
     #column 2
     #Button(frame, text="load noise view", command= lambda: plotNoise(draw,master), height = 1, width=20, bg="blue").grid(row=0, column=2, padx=2, pady=2)
@@ -81,8 +80,6 @@ def initMainMenu(frame, canvas):
     Button(frame, text="change line view", command= lambda: Dashed_line(draw,master), height = 1, width=20, bg="blue").grid(row=0, column=2, padx=2, pady=2)
     Button(frame, text="PMS", command= lambda: PMS_option(draw,master), height = 1, width=20, bg="purple").grid(row=1, column=2, padx=2, pady=2)
     Button(frame, text="Matrix editor", command= lambda: editorCaller(), height = 1, width=20, bg="purple").grid(row=2, column=2, padx=2, pady=2)
-
-
 
     #column 3
     OptionMenu(frame, viewMethod, *views).grid(row=0, column=3)
@@ -634,7 +631,7 @@ def addNHCall(master, draw,NorH):
         call = popupWindow(master)
         master.wait_window(call.top)
         node = 0
-        nmb = call.value
+        nmb = str(int(call.value)-1)
     #find output which is selected and save it to node
 
         for x in range(outputNumber):
@@ -1265,6 +1262,39 @@ def USC(master,draw):
         if(outputStore[x]!=0):
             if(outputStore[x][1].stat==2 or outputStore[x][1].stat==4):
                 accessible[x] = 1
+    #Check if the input and output nodes are accessible
+    if(accessible[i]==0 or accessible[j]==0):
+        msg = "Input or output of target is not known"
+        popupmsg(msg)
+        return 0,0,0,0,False
+    #Check if the parallel and loop path condition holds for accessible nodes
+    parallel_path = False
+    loop_path = False
+    change = 1
+    NG_path = copy.deepcopy(NG_pms)
+    NG_path[j][i] = 0
+    for x in range(len(NG_pms)):
+        if(accessible[x] and x!=i and x!=j):
+            for y in range(len(NG_pms)):
+                NG_path[y][x] = 0
+    print("NG PATH:")
+    print(NG_path)
+    #check if there are parralel paths without the accessible nodes
+    nodeSearchList = [outputStore[i],outputStore[j]]
+    parralel_path = haspath(NG_path,nodeSearchList)
+    test = haspath(NG_path,[outputStore[8],outputStore[5]])
+    #check if there are loop paths without the accessible nodes
+    for x in range(len(NG_pms)):
+        if(NG_path[x][j]):
+            nodeSearchList = [outputStore[x],outputStore[i]]
+            path_loop = haspath(NG_path,nodeSearchList)
+            if(path_loop):
+                loop_path = True
+    if(loop_path or parallel_path):
+        msg = "Parallel or loop paths are not blocked"
+        popupmsg(msg)
+        return 0,0,0,0,False
+    #create D,Y,Q,Beta
     D = (np.zeros(len(NG_pms))).tolist()
     Y = (np.zeros(len(NG_pms))).tolist()
     Q = (np.zeros(len(NG_pms))).tolist()
