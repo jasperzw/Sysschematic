@@ -1209,8 +1209,7 @@ def USC(master,draw):
     print(NG_path)
     #check if there are parralel paths without the accessible nodes
     nodeSearchList = [outputStore[i],outputStore[j]]
-    parralel_path = haspath(NG_path,nodeSearchList)
-    test = haspath(NG_path,[outputStore[8],outputStore[5]])
+    parallel_path = haspath(NG_path,nodeSearchList)    
     #check if there are loop paths without the accessible nodes
     for x in range(len(NG_pms)):
         if(NG_path[x][j]):
