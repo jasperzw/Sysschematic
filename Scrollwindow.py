@@ -134,7 +134,8 @@ def reloadCall(subMenu,reload,currentAmountOutputSelected,selectedNode):
             reload[x].pack(padx=2, pady=2)
         for x in range(5):
             x += 8
-            print(selectedNode.nodeMode[x-10].get())
-            reload[x].configure(variable=selectedNode.nodeMode[x-10])
+            print(selectedNode.nodeMode[x-8].get())
+            reload[x].configure(variable=selectedNode.nodeMode[x-8])
+            #print("call: ",selectedNode.nodeMode[x-8].get())
             reload[x].pack(padx=2, pady=2)
         reloadStatus = 1

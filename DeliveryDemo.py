@@ -3,6 +3,7 @@ from tkinter import *
 from matImport import readFile, toAdjacencyMatrixCall, generateGraph, graphShortestPath, graphDisjointPath, treeAllocation, mergeTree, saveToFile
 from tkinter.filedialog import askopenfilename
 import math
+from matrix import loadMatrixEditor
 from Scrollwindow import *
 from node import removeNodeCall
 from noise import addNoiseNodeCall, selectNoiseNodeCall, removeNoiseNodeCall
@@ -21,7 +22,8 @@ the noise store has an extra entry which comes down to [windowsId, WidgetObject,
 tempStore follows [widgetId, objectId1, objectId2] object 1 en object 2 is the objects between which the line is connected
 widgetId is what you call to remove it from the canvas in draw.delete(widgetId)
 
-lineStore[x][1] and lineStore[x][2] are the modules connected by the line and lineStore[x][3] is the transfer
+lineStore[x][1] and lineStore[x][2] are the modules connected by the line and lineStore[x][3] is the transfer:
+linestore[x] = [widgetID,nodeFromObject,nodeToObject,button,color,lineOrArrow]
 """
 number_of_nodes = 0
 btnStore = []
@@ -53,7 +55,7 @@ unknownNodenumber = 0
 newPathColor = 0
 currentGroup = 1
 fancyColor = COLORS
-#fancyColor = ["green","yellow","orange","blue","cyan","dark sea green","khaki","lightSteelBlue1","pink","lime","black"]
+smallColorUsage = ["green","yellow","orange","blue","cyan","dark sea green","khaki","lightSteelBlue1","pink","lime","black"]
 treeStore = []
 
 class nodeHolder():
@@ -73,16 +75,15 @@ def initMainMenu(frame, canvas):
     Button(frame, text="Clear window", command= lambda: clearWindow(canvas,1), height = 1, width=20).grid(row=2, column=1, padx=2, pady=2)
 
     #column 2
-    Button(frame, text="load noise view", command= lambda: plotNoise(draw,master), height = 1, width=20).grid(row=0, column=2, padx=2, pady=2)
-    Button(frame, text="load transfer view", command= lambda: plotMatrix(draw,master,0), height = 1, width=20).grid(row=1, column=2, padx=2, pady=2)
-    Button(frame, text="change line view", command= lambda: Dashed_line(draw,master), height = 1, width=20).grid(row=2, column=2, padx=2, pady=2)
-
-
+    #Button(frame, text="load noise view", command= lambda: plotNoise(draw,master), height = 1, width=20, bg="blue").grid(row=0, column=2, padx=2, pady=2)
+    #Button(frame, text="load transfer view", command= lambda: plotMatrix(draw,master,0), height = 1, width=20, bg="blue").grid(row=1, column=2, padx=2, pady=2)
+    Button(frame, text="change line view", command= lambda: Dashed_line(draw,master), height = 1, width=20, bg="blue").grid(row=0, column=2, padx=2, pady=2)
+    Button(frame, text="PMS", command= lambda: PMS_option(draw,master), height = 1, width=20, bg="purple").grid(row=1, column=2, padx=2, pady=2)
+    Button(frame, text="Matrix editor", command= lambda: editorCaller(), height = 1, width=20, bg="purple").grid(row=2, column=2, padx=2, pady=2)
 
     #column 3
     OptionMenu(frame, viewMethod, *views).grid(row=0, column=3)
     OptionMenu(frame, layoutMethod, *layout).grid(row=1, column=3)
-    Button(frame, text="PMS", command= lambda: PMS_option(draw,master), height = 1, width=20, bg="purple").grid(row=1, column=2, padx=2, pady=2)
     OptionMenu(frame, layoutMethod1, *layout1).grid(row=2, column=3)
 #same as main menu initializes the submenu
 def initSubMenu(frame):
@@ -98,6 +99,7 @@ def initSubMenu(frame):
     Button(frame, text="Immersion", command= lambda: Immersion_call(master, draw), height = 1, width=20, bg="purple").pack(padx=2, pady=2)
     Button(frame, text="Make group", command= lambda: makeGroup(draw,master), height = 1, width=20, bg="purple").pack(padx=2, pady=2)
     Button(frame, text="Remove group", command= lambda: removeGroup(draw,master), height = 1, width=20, bg="purple").pack(padx=2, pady=2)
+    Button(frame, text="internal identifiability test", command= lambda: internalTestIdentifiability(draw,master), height = 1, width=20, bg="purple").pack(padx=2, pady=2)
 
     #in reload every button or Checkbox is stored which is reloaded on calling reloadCall when currentAmountOutputSelected > 1
     #check if correct commit information
@@ -170,6 +172,7 @@ def testIdentifiability(master,draw):
     NR = []
     NH = []
     KnownNodes = []
+    adjG, adjR, adjH, unknown = toAdjacencyMatrix(draw,master)
     #set everything first to zero
     print("test: ",noiseNumber)
     for x in range(outputNumber):
@@ -178,17 +181,16 @@ def testIdentifiability(master,draw):
             new.append(0)
         NG.append(new)
         new = []
-        if(noiseNumber!=0):
-            for y in range(noiseNumber):
+        if(outputNumber!=0):
+            for y in range(outputNumber):
                 new.append(0)
         NH.append(new)
         new = []
-        if(excitationNumber!=0):
-            for y in range(excitationNumber):
+        if(outputNumber!=0):
+            for y in range(outputNumber):
                 new.append(0)
         NR.append(new)
         KnownNodes.append(0)
-
     #run the above functions to generate a corresponding NG NR and NH matrix which we then fill with the measurable signals
 
     for x in range(number_of_nodes):
@@ -211,8 +213,6 @@ def testIdentifiability(master,draw):
                         print("set noise to high")
 
     #check each node if they have the nosie or excitation measurable selected and the note that in the NH and NR matrix
-
-    adjG, adjR, adjH, unknown = toAdjacencyMatrix(draw,master)
 
     replaceH = []
     for x in range(len(adjH)):
@@ -238,11 +238,14 @@ def testIdentifiability(master,draw):
     identifiability, identifiability_nodes, identifiability_modules = test_identifiability_caller(adjG,adjR,adjH,NG,NR,NH)
 
     print("found the following")
-    print("NG matrix: ",identifiability)
+    print("full Indentifiability: ",identifiability)
     print("--------------------------------------------------------------------------------------")
-    print("NR matrix: ",identifiability_nodes)
+    print("Identifiable nodes: ",identifiability_nodes)
     print("--------------------------------------------------------------------------------------")
-    print("NH matrix: ",identifiability_modules)
+    print("indentifiable modules: ")
+    for n in identifiability_modules:
+        print(n)
+
     for x in range(len(identifiability_modules)):
         for y in range(len(identifiability_modules[0])):
             if(identifiability_modules[x][y]==1):
@@ -499,8 +502,10 @@ def viewCall(*args):
     currentMode = viewMethod.get()
     print(currentMode)
     if(currentMode=="Detail view"):
-        plotMatrix(draw,master,0)
-        print("test")
+        if(currentView==0):
+            switchView(draw,master)
+        else:
+            plotMatrix(draw,master,0)
     elif(currentMode=="Noise view"):
         plotNoise(draw,master)
     elif(currentMode=="Abstract view"):
@@ -845,7 +850,7 @@ def find_path(draw,master):
     storeNG, storeNR, storeNH, Unknownnodes = toAdjacencyMatrix(draw,master)
     #putting all selected nodes in a list
     nodeSearchList = returnSelectedNodes()
-
+    scaleColor=round(479/len(storeNG))
     if(nodeSearchList[0][1].order>nodeSearchList[1][1].order):
         temp = nodeSearchList[0]
         nodeSearchList[0] = nodeSearchList[1]
@@ -862,12 +867,12 @@ def find_path(draw,master):
             if(lineStore[x]!=0):
                 #print("current i loop: ",i)
                 if(lineStore[x][1].nmb == path[i]+1 and lineStore[x][2].nmb == path[i+1]+1):
-                    draw.itemconfig(lineStore[x][0],fill=fancyColor[newPathColor])
+                    draw.itemconfig(lineStore[x][0],fill=smallColorUsage[newPathColor])
                     draw.itemconfig(lineStore[x][0],width=5)
-                    lineStore[x][4] = fancyColor[newPathColor]
+                    lineStore[x][4] = smallColorUsage[newPathColor]
                     #print("painted the path to goal")
         i += 1
-    newPathColor += 1
+    newPathColor += scaleColor
     deselectActiveNodes()
 
     #search the disjoint path for a group of nodes
@@ -888,6 +893,7 @@ def paint_disjoint_path(draw,master):
     print("found disconnected set", disconnected_set)
     print("found disjoint path:", path)
     cyclePath = len(path)
+    newPathColor = 0
     for f in range(cyclePath):
         dis = len(path[f])-1
         i = 0
@@ -896,18 +902,19 @@ def paint_disjoint_path(draw,master):
                 if(lineStore[x]!=0):
                     #we loop here through the list of all path and set each variable to a original color
                     if(lineStore[x][1].nmb == path[f][i]+1 and lineStore[x][2].nmb == path[f][i+1]+1):
-                        draw.itemconfig(lineStore[x][0],fill=fancyColor[newPathColor])
+                        draw.itemconfig(lineStore[x][0],fill=smallColorUsage[newPathColor])
                         draw.itemconfig(lineStore[x][0],width=5)
                         if(lineStore[x][5]=="arrow"):
                             draw.itemconfig(lineStore[x][0],width=10)
-                        lineStore[x][4] = fancyColor[newPathColor]
+                        print("color index:",newPathColor)
+                        lineStore[x][4] = smallColorUsage[newPathColor]
                         #print("painted the path to goal")
             i += 1
         newPathColor += 1
 
     for x in disconnected_set:
         if(outputStore[x]!=0):
-            draw.itemconfig(outputStore[x][0],fill="purple")
+            draw.itemconfig(outputStore[x][0],fill="green")
 
     deselectActiveNodes()
 
@@ -916,10 +923,12 @@ def draw_tree(draw,master):
     global treeStore
     toAdjacencyMatrix(draw,master)
     treeStore = []
-    i=10
+    scaleColor=round((len(fancyColor)-10)/len(storeNG))
+    i = scaleColor
+    #print("length colors: ",len(fancyColor))
     for x in outputStore:
         if x!=0:
-            draw.itemconfig(x[0],fill=fancyColor[i])
+            draw.itemconfig(x[0],fill=fancyColor[i+3])
             lineDrawer = []
             for y in lineStore:
                 if y!=[] and y!=0:
@@ -934,7 +943,7 @@ def draw_tree(draw,master):
             drawer = [i,x[1],[],lineDrawer,[]]
             #drawer looks like this drawer = [colorID,rootNode, passingNodes,linesInTree]
             treeStore.append(drawer)
-            i += 5
+            i += scaleColor
     #print("current generated treeStore:",treeStore)
 
     #tries to do all the merging so that we can create the maximum tree
@@ -951,16 +960,19 @@ def find_maximum_tree(draw,master):
                 if y == 1 and found == 0:
                     #print("performed merge for:",masterTree,",",slaveTree)
                     combindedTree = mergeTree(treeStore[masterTree],treeStore[slaveTree])
-                    #print(combindedTree)
+                    if(len(combindedTree)==4):
+                        combindedTree.append([0])
+                    print(combindedTree)
                     for x in outputStore:
                         if x!=0:
-                            if x[1] == combindedTree[1]:
+                            if x[1] == combindedTree[1] or x[1] in combindedTree[4]:
                                 #print("tried colloring the nodes:",x)
-                                draw.itemconfig(x[0],fill=fancyColor[combindedTree[0]])
-                            for y in combindedTree[2]:
-                                if x[1] == y:
-                                    #print("tried colloring the nodes:",x)
-                                    draw.itemconfig(x[0],fill=fancyColor[combindedTree[0]])
+                                draw.itemconfig(x[0],fill=fancyColor[combindedTree[0]+3])
+                            else:
+                                for y in combindedTree[2]:
+                                    if x[1] == y:
+                                        #print("tried colloring the nodes:",x)
+                                        draw.itemconfig(x[0],fill=fancyColor[combindedTree[0]])
 
                     for x in combindedTree[3]:
                         draw.itemconfig(x[0],fill=fancyColor[combindedTree[0]])
@@ -975,14 +987,74 @@ def find_maximum_tree(draw,master):
         if found == 0:
             stat = 0
 
+def internalTestIdentifiability(draw,master):
+    global currentGroup
+    totalHeadNodes = []
+
+    for x in treeStore:
+        #print(x[1].nmb)
+        for y in outputStore:
+            if y[1] == x[1] or y[1] in x[4]:
+                totalHeadNodes.append(y)
+
+
+    minimalNodes = []
+    for m in totalHeadNodes:
+        minimalNodes.append(m)
+
+    
+    #2 not in headnodes Fix dit
+    #werk hier effe verder. Add de disjoint path for elke node in de grid.
+    print("start performing network checks")
+    for node in totalHeadNodes:
+        testIdentity = True
+        print("removing ", node[1].nmb)
+        minimalNodes.remove(node)
+        for s in totalHeadNodes:
+            print(s[1].nmb)
+        for x in outputStore:
+            if x !=0:
+                incomingNodes = []
+                for line in lineStore:
+                    if line:
+                        if line[2] == x[1] and line[5] == "line":
+                            #print("found for ",x[1].nmb," the following neighbour",line)
+                            for y in outputStore:
+                                if line[1] == y[1]:
+                                    incomingNodes.append(y)
+
+            result = graphDisjointPath(storeNG,minimalNodes,incomingNodes,1)
+            if len(incomingNodes) > len(result):
+                #print("incomingNodes:",incomingNodes," found path:",len(result))
+                testIdentity = False
+            #print(len(result))
+
+        print("---------------------------------------")
+        print("- Network indentifiable: ",testIdentity)
+        print("---------------------------------------")
+
+        if(testIdentity == False):
+            minimalNodes.append(node)
+            print("adding back", node[1].nmb)
+        else:
+            print(node[1].nmb, "not needed")
+
+    print("final result")
+    for m in minimalNodes:
+        print(m[1].nmb)
+        addNH(m,master,draw,1,m[1].nmb-1)
     #sets a set of nodes to a group
+    #add a excitation signal to these nodes
+     
+
+
 def makeGroup(draw,master):
     global currentGroup
     print("setting the currentGroup: ", currentGroup)
     groupList = returnSelectedNodes()
     for x in groupList:
         x[1].group += currentGroup
-        x[4] = fancyColor[currentGroup]
+        x[4] = fancyColor[currentGroup*100]
 
     saveSelectedNodes(groupList)
     currentGroup += 1
@@ -2494,6 +2566,20 @@ layoutMethod1.set(layout1[0])
 viewMethod = StringVar(master)
 viewMethod.set(views[1])
 viewMethod.trace("w",viewCall)
+
+def editorCaller():
+    global storeNG
+    global storeNR
+    global storeNH
+    global currentView
+    NG, NR, NH = loadMatrixEditor(master,storeNG,storeNR,storeNH)
+    clearWindow(draw,1)
+    storeNR = NR
+    storeNG = NG
+    storeNH = NH
+    currentView = 0
+    abstractPlot(draw,master,NG,NR,NH)
+    print("update matrix")
 
 #bind functions to events
 initMainMenu(mainMenu, draw)
