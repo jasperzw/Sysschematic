@@ -1,3 +1,3 @@
 #here you can write files or directories to not sync to github like _pycache_ and data folder content
 data/*
-_pycache__
+_pycache__/
